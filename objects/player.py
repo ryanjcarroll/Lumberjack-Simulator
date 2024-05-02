@@ -6,7 +6,7 @@ from utility import get_frames
 
 class Player(pg.sprite.Sprite):
     def __init__(self, game, x, y):
-        self.groups = game.sprite_list
+        self.groups = game.sprite_list, game.player_list
         pg.sprite.Sprite.__init__(self, self.groups)
         game.sprite_list.change_layer(self, PLAYER_LAYER)
 
@@ -37,6 +37,9 @@ class Player(pg.sprite.Sprite):
         self.update()
 
     def load_animations(self):
+        """
+        Load spritesheets and animation frames.
+        """
         # load spritesheet(s) for animations
         self.walk_spritesheet = pg.image.load("assets/spritesheets/axe_sprite_sheet.png")
 
@@ -83,8 +86,6 @@ class Player(pg.sprite.Sprite):
             self.angle = math.degrees(math.atan2(-movement.y, movement.x))
             self.rect.center = self.pos
             self.hitbox.center = self.pos
-
-        self.update_animation(self.game.dt)
 
     def get_movement(self, keys) -> vec:
         """
@@ -160,7 +161,7 @@ class Player(pg.sprite.Sprite):
         for tree in trees_hit:
             tree.take_damage(self.axe_damage / len(trees_hit))
 
-    def update_animation(self, dt):
+    def set_animation_counters(self, dt):
         """
         Increment the animation counters for axe swing and walking animations.
         """
@@ -182,6 +183,13 @@ class Player(pg.sprite.Sprite):
                 self.animation_timer = 0
 
     def update(self):
+        """
+        Called each game step to update the Player object.
+        """
+
+        self.check_keys()
+        self.set_animation_counters(self.game.dt)
+
         if self.action == "walk":
             # set the frame for walk animations
             self.image = self.frames[f"walk_{self.direction}"][self.current_frame_index]
