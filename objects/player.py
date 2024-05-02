@@ -11,12 +11,14 @@ class Player(pg.sprite.Sprite):
 
         self.game = game
 
-        # set player position and hitbox
+        # set player position, image, and hitbox
         self.pos = vec(x + TILE_SIZE/2, y + TILE_SIZE/2) # position the player in the center of its starting tile
-        self.rect_radius = 20
-        self.rect = pg.Rect(0, 0, self.rect_radius * 2, self.rect_radius * 2)
+        self.image = pg.image.load("assets/spritesheets/Walk Up.png")
+        self.rect = self.image.get_rect()
         self.rect.center = self.pos
         self.angle = 0
+        self.hitbox = PLAYER_HITBOX
+        self.hitbox.center = self.pos
 
         # set default values
         self.move_distance = PLAYER_MOVE_DISTANCE
@@ -30,7 +32,6 @@ class Player(pg.sprite.Sprite):
         self.action = "stand"
         self.animation_speed = PLAYER_ANIMATION_SPEED
         self.load_animations()
-
         # run an initial update to set the first frame of the spritesheet
         self.update()
 
@@ -81,15 +82,21 @@ class Player(pg.sprite.Sprite):
         movement = self.get_movement(keys)
 
         if movement.length_squared() > 0:
-            self.rect.center += movement
-            wall_collisions = pg.sprite.spritecollide(self, self.game.tree_list, False)
-            if wall_collisions:
-                # undo if would result in a wall collision
-                self.rect.center -= movement
+            self.hitbox.center += movement
+            
+            # wall_collisions = pg.sprite.spritecollide(self.hitbox, self.game.tree_list, False)
+            # if wall_collisions:
+            if any(self.hitbox.colliderect(tree.rect) for tree in self.game.tree_list):
+                # TODO some possible improvements here - we probably don't need to check EVERY tree for collision with the player
+                    # undo movement if it would result in a wall collision
+                    self.hitbox.center -= movement
             else:
                 self.pos += movement
+
             # always update angle, regardless of collision
             self.angle = math.degrees(math.atan2(-movement.y, movement.x))
+            self.rect.center = self.pos
+            self.hitbox.center = self.pos
 
         self.update_animation(self.game.dt)
 
@@ -99,10 +106,13 @@ class Player(pg.sprite.Sprite):
         """
         movement = vec(0, 0)
 
+        # if slash attack is ongoing, don't exceute any movements
+        if self.action == "slash":
+            return movement
+
         if keys[pg.K_SPACE]:
-            if self.action != "slash":
-                self.current_frame_index = -1 # restart the slash animation sequence for new inputs
-                self.action = "slash"
+            self.current_frame_index = -1 # start the slash animation sequence for new inputs
+            self.action = "slash"
             return movement
         
         if keys[pg.K_a] or keys[pg.K_LEFT]:
@@ -216,3 +226,4 @@ class Player(pg.sprite.Sprite):
         
         self.rect = self.image.get_rect(center=self.rect.center)
         self.rect.center = self.pos
+        self.hitbox.center = self.pos

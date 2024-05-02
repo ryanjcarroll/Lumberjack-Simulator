@@ -12,7 +12,7 @@ class Tree(pg.sprite.Sprite):
         self.image = pg.image.load("assets/tree.png")
         self.pos = vec(x + TILE_SIZE/2, y + TILE_SIZE/2)
         
-        self.rect_radius = 20
+        self.rect_radius = 45
         self.rect = pg.Rect(0, 0, self.rect_radius * 2, self.rect_radius * 2)
         self.rect.center = self.pos
 
