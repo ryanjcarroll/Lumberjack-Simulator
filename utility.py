@@ -18,3 +18,10 @@ def remove_padding_and_scale(sprite_image):
     scaled_image = pg.transform.scale(new_surface, (rect.width, rect.height))
 
     return scaled_image
+
+def extract_image_from_spritesheet(spritesheet, row_index, col_index, tile_size):
+    # Extract a single image from spritesheet
+    col_index *= tile_size
+    row_index *= tile_size
+    tile_rect = pg.Rect(col_index, row_index, tile_size, tile_size)
+    return spritesheet.subsurface(tile_rect)
