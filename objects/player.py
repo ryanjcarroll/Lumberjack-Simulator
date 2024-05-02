@@ -45,10 +45,10 @@ class Player(pg.sprite.Sprite):
             "slash_down":pg.transform.scale(pg.image.load("assets/spritesheets/Slash Down.png"), (72*5, 72)),
             "slash_left":pg.transform.scale(pg.image.load("assets/spritesheets/Slash Left.png"), (72*5, 72)),
             "slash_right":pg.transform.scale(pg.image.load("assets/spritesheets/Slash Right.png"), (72*5, 72)),
-            # "sword_up":pg.transform.scale(pg.image.load("assets/spritesheets/Sword Up.png"), (72*5, 72)),
-            # "sword_down":pg.transform.scale(pg.image.load("assets/spritesheets/Sword Down.png"), (72*5, 72)),
-            # "sword_left":pg.transform.scale(pg.image.load("assets/spritesheets/Sword Left.png"), (72*5, 72)),
-            # "sword_right":pg.transform.scale(pg.image.load("assets/spritesheets/Sword Right.png"), (72*5, 72)),
+            "sword_up":pg.transform.scale(pg.image.load("assets/spritesheets/Sword Up.png"), (72*5, 72)),
+            "sword_down":pg.transform.scale(pg.image.load("assets/spritesheets/Sword Down.png"), (72*5, 72)),
+            "sword_left":pg.transform.scale(pg.image.load("assets/spritesheets/Sword Left.png"), (72*5, 72)),
+            "sword_right":pg.transform.scale(pg.image.load("assets/spritesheets/Sword Right.png"), (72*5, 72)),
         }
         self.frames = {
             "walk_up":self.get_frames(12),
@@ -59,6 +59,10 @@ class Player(pg.sprite.Sprite):
             "slash_down":self.get_frames(5),
             "slash_left":self.get_frames(5),
             "slash_right":self.get_frames(5),
+            "sword_up":self.get_frames(5),
+            "sword_down":self.get_frames(5),
+            "sword_left":self.get_frames(5),
+            "sword_right":self.get_frames(5),
         }
 
     def get_frames(self, n:int):
@@ -74,23 +78,7 @@ class Player(pg.sprite.Sprite):
         """
         
         keys = pg.key.get_pressed()
-        movement = vec(0, 0)
-
-        if self.action != "slash": # don't accept new keyboard inputs while midway through a slash attack
-            if keys[pg.K_SPACE]:
-                self.current_frame_index = -1 # restart the slash animation sequence for new inputs
-                self.action = "slash"
-            elif keys[pg.K_a] or keys[pg.K_LEFT]:
-                movement.x -= self.move_distance
-            elif keys[pg.K_d] or keys[pg.K_RIGHT]:
-                movement.x += self.move_distance
-            elif keys[pg.K_w] or keys[pg.K_UP]:
-                movement.y -= self.move_distance
-            elif keys[pg.K_s] or keys[pg.K_DOWN]:
-                movement.y += self.move_distance
-            else:
-                # if no new inputs, reset action to standing still
-                self.action = "stand"
+        movement = self.get_movement(keys)
 
         if movement.length_squared() > 0:
             self.rect.center += movement
@@ -103,8 +91,55 @@ class Player(pg.sprite.Sprite):
             # always update angle, regardless of collision
             self.angle = math.degrees(math.atan2(-movement.y, movement.x))
 
-        self.update_animation(self.game.dt, movement)
+        self.update_animation(self.game.dt)
 
+    def get_movement(self, keys) -> vec:
+        """
+        Check for keyboard input, set action and direction, and return movement vector. 
+        """
+        movement = vec(0, 0)
+
+        if keys[pg.K_SPACE]:
+            if self.action != "slash":
+                self.current_frame_index = -1 # restart the slash animation sequence for new inputs
+                self.action = "slash"
+            return movement
+        
+        if keys[pg.K_a] or keys[pg.K_LEFT]:
+            movement.x -= self.move_distance
+        if keys[pg.K_d] or keys[pg.K_RIGHT]:
+            movement.x += self.move_distance
+        if keys[pg.K_w] or keys[pg.K_UP]:
+            movement.y -= self.move_distance
+        if keys[pg.K_s] or keys[pg.K_DOWN]:
+            movement.y += self.move_distance
+
+        # if no movement, set action to stand
+        if movement.length_squared() == 0:
+            self.action = "stand"
+            return movement
+
+        # normalize diagonal walking movements
+        if movement.length_squared() > PLAYER_MOVE_DISTANCE:
+            movement.normalize() * PLAYER_MOVE_DISTANCE
+            self.action = "walk"
+        # if horizontal/vertical movement, set the action
+        else:
+            self.action = "walk"
+
+        # for any walk, set the direction
+        # if moving diagonally, we want the L/R sprite animation instead of U/D
+        if movement.x > 0:
+            self.direction = "right"
+        elif movement.x < 0:
+            self.direction = "left"
+        elif movement.y > 0:
+            self.direction = "down"
+        elif movement.y < 0:
+            self.direction = "up"
+
+        return movement
+           
     def attack(self):
         # Calculate the position and radius of the attack swing
         attack_pos = self.pos + vec(
@@ -124,21 +159,8 @@ class Player(pg.sprite.Sprite):
                 # Reduce the health of the collided tree
                 tree.take_damage(self.slash_damage)
 
-    def update_animation(self, dt, movement):
+    def update_animation(self, dt):
         self.animation_timer += dt
-
-        if movement.x > 0:
-            self.direction = "right"
-            self.action = "walk"
-        elif movement.x < 0:
-            self.direction = "left"
-            self.action = "walk"
-        elif movement.y > 0:
-            self.direction = "down"
-            self.action = "walk"
-        elif movement.y < 0:
-            self.direction = "up"
-            self.action = "walk"
 
         # if not moving
         if self.action == "slash":
@@ -157,10 +179,39 @@ class Player(pg.sprite.Sprite):
 
     def update(self):
         if self.action == "walk":
+            # set the frame for walk animations
             self.image = self.spritesheets[f"walk_{self.direction}"].subsurface(self.frames[f"walk_{self.direction}"][self.current_frame_index])
         elif self.action == "slash":
-            self.image = self.spritesheets[f"slash_{self.direction}"].subsurface(self.frames[f"slash_{self.direction}"][self.current_frame_index])
+            
+            # based on the direction the player is facing, offset the sword so it appears in the player's hand
+            if self.direction == "right":
+                sword_offset = vec(18,7).rotate(-self.angle)
+                player_on_top = True
+            elif self.direction == "left":
+                sword_offset = vec(-16,4)
+                player_on_top = True
+            elif self.direction == "up":
+                sword_offset = vec(8,-12)
+                player_on_top = True
+            elif self.direction == "down":
+                sword_offset = vec(-10,22)
+                player_on_top = False
+
+            player_sprite = self.spritesheets[f"slash_{self.direction}"].subsurface(self.frames[f"slash_{self.direction}"][self.current_frame_index])
+            sword_sprite = self.spritesheets[f"sword_{self.direction}"].subsurface(self.frames[f"sword_{self.direction}"][self.current_frame_index])
+
+            # combine the sword and player sprites into one pg.Surface object
+            combined_surface = pg.Surface((PLAYER_SPRITE_WIDTH, PLAYER_SPRITE_HEIGHT), pg.SRCALPHA)
+            if player_on_top:
+                combined_surface.blit(sword_sprite, sword_offset)
+                combined_surface.blit(player_sprite, vec(0,0))
+            else:
+                combined_surface.blit(player_sprite, vec(0,0))
+                combined_surface.blit(sword_sprite, sword_offset)
+                
+            self.image = combined_surface
         else:
+            # to stand, set to the first frame of the directional walk animation
             self.image = self.spritesheets[f"walk_{self.direction}"].subsurface(self.frames[f"walk_{self.direction}"][0])
         
         self.rect = self.image.get_rect(center=self.rect.center)

@@ -16,7 +16,7 @@ class Tree(pg.sprite.Sprite):
         self.rect = pg.Rect(0, 0, self.rect_radius * 2, self.rect_radius * 2)
         self.rect.center = self.pos
 
-        self.health = 3
+        self.health = TREE_HEALTH
 
     def take_damage(self, dmg):
         self.health -= dmg
