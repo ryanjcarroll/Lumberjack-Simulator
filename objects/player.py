@@ -81,17 +81,25 @@ class Player(pg.sprite.Sprite):
         keys = pg.key.get_pressed()
         movement = self.get_movement(keys)
 
+        # break movement into X and Y component vectors
+        movement_x_only = vec(movement.x, 0)
+        movement_y_only = vec(0, movement.y)
+        
+        # check for collision in each of the X and Y directions independently
+        # this allows movement with multiple direction inputs, even if there is a collision on one of them
+        self.hitbox.center += movement_x_only
+        if any(self.hitbox.colliderect(tree.rect) for tree in self.game.tree_list):
+            movement -= movement_x_only
+        self.hitbox.center -= movement_x_only
+
+        self.hitbox.center += movement_y_only
+        if any(self.hitbox.colliderect(tree.rect) for tree in self.game.tree_list):
+            movement -= movement_y_only
+        self.hitbox.center -= movement_y_only
+
         if movement.length_squared() > 0:
             self.hitbox.center += movement
-            
-            # wall_collisions = pg.sprite.spritecollide(self.hitbox, self.game.tree_list, False)
-            # if wall_collisions:
-            if any(self.hitbox.colliderect(tree.rect) for tree in self.game.tree_list):
-                # TODO some possible improvements here - we probably don't need to check EVERY tree for collision with the player
-                    # undo movement if it would result in a wall collision
-                    self.hitbox.center -= movement
-            else:
-                self.pos += movement
+            self.pos += movement
 
             # always update angle, regardless of collision
             self.angle = math.degrees(math.atan2(-movement.y, movement.x))
@@ -152,22 +160,23 @@ class Player(pg.sprite.Sprite):
            
     def attack(self):
         # Calculate the position and radius of the attack swing
-        attack_pos = self.pos + vec(
-            self.attack_distance * math.cos(math.radians(self.angle)),
-            -self.attack_distance * math.sin(math.radians(self.angle))
+        attack_pos = (
+            self.pos[0] + self.attack_distance * math.cos(math.radians(self.angle)),
+            self.pos[1] - self.attack_distance * math.sin(math.radians(self.angle))  # Negative sin because Y-axis is inverted in Pygame
         )
-        attack_radius_rect = pg.Rect(
-            attack_pos.x - self.attack_distance/2, 
-            attack_pos.y - self.attack_distance/2, 
-            self.attack_distance, 
-            self.attack_distance
+        # Calculate the top-left corner of the square area
+        top_left_corner = (
+            attack_pos[0] - self.attack_distance / 2,
+            attack_pos[1] - self.attack_distance / 2
         )
+        attack_rect = pg.Rect(top_left_corner, (self.attack_distance, self.attack_distance))
 
         # Check for tree collisions at the attack position and reduce tree HP accordingly
-        for tree in self.game.tree_list:
-            if tree.rect.colliderect(attack_radius_rect):
-                # Reduce the health of the collided tree
-                tree.take_damage(self.slash_damage)
+        trees_hit = [tree for tree in self.game.tree_list if tree.rect.colliderect(attack_rect)]
+
+        # Reduce the health of the collided tree(s)
+        for tree in trees_hit:
+            tree.take_damage(self.slash_damage / len(trees_hit))
 
     def update_animation(self, dt):
         self.animation_timer += dt

@@ -24,6 +24,9 @@ class Camera:
     def apply(self, entity):
         return entity.rect.move(self.camera.topleft)
 
+    def apply_to_rect(self, rect):
+        return rect.move(self.camera.topleft)
+
     def update(self, target):
         self.x = -target.rect.centerx + int(WIDTH / 2)  ##amount to offset, negative if moving right
         self.y = -target.rect.centery + int(HEIGHT / 2)

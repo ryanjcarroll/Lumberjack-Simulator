@@ -80,6 +80,7 @@ class Game:
         """
         self.screen.fill(BG_COLOR)
         for sprite in self.sprite_list:
+            # check for new keyboard inputs on the Player
             if isinstance(sprite, Player):
                 sprite.check_keys()
             self.screen.blit(sprite.image, self.camera.apply(sprite))
