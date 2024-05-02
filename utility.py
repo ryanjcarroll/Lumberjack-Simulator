@@ -25,3 +25,11 @@ def extract_image_from_spritesheet(spritesheet, row_index, col_index, tile_size)
     row_index *= tile_size
     tile_rect = pg.Rect(col_index, row_index, tile_size, tile_size)
     return spritesheet.subsurface(tile_rect)
+
+def get_frames(spritesheet, row_index, num_frames, tile_size):
+    # Extract frames from spritesheet
+    frames = [
+        extract_image_from_spritesheet(spritesheet, row_index, i, tile_size)
+        for i in range(num_frames)
+    ]
+    return frames

@@ -2,7 +2,7 @@ import pygame as pg
 from settings import *
 from pygame import Vector2 as vec
 import math
-from utility import extract_image_from_spritesheet
+from utility import get_frames
 
 class Player(pg.sprite.Sprite):
     def __init__(self, game, x, y):
@@ -41,23 +41,15 @@ class Player(pg.sprite.Sprite):
         self.walk_spritesheet = pg.image.load("assets/spritesheets/axe_sprite_sheet.png")
 
         self.frames = {
-            "walk_up":self.get_frames(self.walk_spritesheet, 8, 9, 64),
-            "walk_down":self.get_frames(self.walk_spritesheet, 10, 9, 64),
-            "walk_left":self.get_frames(self.walk_spritesheet, 9, 9, 64),
-            "walk_right":self.get_frames(self.walk_spritesheet, 11, 9, 64),
-            "axe_up":self.get_frames(self.walk_spritesheet, 12, 6, 64),
-            "axe_down":self.get_frames(self.walk_spritesheet, 14, 6, 64),
-            "axe_left":self.get_frames(self.walk_spritesheet, 13, 6, 64),
-            "axe_right":self.get_frames(self.walk_spritesheet, 15, 6, 64),
+            "walk_up":get_frames(self.walk_spritesheet, 8, 9, 64),
+            "walk_down":get_frames(self.walk_spritesheet, 10, 9, 64),
+            "walk_left":get_frames(self.walk_spritesheet, 9, 9, 64),
+            "walk_right":get_frames(self.walk_spritesheet, 11, 9, 64),
+            "axe_up":get_frames(self.walk_spritesheet, 12, 6, 64),
+            "axe_down":get_frames(self.walk_spritesheet, 14, 6, 64),
+            "axe_left":get_frames(self.walk_spritesheet, 13, 6, 64),
+            "axe_right":get_frames(self.walk_spritesheet, 15, 6, 64),
         }
-
-    def get_frames(self, spritesheet, row_index, num_frames, tile_size):
-        # Extract frames from spritesheet
-        frames = [
-            extract_image_from_spritesheet(spritesheet, row_index, i, tile_size)
-            for i in range(num_frames)
-        ]
-        return frames
 
     def check_keys(self):
         """
@@ -96,7 +88,7 @@ class Player(pg.sprite.Sprite):
 
     def get_movement(self, keys) -> vec:
         """
-        Check for keyboard input, set action and direction, and return movement vector. 
+        Given a set of keyboard inputs, set action and direction, and return movement vector. 
         """
         movement = vec(0, 0)
 
@@ -145,6 +137,10 @@ class Player(pg.sprite.Sprite):
         return movement
            
     def attack(self):
+        """
+        Called once an axe swing animation has finished.
+        Determines whether anything was hit and deals damage.
+        """
         # Calculate the position and radius of the attack swing
         attack_pos = (
             self.pos[0] + self.attack_distance * math.cos(math.radians(self.angle)),
@@ -165,6 +161,9 @@ class Player(pg.sprite.Sprite):
             tree.take_damage(self.axe_damage / len(trees_hit))
 
     def update_animation(self, dt):
+        """
+        Increment the animation counters for axe swing and walking animations.
+        """
         self.animation_timer += dt
 
         # if not moving
