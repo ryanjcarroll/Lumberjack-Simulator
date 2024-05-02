@@ -17,6 +17,7 @@ class Game:
         self.screen = pg.display.set_mode((WIDTH, HEIGHT))
         pg.display.set_caption(TITLE)
         self.clock = pg.time.Clock()
+        self.dt = self.clock.tick() / 1000
         self.load_data()
         
     def load_data(self):
@@ -36,6 +37,7 @@ class Game:
         """
         # lists of objects for the game to render
         self.sprite_list = pg.sprite.LayeredUpdates()
+        self.player_list = pg.sprite.Group()
         self.tree_list = pg.sprite.Group()
 
         # load game objects based on the map file
@@ -71,7 +73,7 @@ class Game:
         """
         Update sprites and camera.
         """
-        self.sprite_list.update()
+        self.player_list.update()
         self.camera.update(self.player)
 
     def draw(self):
@@ -79,10 +81,7 @@ class Game:
         Draw screen background, sprites, health and stamina bars.
         """
         self.screen.fill(BG_COLOR)
-        for sprite in self.sprite_list:
-            # check for new keyboard inputs on the Player
-            if isinstance(sprite, Player):
-                sprite.check_keys()
+        for sprite in self.sprite_list: # TODO this can be improved - we only need to draw the sprites which are actually on-screen
             self.screen.blit(sprite.image, self.camera.apply(sprite))
         pg.display.flip()
             
