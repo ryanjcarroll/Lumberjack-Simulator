@@ -35,11 +35,6 @@ class Tree(pg.sprite.Sprite):
         if self.flipped:
             scaled_image = pg.transform.flip(scaled_image, True, False)
         self.image = scaled_image
-        
-    def take_damage(self, dmg):
-        self.health -= dmg
-        if self.health <= 0:
-            self.kill()
 
     def draw(self, screen, camera):
         screen.blit(self.image, camera.apply(self.rect))

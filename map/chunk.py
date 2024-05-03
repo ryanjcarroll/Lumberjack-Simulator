@@ -31,7 +31,7 @@ class Chunk:
         """
         # TODO update this method to change how chunks are laid out, what is on each tile, etc
         for tile in self.tiles:
-            if random.random() > 0.1:
+            if random.random() < 0.9:
                tile.objects.append(Tree(self.game, *tile.rect.topleft))
 
     def save(self):
@@ -84,19 +84,9 @@ class SpawnChunk(Chunk):
                     y = self.rect.topleft[1] + row*TILE_SIZE,
                     row = row,
                     col = col,
-                    terrain_type=terrain_type
+                    terrain_type=terrain_type,
+                    has_decor=True if terrain_type == "grass" else False
                 )
-                # initialize a decor object for a particular spawn tile
-                if CHUNK_SIZE//2 == row and CHUNK_SIZE//2 + 1== col:
-                    tile.objects.append(
-                        SpriteObject(
-                            game = self.game, 
-                            x = tile.rect.topleft[0], 
-                            y = tile.rect.topleft[1], 
-                            img_path = "assets/decor/tent.png",
-                            img_resize=(72,72),
-                            collision=True
-                        ))
 
                 self.tiles.append(tile)
 
@@ -106,5 +96,5 @@ class SpawnChunk(Chunk):
         for tile in self.tiles:
             # spawn trees everywhere except the 3x3 square around the spawn location
             if abs(CHUNK_SIZE//2-tile.row) > 1 or abs(CHUNK_SIZE//2-tile.col) > 1:
-                if random.random() > 0.5:
+                if random.random() < 0.7:
                     tile.objects.append(Tree(self.game, *tile.rect.topleft))

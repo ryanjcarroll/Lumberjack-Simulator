@@ -4,7 +4,8 @@ from map.map import Map
 from map.camera import Camera
 import sys
 from objects.player import Player
-import datetime
+from objects.inventory import *
+from map.menu import BackpackInventoryMenu, CampInventoryMenu
 pg.init()
 
 class Game:
@@ -18,7 +19,7 @@ class Game:
         
         # initialize the timers and event scheduling variables
         self.clock = pg.time.Clock()
-        self.delta_t = 0
+        self.dt = 0
         self.map_reload_timer = 0
 
     def new(self):
@@ -31,12 +32,16 @@ class Game:
         self.decor_list = pg.sprite.Group() # objects the player can walk through and is not able to hit with their axe
         self.hittable_list = pg.sprite.Group() # objects the player can hit with their axe
         self.map = Map(self)
+        self.camp = Camp(self)
 
         # initialize necessary game objects and variables
-        self.player = Player(self, CHUNK_SIZE*TILE_SIZE//2, CHUNK_SIZE*TILE_SIZE//2)
+        self.player = Player(self, (CHUNK_SIZE*TILE_SIZE)//2, (CHUNK_SIZE*TILE_SIZE)//2)
         self.camera = Camera(WINDOW_WIDTH, WINDOW_HEIGHT)
+        self.backpack = Backpack()
         self.visible_chunks = []
-
+        self.backpack_inventory_menu = BackpackInventoryMenu(self)
+        self.camp_inventory_menu = CampInventoryMenu(self)
+        
     def run(self):
         """
         Main game loop.
@@ -55,8 +60,8 @@ class Game:
         self.player.update()
         self.camera.update(self.player)
 
-        self.delta_t = self.clock.tick(FPS) / 1000
-        self.map_reload_timer += self.delta_t
+        self.dt = self.clock.tick(FPS) / 1000
+        self.map_reload_timer += self.dt
 
         # every N seconds, update the map to see if new chunks need to be generated
         if self.map_reload_timer >= 1:
@@ -92,6 +97,11 @@ class Game:
 
         # draw player
         self.player.draw(self.screen, self.camera)
+        self.camp.draw(self.screen, self.camera)
+        
+        # draw menus
+        self.backpack_inventory_menu.draw(self.screen)
+        self.camp_inventory_menu.draw(self.screen)
 
         pg.display.flip()
             

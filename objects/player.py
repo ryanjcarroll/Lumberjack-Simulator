@@ -3,6 +3,7 @@ from settings import *
 from pygame import Vector2 as vec
 import math
 from utility import get_frames
+from objects.inventory import Backpack, Camp
 
 class Player(pg.sprite.Sprite):
     """
@@ -10,8 +11,10 @@ class Player(pg.sprite.Sprite):
     """
     def __init__(self, game, x, y):
         self.game = game
-        self.pos = vec(x, y)
+        self.backpack = Backpack()
 
+        # set position variables
+        self.pos = vec(x, y)
         self.angle = 0
         self.hitbox = PLAYER_HITBOX
         self.hitbox.center = self.pos
@@ -60,19 +63,21 @@ class Player(pg.sprite.Sprite):
         keys = pg.key.get_pressed()
         movement = self.get_movement(keys)
 
+        self.check_at_camp(movement)
+
         # break movement into X and Y component vectors
         movement_x_only = vec(movement.x, 0)
         movement_y_only = vec(0, movement.y)
-        
+
         # check for collision in each of the X and Y directions independently
         # this allows movement with multiple direction inputs, even if there is a collision on one of them
         self.hitbox.center += movement_x_only
-        if any(self.hitbox.colliderect(tree.rect) for tree in self.game.collision_list):
+        if any(self.hitbox.colliderect(obj.rect) for obj in self.game.collision_list):
             movement -= movement_x_only
         self.hitbox.center -= movement_x_only
 
         self.hitbox.center += movement_y_only
-        if any(self.hitbox.colliderect(tree.rect) for tree in self.game.collision_list):
+        if any(self.hitbox.colliderect(obj.rect) for obj in self.game.collision_list):
             movement -= movement_y_only
         self.hitbox.center -= movement_y_only
 
@@ -84,6 +89,15 @@ class Player(pg.sprite.Sprite):
             self.angle = math.degrees(math.atan2(-movement.y, movement.x))
             self.rect.center = self.pos
             self.hitbox.center = self.pos
+
+    def check_at_camp(self, movement):
+        # before adjusting for collisions, check if colliding with camp
+        # we only need to check if we actually have something to unpack
+        if self.backpack.wood:
+            self.hitbox.center += movement
+            if self.hitbox.colliderect(self.game.camp.rect):
+                self.backpack.unpack(self.game.camp)
+            self.hitbox.center -= movement
 
     def get_movement(self, keys) -> vec:
         """
@@ -157,7 +171,10 @@ class Player(pg.sprite.Sprite):
 
         # Reduce the health of the collided tree(s)
         for tree in trees_hit:
-            tree.take_damage(self.axe_damage / len(trees_hit))
+            tree.health -= self.axe_damage
+            if tree.health <= 0:
+                tree.kill()
+            self.backpack.add_wood()
 
     def set_animation_counters(self, dt):
         """
@@ -186,7 +203,7 @@ class Player(pg.sprite.Sprite):
         """
 
         self.check_keys()
-        self.set_animation_counters(self.game.delta_t)
+        self.set_animation_counters(self.game.dt)
 
         if self.action == "walk":
             # set the frame for walk animations

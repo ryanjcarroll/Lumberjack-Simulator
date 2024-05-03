@@ -8,7 +8,7 @@ from glob import glob
 from objects.sprite_object import SpriteObject
 
 class Tile:
-    def __init__(self, game, x, y, row, col, terrain_type="grass"):
+    def __init__(self, game, x, y, row, col, terrain_type="grass", has_decor=True):
         self.game = game
         
         self.terrain_type = terrain_type
@@ -19,7 +19,8 @@ class Tile:
         self.col = col # col within the chunk
         self.objects = []
 
-        self.load_decor()
+        if has_decor:
+            self.load_decor()
 
     def load_texture(self):
         if self.terrain_type in tile_textures:
@@ -65,7 +66,7 @@ class Tile:
                 y = decor_y,
                 img_path = random.choice(glob(f"assets/decor/{item_type}/*.png"))     
         ))
-        
+
     def draw_base(self, screen, camera):
         screen.blit(self.image, camera.apply(self.rect))
 
