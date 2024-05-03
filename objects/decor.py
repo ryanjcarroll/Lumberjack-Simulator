@@ -2,13 +2,15 @@ import pygame as pg
 from settings import *
 from utility import remove_padding_and_scale
 from pygame import Vector2 as vec
-import random
-from glob import glob
 
-class Tree(pg.sprite.Sprite):
-    def __init__(self, game, x, y):
-        pg.sprite.Sprite.__init__(self, game.tree_list)
+class Decor(pg.sprite.Sprite):
+    """
+    Static objects which provide no collision or interactivity.
+    """
+    def __init__(self, game, x, y, img_path):
+        pg.sprite.Sprite.__init__(self)
         self.game = game
+        self.img_path = img_path
 
         # the initial x, y is based on topleft coordinate of the sprite
         # howver, the .pos attribute is based on the center coordinate of the sprite
@@ -17,22 +19,16 @@ class Tree(pg.sprite.Sprite):
         self.rect.center = self.pos
 
         self.image = self.load_texture()
-        self.health = TREE_HEALTH
 
     def load_texture(self):
         return pg.transform.scale(
             remove_padding_and_scale(
                 pg.image.load(
-                    random.choice(glob("assets/trees/*.png"))
+                    self.img_path
                 )
             )
             ,(TILE_SIZE, TILE_SIZE)
         )
-        
-    def take_damage(self, dmg):
-        self.health -= dmg
-        if self.health <= 0:
-            self.kill()
 
     def draw(self, screen, camera):
         screen.blit(self.image, camera.apply(self.rect))

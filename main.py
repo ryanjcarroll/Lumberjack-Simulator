@@ -1,6 +1,7 @@
 import pygame as pg
 from settings import *
-from map import *
+from map.map import Map
+from map.camera import Camera
 from os import path
 import sys
 
@@ -14,75 +15,64 @@ class Game:
         Initialize game object and settings.
         """
         pg.init()
-        self.screen = pg.display.set_mode((WIDTH, HEIGHT))
+        self.screen = pg.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         pg.display.set_caption(TITLE)
         self.clock = pg.time.Clock()
         self.dt = self.clock.tick() / 1000
-        self.load_data()
         
-    def load_data(self):
-        """
-        Set resource paths and load sprite images.
-        """
-        # set resource paths for game assets
-        game_folder = path.dirname(__file__)
-        map_folder = path.join(game_folder, "maps")
-
-        # set map file
-        self.map = Map(path.join(map_folder, "map.txt"))
-
     def new(self):
         """
         Create a new game by initializing sprite lists and loading game objects based on the mapfile.
         """
-        # lists of objects for the game to render
-        self.sprite_list = pg.sprite.LayeredUpdates()
-        self.player_list = pg.sprite.Group()
+        # initialize sprite lists and the map 
+        # IMPORTANT: Map must go after sprite lists because it creates sprites
         self.tree_list = pg.sprite.Group()
+        self.map = Map(self)
 
-        # load game objects based on the map file
-        for row, tiles in enumerate(self.map.data):
-            for col, tile in enumerate(tiles):
-                if tile == "T":
-                    Tree(self, col*TILE_SIZE, row*TILE_SIZE)
-                elif tile == "P":
-                    self.player = Player(self, col*TILE_SIZE, row*TILE_SIZE)
-
-        # initialize a camera object with the selected map dimensions
-        self.camera = Camera(self.map.width, self.map.height)
+        # initialize necessary game objects and variables
+        self.player = Player(self, CHUNK_SIZE*TILE_SIZE//2, CHUNK_SIZE*TILE_SIZE//2)
+        self.camera = Camera(WINDOW_WIDTH, WINDOW_HEIGHT)
+        self.visible_chunks = []
 
     def run(self):
         """
         Main game loop.
         """
         self.playing = True
+        timer = 0
         while(self.playing):
             self.dt = self.clock.tick(FPS) / 1000
+            # every N seconds, update the map to see if new chunks need to be generated
+            timer += self.dt
+            if timer >= 1.0:
+                self.map.update()
+                timer = 0
             self.events()
             self.update()
             self.draw()
-            
-    def quit(self):
-        """
-        End the game.
-        """
-        pg.quit()
-        sys.exit()
 
     def update(self):
         """
         Update sprites and camera.
         """
-        self.player_list.update()
+        self.player.update()
         self.camera.update(self.player)
 
     def draw(self):
         """
-        Draw screen background, sprites, health and stamina bars.
+        Draw images and sprites.
         """
         self.screen.fill(BG_COLOR)
-        for sprite in self.sprite_list: # TODO this can be improved - we only need to draw the sprites which are actually on-screen
-            self.screen.blit(sprite.image, self.camera.apply(sprite))
+        with self.map.lock:
+            for id, chunk in self.map.chunks.items():
+
+                # TODO only draw nearby chunks and strictly visible tiles - could optimize here
+
+                for tile in chunk.tiles:
+                    tile.draw(self.screen, self.camera)
+                
+        self.player.draw(self.screen, self.camera)
+                
         pg.display.flip()
             
     def events(self):
@@ -91,7 +81,8 @@ class Game:
         """
         for event in pg.event.get():
             if event.type == pg.QUIT:
-                self.quit()
+                pg.quit()
+                sys.exit()        
 
     def start_screen(self):
         pass

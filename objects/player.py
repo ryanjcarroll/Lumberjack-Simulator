@@ -5,18 +5,15 @@ import math
 from utility import get_frames
 
 class Player(pg.sprite.Sprite):
+    """
+    Player x and y refers to the center of the Player sprite.
+    """
     def __init__(self, game, x, y):
-        self.groups = game.sprite_list, game.player_list
-        pg.sprite.Sprite.__init__(self, self.groups)
-        game.sprite_list.change_layer(self, PLAYER_LAYER)
-
         self.game = game
+        self.pos = vec(x, y)
+        self.image = pg.image.load("assets/trees/Autumn_tree2.png")
+        self.rect = self.image.get_rect(center=self.pos)
 
-        # set player position, image, and hitbox
-        self.pos = vec(x + TILE_SIZE/2, y + TILE_SIZE/2) # position the player in the center of its starting tile
-        self.image = pg.image.load("assets/spritesheets/Walk Up.png")
-        self.rect = self.image.get_rect()
-        self.rect.center = self.pos
         self.angle = 0
         self.hitbox = PLAYER_HITBOX
         self.hitbox.center = self.pos
@@ -202,3 +199,6 @@ class Player(pg.sprite.Sprite):
         self.rect = self.image.get_rect(center=self.rect.center)
         self.rect.center = self.pos
         self.hitbox.center = self.pos
+
+    def draw(self, screen, camera):
+        screen.blit(self.image, camera.apply(self.rect))
