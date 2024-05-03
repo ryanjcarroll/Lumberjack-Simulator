@@ -7,7 +7,7 @@ from glob import glob
 
 class Tree(pg.sprite.Sprite):
     def __init__(self, game, x, y):
-        pg.sprite.Sprite.__init__(self, game.tree_list)
+        pg.sprite.Sprite.__init__(self, game.collision_list, game.hittable_list)
         self.game = game
 
         # the initial x, y is based on topleft coordinate of the sprite

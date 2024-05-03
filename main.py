@@ -35,8 +35,9 @@ class Game:
         """
         # initialize sprite lists and the map 
         # IMPORTANT: Map must go after sprite lists because it creates sprites
-        self.tree_list = pg.sprite.Group()
-        self.decor_list = pg.sprite.Group()
+        self.collision_list = pg.sprite.Group() # objects the player can collide with
+        self.decor_list = pg.sprite.Group() # objects the player can walk through and is not able to hit with their axe
+        self.hittable_list = pg.sprite.Group() # objects the player can hit with their axe
         self.map = Map(self)
 
         # initialize necessary game objects and variables
@@ -92,7 +93,9 @@ class Game:
                 else:
                     continue
             for tile in chunk.tiles:
-                tile.draw(self.screen, self.camera)
+                tile.draw_base(self.screen, self.camera)
+            for tile in chunk.tiles:
+                tile.draw_objects(self.screen, self.camera)
 
         # draw player
         self.player.draw(self.screen, self.camera)

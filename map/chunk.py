@@ -1,7 +1,7 @@
 from settings import *
 from map.tile import Tile
 from objects.tree import Tree
-from objects.decor import Decor
+from objects.sprite_object import SpriteObject
 import random
 
 class Chunk:
@@ -89,13 +89,13 @@ class SpawnChunk(Chunk):
                 # initialize a decor object for a particular spawn tile
                 if CHUNK_SIZE//2 == row and CHUNK_SIZE//2 + 1== col:
                     tile.objects.append(
-                        Decor(
+                        SpriteObject(
                             game = self.game, 
                             x = tile.rect.topleft[0], 
                             y = tile.rect.topleft[1], 
                             img_path = "assets/decor/tent.png",
-                            width=72,
-                            height=72
+                            img_resize=(72,72),
+                            collision=True
                         ))
 
                 self.tiles.append(tile)

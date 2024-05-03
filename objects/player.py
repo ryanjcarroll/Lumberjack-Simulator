@@ -67,12 +67,12 @@ class Player(pg.sprite.Sprite):
         # check for collision in each of the X and Y directions independently
         # this allows movement with multiple direction inputs, even if there is a collision on one of them
         self.hitbox.center += movement_x_only
-        if any(self.hitbox.colliderect(tree.rect) for tree in self.game.tree_list):
+        if any(self.hitbox.colliderect(tree.rect) for tree in self.game.collision_list):
             movement -= movement_x_only
         self.hitbox.center -= movement_x_only
 
         self.hitbox.center += movement_y_only
-        if any(self.hitbox.colliderect(tree.rect) for tree in self.game.tree_list):
+        if any(self.hitbox.colliderect(tree.rect) for tree in self.game.collision_list):
             movement -= movement_y_only
         self.hitbox.center -= movement_y_only
 
@@ -153,7 +153,7 @@ class Player(pg.sprite.Sprite):
         attack_rect = pg.Rect(top_left_corner, (self.attack_distance, self.attack_distance))
 
         # Check for tree collisions at the attack position and reduce tree HP accordingly
-        trees_hit = [tree for tree in self.game.tree_list if tree.rect.colliderect(attack_rect)]
+        trees_hit = [tree for tree in self.game.hittable_list if tree.rect.colliderect(attack_rect)]
 
         # Reduce the health of the collided tree(s)
         for tree in trees_hit:
