@@ -16,11 +16,14 @@ class Tree(pg.sprite.Sprite):
         self.rect = pg.Rect(0, 0, TILE_SIZE, TILE_SIZE)
         self.rect.center = self.pos
 
-        self.image = self.load_texture()
+        self.flipped = random.random() > 0.5
+
+        self.load_texture()
         self.health = TREE_HEALTH
 
     def load_texture(self):
-        return pg.transform.scale(
+        # load an image, remove transparent boundaries, and scale it to size
+        scaled_image = pg.transform.scale(
             remove_padding_and_scale(
                 pg.image.load(
                     random.choice(glob("assets/trees/*.png"))
@@ -28,6 +31,10 @@ class Tree(pg.sprite.Sprite):
             )
             ,(TILE_SIZE, TILE_SIZE)
         )
+        # randomly flip 50% of images along their Y-axis
+        if self.flipped:
+            scaled_image = pg.transform.flip(scaled_image, True, False)
+        self.image = scaled_image
         
     def take_damage(self, dmg):
         self.health -= dmg
