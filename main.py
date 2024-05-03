@@ -5,7 +5,6 @@ from map.camera import Camera
 import sys
 from objects.player import Player
 import datetime
-# from utility import calculate_day_night_color_cycle
 pg.init()
 
 class Game:
@@ -21,14 +20,7 @@ class Game:
         self.clock = pg.time.Clock()
         self.delta_t = 0
         self.map_reload_timer = 0
-        # self.time_of_day_timer = 0
 
-        # self.time_of_day = datetime.datetime.combine(
-        #     datetime.datetime.today().date(),
-        #     datetime.time(6,0,0)
-        # )
-        # self.time_of_day_filter = calculate_day_night_color_cycle(self.time_of_day)
-        
     def new(self):
         """
         Create a new game by initializing sprite lists and loading game objects based on the mapfile.
@@ -65,18 +57,11 @@ class Game:
 
         self.delta_t = self.clock.tick(FPS) / 1000
         self.map_reload_timer += self.delta_t
-        # self.time_of_day_timer += self.delta_t
 
         # every N seconds, update the map to see if new chunks need to be generated
         if self.map_reload_timer >= 1:
             self.map.update()
             self.map_reload_timer = 0
-
-        # # every N seconds, update the time of day
-        # if self.time_of_day_timer >= 0.1:
-        #     self.time_of_day += datetime.timedelta(minutes=15)
-        #     self.time_of_day_filter = calculate_day_night_color_cycle(self.time_of_day)
-        #     self.time_of_day_timer = 0
 
     def draw(self):
         """
@@ -84,7 +69,7 @@ class Game:
         """
         self.screen.fill(BG_COLOR)
 
-        # draw Tiles if they are in visible Chunks
+        # draw tile bases if they are in visible chunks
         for (chunk_x, chunk_y) in self.map.get_visible_chunks(self.player):
             chunk_id = f"{chunk_x},{chunk_y}"
             with self.map.lock:
@@ -94,17 +79,19 @@ class Game:
                     continue
             for tile in chunk.tiles:
                 tile.draw_base(self.screen, self.camera)
+        # once bases are drawn, draw objects in visible chunks
+        for (chunk_x, chunk_y) in self.map.get_visible_chunks(self.player):
+            chunk_id = f"{chunk_x},{chunk_y}"
+            with self.map.lock:
+                if chunk_id in self.map.chunks:
+                    chunk = self.map.chunks[chunk_id]
+                else:
+                    continue
             for tile in chunk.tiles:
                 tile.draw_objects(self.screen, self.camera)
 
         # draw player
         self.player.draw(self.screen, self.camera)
-
-        # # apply time of day filter
-        # self.screen.fill(
-        #     self.time_of_day_filter, 
-        #     special_flags = pg.BLEND_MULT
-        # )
 
         pg.display.flip()
             
