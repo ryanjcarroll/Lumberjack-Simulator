@@ -1,4 +1,5 @@
 from pygame import Rect
+from datetime import timedelta
 
 # colors (RGB)
 WHITE = (255, 255, 255)
@@ -15,16 +16,11 @@ ORANGE = (255,165,0)
 # game settings
 WINDOW_WIDTH = 72 * 9
 WINDOW_HEIGHT = 72 * 9
-CHUNK_SIZE = 11
+CHUNK_SIZE = 15
 TILE_SIZE = 72
-
 TITLE = "LUMBERJACK SIMULATOR"
 BG_COLOR = LIGHT_GREY
 FPS = 60
-
-# layer settings
-PLAYER_LAYER = 2
-TREE_LAYER = 1
 
 # player settings
 PLAYER_ATTACK_DAMAGE = 10
@@ -36,4 +32,4 @@ PLAYER_ANIMATION_SPEED = 0.1
 PLAYER_HITBOX = Rect(0,0,15,15)
 
 # tree settings
-TREE_HEALTH = 3
+TREE_HEALTH = 2
