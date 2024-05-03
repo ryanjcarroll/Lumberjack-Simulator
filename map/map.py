@@ -45,8 +45,11 @@ class Map:
         """
         Get a list of chunks that are on screen, given the player position.
         """
-        # calculate the chunk for each corner of the viewport. These are the visible chunks
-        buffer = 0
+        # visible chunks are defined as anything within 2 tiles of the viewport
+        # to test chunk-loading, you can set this value to a negative number
+        buffer = TILE_SIZE*2
+        # calculate the chunk that each corner of the viewport is in. 
+        # as long as chunks are larger than the window, this gives all visible chunks
         corners = [
             (player.pos.x - WINDOW_WIDTH//2 - buffer, player.pos.y - WINDOW_HEIGHT//2 - buffer),
             (player.pos.x - WINDOW_WIDTH//2 - buffer, player.pos.y + WINDOW_HEIGHT//2 + buffer),

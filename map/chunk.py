@@ -31,7 +31,8 @@ class Chunk:
         """
         # TODO update this method to change how chunks are laid out, what is on each tile, etc
         for tile in self.tiles:
-            tile.objects.append(Tree(self.game, *tile.rect.topleft))
+            if random.random() > 0.1:
+               tile.objects.append(Tree(self.game, *tile.rect.topleft))
 
     def save(self):
         pass
@@ -105,5 +106,5 @@ class SpawnChunk(Chunk):
         for tile in self.tiles:
             # spawn trees everywhere except the 3x3 square around the spawn location
             if abs(CHUNK_SIZE//2-tile.row) > 1 or abs(CHUNK_SIZE//2-tile.col) > 1:
-                if random.randint(0,10) != 0:
+                if random.random() > 0.5:
                     tile.objects.append(Tree(self.game, *tile.rect.topleft))

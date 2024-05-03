@@ -186,7 +186,7 @@ class Player(pg.sprite.Sprite):
         """
 
         self.check_keys()
-        self.set_animation_counters(self.game.dt)
+        self.set_animation_counters(self.game.delta_t)
 
         if self.action == "walk":
             # set the frame for walk animations
