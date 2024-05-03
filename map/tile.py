@@ -1,9 +1,11 @@
 import pygame as pg
 from pygame import Vector2 as vec
 from settings import *
+from utility import extract_image_from_spritesheet
+from map.tile_textures import spritesheets, tile_textures
 
 class Tile:
-    def __init__(self, game, x, y, row, col, terrain_type="grass_outlined"):
+    def __init__(self, game, x, y, row, col, terrain_type="grass"):
         self.game = game
         
         self.terrain_type = terrain_type
@@ -15,10 +17,17 @@ class Tile:
         self.objects = []
 
     def load_texture(self):
-        if self.terrain_type == "grass_outlined":
-            return pg.transform.scale(pg.image.load("assets/textures/grass_outlined.png"), (TILE_SIZE, TILE_SIZE))
-        elif self.terrain_type == "grass":
-            return pg.transform.scale(pg.image.load("assets/textures/grass.png"), (TILE_SIZE, TILE_SIZE))
+        if self.terrain_type in tile_textures:
+            texture = tile_textures[self.terrain_type]
+            return pg.transform.scale(
+                extract_image_from_spritesheet(
+                    spritesheet=texture['source'],
+                    row_index=texture['row'],
+                    col_index=texture['column'],
+                    tile_size=texture['tile_size']
+                )
+                ,(TILE_SIZE, TILE_SIZE)
+            )
         else:
             return pg.transform.scale(pg.image.load("assets/textures/bedrock.png"), (TILE_SIZE, TILE_SIZE))
 

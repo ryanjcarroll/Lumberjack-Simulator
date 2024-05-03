@@ -27,6 +27,7 @@ class Game:
         # initialize sprite lists and the map 
         # IMPORTANT: Map must go after sprite lists because it creates sprites
         self.tree_list = pg.sprite.Group()
+        self.decor_list = pg.sprite.Group()
         self.map = Map(self)
 
         # initialize necessary game objects and variables
@@ -63,13 +64,17 @@ class Game:
         Draw images and sprites.
         """
         self.screen.fill(BG_COLOR)
-        with self.map.lock:
-            for id, chunk in self.map.chunks.items():
 
-                # TODO only draw nearby chunks and strictly visible tiles - could optimize here
-
-                for tile in chunk.tiles:
-                    tile.draw(self.screen, self.camera)
+        # draw Tiles if they are in visible Chunks
+        for (chunk_x, chunk_y) in self.map.get_visible_chunks(self.player):
+            chunk_id = f"{chunk_x},{chunk_y}"
+            with self.map.lock:
+                if chunk_id in self.map.chunks:
+                    chunk = self.map.chunks[chunk_id]
+                else:
+                    continue
+            for tile in chunk.tiles:
+                tile.draw(self.screen, self.camera)
                 
         self.player.draw(self.screen, self.camera)
                 

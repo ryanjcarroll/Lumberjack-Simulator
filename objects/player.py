@@ -11,8 +11,6 @@ class Player(pg.sprite.Sprite):
     def __init__(self, game, x, y):
         self.game = game
         self.pos = vec(x, y)
-        self.image = pg.image.load("assets/trees/Autumn_tree2.png")
-        self.rect = self.image.get_rect(center=self.pos)
 
         self.angle = 0
         self.hitbox = PLAYER_HITBOX
@@ -26,10 +24,13 @@ class Player(pg.sprite.Sprite):
         # initialize animation settings
         self.animation_timer = 0
         self.current_frame_index = -1
-        self.direction = "up"
+        self.direction = "down"
         self.action = "stand"
         self.animation_speed = PLAYER_ANIMATION_SPEED
         self.load_animations()
+
+        self.image = self.frames[f"walk_down"][0]
+        self.rect = self.image.get_rect(center=self.pos)
         # run an initial update to set the first frame of the spritesheet
         self.update()
 
@@ -38,7 +39,7 @@ class Player(pg.sprite.Sprite):
         Load spritesheets and animation frames.
         """
         # load spritesheet(s) for animations
-        self.walk_spritesheet = pg.image.load("assets/spritesheets/axe_sprite_sheet.png")
+        self.walk_spritesheet = pg.image.load("assets/player/axe_sprite_sheet.png")
 
         self.frames = {
             "walk_up":get_frames(self.walk_spritesheet, 8, 9, 64),

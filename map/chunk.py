@@ -2,6 +2,7 @@ from settings import *
 from map.tile import Tile
 from objects.tree import Tree
 from objects.decor import Decor
+import random
 
 class Chunk:
     def __init__(self, game, x, y):
@@ -47,11 +48,62 @@ class Chunk:
     
 class SpawnChunk(Chunk):
     def __init__(self, game,x, y):
-        super().__init__(game, x, y)
+        self.game = game
+        
+        self.tiles = []
+        self.rect = Rect(x, y, x+CHUNK_SIZE*TILE_SIZE, y+CHUNK_SIZE*TILE_SIZE)
+        self.id = f"{self.rect.topleft[0]},{self.rect.topleft[1]}"
+
+        # fill the chunk with Tiles
+        for row in range(CHUNK_SIZE):
+            for col in range(CHUNK_SIZE):
+                if CHUNK_SIZE//2 - 1 == row and CHUNK_SIZE//2 - 1 == col:
+                    terrain_type = "stone_topleft" 
+                elif CHUNK_SIZE//2 - 1 == row and CHUNK_SIZE//2 == col:
+                    terrain_type = "stone_top" 
+                elif CHUNK_SIZE//2 - 1 == row and CHUNK_SIZE//2 + 1== col:
+                    terrain_type = "stone_topright" 
+                elif CHUNK_SIZE//2 == row and CHUNK_SIZE//2 - 1 == col:
+                    terrain_type = "stone_left" 
+                elif CHUNK_SIZE//2 == row and CHUNK_SIZE//2 == col:
+                    terrain_type = "stone_center" 
+                elif CHUNK_SIZE//2 == row and CHUNK_SIZE//2 + 1== col:
+                    terrain_type = "stone_right" 
+                elif CHUNK_SIZE//2 + 1 == row and CHUNK_SIZE//2 - 1 == col:
+                    terrain_type = "stone_bottomleft" 
+                elif CHUNK_SIZE//2 + 1 == row and CHUNK_SIZE//2 == col:
+                    terrain_type = "stone_bottom" 
+                elif CHUNK_SIZE//2 + 1 == row and CHUNK_SIZE//2 + 1== col:
+                    terrain_type = "stone_bottomright" 
+                else:
+                    terrain_type = "grass"
+                tile = Tile(
+                    game = self.game,
+                    x = self.rect.topleft[0] + col*TILE_SIZE,
+                    y = self.rect.topleft[1] + row*TILE_SIZE,
+                    row = row,
+                    col = col,
+                    terrain_type=terrain_type
+                )
+                # initialize a decor object for a particular spawn tile
+                if CHUNK_SIZE//2 == row and CHUNK_SIZE//2 + 1== col:
+                    tile.objects.append(
+                        Decor(
+                            game = self.game, 
+                            x = tile.rect.topleft[0], 
+                            y = tile.rect.topleft[1], 
+                            img_path = "assets/decor/tent.png",
+                            width=72,
+                            height=72
+                        ))
+
+                self.tiles.append(tile)
+
+        self.render_objects()
 
     def render_objects(self):
         for tile in self.tiles:
+            # spawn trees everywhere except the 3x3 square around the spawn location
             if abs(CHUNK_SIZE//2-tile.row) > 1 or abs(CHUNK_SIZE//2-tile.col) > 1:
-                tile.objects.append(Tree(self.game, *tile.rect.topleft))
-            if tile.row == CHUNK_SIZE//2 and tile.col == CHUNK_SIZE//2:
-                tile.objects.append(Decor(self.game, *tile.rect.topleft, "assets/flag.png"))
+                if random.randint(0,10) != 0:
+                    tile.objects.append(Tree(self.game, *tile.rect.topleft))
