@@ -5,7 +5,9 @@ from map.camera import Camera
 import sys
 from objects.player import Player
 from objects.inventory import *
-from map.menu import BackpackInventoryMenu, CampInventoryMenu
+from ui.compass import Compass
+from ui.bars import HealthBar
+from ui.menu import BackpackInventoryMenu, CampInventoryMenu
 pg.init()
 
 class Game:
@@ -33,6 +35,7 @@ class Game:
         self.hittable_list = pg.sprite.Group() # objects the player can hit with their axe
         self.map = Map(self)
         self.camp = Camp(self)
+        self.compass = Compass(self)
 
         # initialize necessary game objects and variables
         self.player = Player(self, (CHUNK_SIZE*TILE_SIZE)//2, (CHUNK_SIZE*TILE_SIZE)//2)
@@ -41,6 +44,7 @@ class Game:
         self.visible_chunks = []
         self.backpack_inventory_menu = BackpackInventoryMenu(self)
         self.camp_inventory_menu = CampInventoryMenu(self)
+        self.health_bar = HealthBar(self)
         
     def run(self):
         """
@@ -102,6 +106,8 @@ class Game:
         # draw menus
         self.backpack_inventory_menu.draw(self.screen)
         self.camp_inventory_menu.draw(self.screen)
+        self.compass.draw(self.screen)
+        self.health_bar.draw(self.screen)
 
         pg.display.flip()
             

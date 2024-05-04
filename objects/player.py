@@ -3,7 +3,7 @@ from settings import *
 from pygame import Vector2 as vec
 import math
 from utility import get_frames
-from objects.inventory import Backpack, Camp
+from objects.inventory import Backpack
 
 class Player(pg.sprite.Sprite):
     """
@@ -11,7 +11,11 @@ class Player(pg.sprite.Sprite):
     """
     def __init__(self, game, x, y):
         self.game = game
+
+        # set player attributes
         self.backpack = Backpack()
+        self.health = PLAYER_STARTING_HEALTH
+        self.max_health = PLAYER_MAX_HEALTH
 
         # set position variables
         self.pos = vec(x, y)
@@ -175,13 +179,20 @@ class Player(pg.sprite.Sprite):
             tree_type = tree.tree_type
             if tree.health <= 0:
                 tree.kill()
-            if "Fruit" in tree_type:
+            if "Flower" in tree_type:
                 self.backpack.row_capacity = min(self.backpack.row_capacity+1, 20)
                 self.game.backpack_inventory_menu.update_capacity()
-            elif "BURNED" in tree_type:
+            elif "Burned" in tree_type:
+                # don't add wood
                 pass
+            elif "Fruit" in tree_type:
+                self.health = min(self.health + 10, self.max_health)
+                self.game.health_bar.update()
             else:
                 self.backpack.add_wood()
+
+        self.health -= 2
+        self.game.health_bar.update()
 
     def set_animation_counters(self, dt):
         """
