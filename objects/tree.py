@@ -20,14 +20,40 @@ class Tree(pg.sprite.Sprite):
 
         self.load_texture()
         self.health = TREE_HEALTH
+        self.tree_type == None
 
     def load_texture(self):
+        
+        tree_type_weights = {
+            "Burned_tree1":5,
+            "Burned_tree2":5,
+            "Burned_tree3":5,
+            "Christmas_tree1":10,
+            "Christmas_tree2":10,
+            "Christmas_tree3":10,
+            "Flower_tree1":5,
+            "Flower_tree2":5,
+            "Flower_tree3":5,
+            "Fruit_tree1":1,
+            "Fruit_tree2":1,
+            "Fruit_tree3":1,
+            "Moss_tree1":20,
+            "Moss_tree2":20,
+            "Moss_tree3":20,
+            "Tree1":50,
+            "Tree2":50,
+            "Tree3":50,
+            "TreeDecor":50,
+        }
+        self.tree_type = random.choices(
+            population = list(tree_type_weights.keys()),
+            weights = list(tree_type_weights.values())
+        )[0]
+
         # load an image, remove transparent boundaries, and scale it to size
         scaled_image = pg.transform.scale(
             remove_padding_and_scale(
-                pg.image.load(
-                    random.choice(glob("assets/trees/*.png"))
-                )
+                pg.image.load(f"assets/trees/{self.tree_type}.png")
             )
             ,(TILE_SIZE, TILE_SIZE)
         )

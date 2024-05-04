@@ -172,9 +172,16 @@ class Player(pg.sprite.Sprite):
         # Reduce the health of the collided tree(s)
         for tree in trees_hit:
             tree.health -= self.axe_damage
+            tree_type = tree.tree_type
             if tree.health <= 0:
                 tree.kill()
-            self.backpack.add_wood()
+            if "Fruit" in tree_type:
+                self.backpack.row_capacity = min(self.backpack.row_capacity+1, 20)
+                self.game.backpack_inventory_menu.update_capacity()
+            elif "BURNED" in tree_type:
+                pass
+            else:
+                self.backpack.add_wood()
 
     def set_animation_counters(self, dt):
         """
