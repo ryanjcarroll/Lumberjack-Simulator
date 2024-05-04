@@ -12,11 +12,16 @@ class Tile:
         self.game = game
         
         self.terrain_type = terrain_type
-        self.image = self.load_texture()
-        self.rect = self.image.get_rect()
-        self.rect.topleft = vec(x,y)
         self.row = row # row within the chunk
         self.col = col # col within the chunk
+
+        # # chunk debugging feature - change texture on chunk-edge tiles
+        # if self.row == 0 or self.col == 0 or self.row == CHUNK_SIZE-1 or self.col == CHUNK_SIZE-1:
+        #     self.terrain_type = "stone_center"
+
+        self.image = self.load_texture()
+        self.rect = self.image.get_rect()
+        self.rect.topleft = vec(x,y)       
         self.objects = []
 
         if has_decor:

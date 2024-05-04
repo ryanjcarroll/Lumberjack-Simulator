@@ -18,9 +18,9 @@ class Map:
         Check if new chunks need to be generated based on the player's position.
         """
         # Generate new chunks as soon as they come into view
-        for (chunk_x, chunk_y) in self.get_visible_chunks(self.game.player):
+        for chunk_id in self.get_visible_chunks(self.game.player):
             with self.lock:
-                chunk_id = f"{chunk_x},{chunk_y}"
+                chunk_x, chunk_y = tuple(int(val) for val in chunk_id.split(","))
                 if chunk_id not in self.chunks and chunk_id not in self.currently_generating:
                     generate_thread = threading.Thread(target=self.generate_chunk, args=(chunk_x, chunk_y))
                     generate_thread.start()
@@ -32,14 +32,14 @@ class Map:
             self.chunks[chunk.id] = chunk
             self.currently_generating.remove(chunk.id)
 
-    def get_chunk_coords(self, x, y):
+    def get_chunk_id(self, x, y):
         """
         Given a coordinate position, return the top left corner coordinates.
         """
         # if not self.update_thread_running:
         chunk_x = int((x // (CHUNK_SIZE * TILE_SIZE)) * (CHUNK_SIZE * TILE_SIZE))
         chunk_y = int((y // (CHUNK_SIZE * TILE_SIZE)) * (CHUNK_SIZE * TILE_SIZE))
-        return chunk_x, chunk_y
+        return f"{chunk_x},{chunk_y}"
 
     def get_visible_chunks(self, player):
         """
@@ -56,4 +56,4 @@ class Map:
             (player.pos.x + WINDOW_WIDTH//2 + buffer, player.pos.y - WINDOW_HEIGHT//2 - buffer),
             (player.pos.x + WINDOW_WIDTH//2 + buffer, player.pos.y + WINDOW_HEIGHT//2 + buffer)
         ]
-        return set([self.get_chunk_coords(*corner) for corner in corners])
+        return set([self.get_chunk_id(*corner) for corner in corners])

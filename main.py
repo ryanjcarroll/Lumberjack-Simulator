@@ -7,7 +7,8 @@ from objects.player import Player
 from objects.inventory import *
 from ui.compass import Compass
 from ui.bars import HealthBar
-from ui.menu import BackpackInventoryMenu, CampInventoryMenu
+from ui.inventory import BackpackInventoryMenu, CampInventoryMenu
+from menus.start import StartMenu
 pg.init()
 
 class Game:
@@ -23,6 +24,7 @@ class Game:
         self.clock = pg.time.Clock()
         self.dt = 0
         self.map_reload_timer = 0
+        self.health_tick_timer = 0
 
     def new(self):
         """
@@ -66,11 +68,16 @@ class Game:
 
         self.dt = self.clock.tick(FPS) / 1000
         self.map_reload_timer += self.dt
+        self.health_tick_timer += self.dt
 
         # every N seconds, update the map to see if new chunks need to be generated
         if self.map_reload_timer >= 1:
             self.map.update()
             self.map_reload_timer = 0
+        if self.health_tick_timer >= 10:
+            self.player.health -= 1
+            self.health_bar.update()
+            self.health_tick_timer = 0
 
     def draw(self):
         """
@@ -79,8 +86,7 @@ class Game:
         self.screen.fill(BG_COLOR)
 
         # draw tile bases if they are in visible chunks
-        for (chunk_x, chunk_y) in self.map.get_visible_chunks(self.player):
-            chunk_id = f"{chunk_x},{chunk_y}"
+        for chunk_id in self.map.get_visible_chunks(self.player):
             with self.map.lock:
                 if chunk_id in self.map.chunks:
                     chunk = self.map.chunks[chunk_id]
@@ -89,8 +95,7 @@ class Game:
             for tile in chunk.tiles:
                 tile.draw_base(self.screen, self.camera)
         # once bases are drawn, draw objects in visible chunks
-        for (chunk_x, chunk_y) in self.map.get_visible_chunks(self.player):
-            chunk_id = f"{chunk_x},{chunk_y}"
+        for chunk_id in self.map.get_visible_chunks(self.player):
             with self.map.lock:
                 if chunk_id in self.map.chunks:
                     chunk = self.map.chunks[chunk_id]
@@ -118,10 +123,17 @@ class Game:
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 pg.quit()
-                sys.exit()        
+                sys.exit()    
+            elif event.type == pg.MOUSEBUTTONDOWN and self.at_start_menu:
+                self.start_menu.handle_click(pg.mouse.get_pos())   
 
     def start_screen(self):
-        pass
+        self.start_menu = StartMenu(self)
+        self.at_start_menu = True
+        while self.at_start_menu:
+            self.events()
+            self.start_menu.update()
+            self.start_menu.draw()
 
 # initialize a game object and start running
 game = Game()

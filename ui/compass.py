@@ -11,7 +11,7 @@ class Compass:
         self.width = COMPASS_WIDTH
         self.height = COMPASS_HEIGHT
         self.x = WINDOW_WIDTH//2 - self.width//2
-        self.y = WINDOW_HEIGHT - self.height - COMPASS_PADDING
+        self.y = COMPASS_PADDING
 
         self.pos = vec(self.x, self.y)
         self.image = pg.image.load("assets/ui/arrow.png")
