@@ -70,12 +70,17 @@ class Game:
         self.map_reload_timer += self.dt
         self.health_tick_timer += self.dt
 
+        # update shake for hittable objects
+        for sprite in self.hittable_list:
+            if sprite.shaking:
+                sprite.update(self.dt)
+    
         # every N seconds, update the map to see if new chunks need to be generated
         if self.map_reload_timer >= 1:
             self.map.update()
             self.map_reload_timer = 0
-        if self.health_tick_timer >= 10:
-            self.player.health -= 1
+        if self.health_tick_timer >= 15:
+            self.player.health -= 5
             self.health_bar.update()
             self.health_tick_timer = 0
 
@@ -203,8 +208,8 @@ game = Game()
 menu_loop = True
 # loop multiple games in a row if necessary
 while menu_loop:
-    game.start_screen()
-    loadout = game.loadout_screen()
-    # loadout = {'body': {'category': 'char1', 'style': 0}, 'hair': {'category': 'bob ', 'style': 0}, 'face': {'category': 'eyes', 'style': 0}, 'shirt': {'category': 'basic', 'style': 0}, 'pants': {'category': 'pants', 'style': 0}, 'accessories': {'category': 'beard', 'style': 0}}
+    # game.start_screen()
+    # loadout = game.loadout_screen()
+    loadout = {'body': {'category': 'body1', 'style': 0}, 'hair': {'category': 'bob ', 'style': 0}, 'face': {'category': 'eyes', 'style': 0}, 'shirt': {'category': 'basic', 'style': 0}, 'pants': {'category': 'pants', 'style': 0}, 'accessories': {'category': 'beard', 'style': 0}}
     game.new(loadout)
     game.run()

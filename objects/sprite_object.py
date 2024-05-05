@@ -2,6 +2,7 @@ import pygame as pg
 from settings import *
 from utility import remove_padding_and_scale
 from pygame import Vector2 as vec
+import math
 
 class SpriteObject(pg.sprite.Sprite):
     """
