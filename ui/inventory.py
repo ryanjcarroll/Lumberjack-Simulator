@@ -12,7 +12,7 @@ class BackpackInventoryMenu:
         self.y = WINDOW_HEIGHT - self.height - BACKPACK_MENU_PADDING  # Top padding of 10 pixels
         
         self.surface = pg.Surface((self.width, self.height))
-        self.wood_image = pg.image.load("assets/decor/logs/Log2.png")
+        self.wood_image = self.game.sprites.load("assets/decor/logs/Log2.png")
         
     def update_capacity(self):
         self.width = BACKPACK_TILE_SIZE * self.game.player.backpack.row_capacity
@@ -57,7 +57,7 @@ class CampInventoryMenu:
         self.surface = pg.Surface((self.width, self.height))
 
         self.font = pg.font.Font(None, 36)
-        self.camp_image = pg.image.load("assets/decor/camp/1.png")
+        self.camp_image = self.game.sprites.load("assets/decor/camp/1.png")
         
     def draw(self, screen):
         # draw the menu background

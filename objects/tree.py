@@ -62,7 +62,7 @@ class Tree(SpriteObject):
         # load an image, remove transparent boundaries, and scale it to size
         scaled_image = pg.transform.scale(
             remove_padding_and_scale(
-                pg.image.load(f"assets/trees/{self.tree_type}.png")
+                self.game.sprites.load(f"assets/trees/{self.tree_type}.png")
             )
             ,(TILE_SIZE, TILE_SIZE)
         )

@@ -44,7 +44,7 @@ class Tile:
                 ,(TILE_SIZE, TILE_SIZE)
             )
         else:
-            return pg.transform.scale(pg.image.load("assets/textures/bedrock.png"), (TILE_SIZE, TILE_SIZE))
+            return pg.transform.scale(self.game.sprites.load("assets/textures/bedrock.png"), (TILE_SIZE, TILE_SIZE))
         
     def load_decor(self):
         # generate between decorative items to randomly place on the tile

@@ -53,7 +53,7 @@ class Player(pg.sprite.Sprite):
         for attribute, d in loadout.items():
             if d['category'] != "none":
                 # load the spritesheet for the given asset category based on loadout params
-                spritesheet = pg.image.load(f"assets/player/{attribute}/{d['category']}.png")
+                spritesheet = self.game.sprites.load(f"assets/player/{attribute}/{d['category']}.png")
                 
                 # if the sheet has multiple columns, crop to the correct one (this selects the style)
                 if spritesheet.get_width() > SPRITESHEET_NUM_COLUMNS * SPRITESHEET_TILE_SIZE:

@@ -53,7 +53,7 @@ class LoadoutMenu:
 
             # load the assets within each attribute, category, and style
             for category_id, path in enumerate(glob(f"assets/player/{attribute}/*.png")):
-                spritesheet = pg.image.load(path)
+                spritesheet = self.game.sprites.load(path)
                 num_variations = spritesheet.get_width() // (SPRITESHEET_TILE_SIZE * SPRITESHEET_NUM_COLUMNS)
                 # within each category, there may be any number of variations
                 self.assets[attribute][category_id] = {

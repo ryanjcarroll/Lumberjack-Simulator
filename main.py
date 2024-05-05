@@ -11,6 +11,7 @@ from ui.inventory import BackpackInventoryMenu, CampInventoryMenu
 from menus.start import StartMenu
 from menus.loadout import LoadoutMenu
 from menus.game_over import GameOverMenu
+from objects.sprite_object import SpriteAssetManager
 pg.init()
 
 class Game:
@@ -28,10 +29,8 @@ class Game:
         self.map_reload_timer = 0
         self.health_tick_timer = 0
 
-        # default options if no loadout selected
-        self.loadout = {
-            "character":"char1"
-        }
+        # sprite asset manager
+        self.sprites = SpriteAssetManager()
 
         self.at_loadout_menu = False
         self.at_start_menu = False

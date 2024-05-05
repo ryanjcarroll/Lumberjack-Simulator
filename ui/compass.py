@@ -14,7 +14,7 @@ class Compass:
         self.y = COMPASS_PADDING
 
         self.pos = vec(self.x, self.y)
-        self.image = pg.image.load("assets/ui/arrow.png")
+        self.image = self.game.sprites.load("assets/ui/arrow.png")
         self.rect = self.image.get_rect(topleft=self.pos)
 
     def draw(self, screen):

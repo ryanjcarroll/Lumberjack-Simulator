@@ -3,7 +3,24 @@ from settings import *
 from utility import remove_padding_and_scale
 from pygame import Vector2 as vec
 import math
+import threading
 
+class SpriteAssetManager:
+    def __init__(self):
+        self.images = {}
+        self.lock = threading.Lock()
+
+    def load(self, path):
+        with self.lock:
+            if path not in self.images:
+                # add new entries to the saved images
+                image = pg.image.load(path)
+                self.images[path] = image
+
+            # hand out copies to avoid race conditions
+            # TODO there's probably a better way but not sure what it is right now
+            return self.images[path].copy()
+    
 class SpriteObject(pg.sprite.Sprite):
     """
     Sprite objects to be loaded within the game.
@@ -54,7 +71,7 @@ class SpriteObject(pg.sprite.Sprite):
         if self.img_resize:
             self.image = pg.transform.scale(
                 remove_padding_and_scale(
-                    pg.image.load(
+                    self.game.sprites.load(
                         self.img_path
                     )
                 )
