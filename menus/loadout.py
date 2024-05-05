@@ -82,12 +82,21 @@ class LoadoutMenu:
                     }
                 }
 
-        # set the default selections (category, style)
-        self.selections = {k:(0,0) for k in self.attributes}
+        # build the default selections (category, style)
+        self.selections = self.get_random_selections()
+        
 
         self.buttons = {}
         self.update_image()
         self.build_elements()
+
+    def get_random_selections(self):
+        selections = {}
+        for attribute in self.attributes:
+            category = random.randint(0, len(self.assets[attribute])-1)
+            style = random.randint(0, len(self.assets[attribute][category]['styles'])-1)
+            selections[attribute]= (category, style)
+        return selections
 
     def get_loadout(self):
         return {
