@@ -31,7 +31,6 @@ class Tree(SpriteObject):
     def load_texture(self):
        
         self.flipped = random.random() > 0.5
-
         tree_type_weights = {
             "Burned_tree1":5,
             "Burned_tree2":5,
@@ -57,6 +56,9 @@ class Tree(SpriteObject):
             population = list(tree_type_weights.keys()),
             weights = list(tree_type_weights.values())
         )[0]
+
+        if "Burned" in self.tree_type:
+            self.health = 1
 
         # load an image, remove transparent boundaries, and scale it to size
         scaled_image = pg.transform.scale(
@@ -97,7 +99,6 @@ class Tree(SpriteObject):
         Take damage and/or start the shake cycle.
         """
         self.health -= damage
-        print(self.health)
         if self.health <= 0:
             self.kill()
         else:

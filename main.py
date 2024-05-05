@@ -47,6 +47,7 @@ class Game:
         self.decor_list = pg.sprite.Group() # objects the player can walk through and is not able to hit with their axe
         self.hittable_list = pg.sprite.Group() # objects the player can hit with their axe
         self.map = Map(self)
+        self.map.new()
         self.compass = Compass(self)
 
         # initialize necessary game objects and variables
@@ -84,11 +85,12 @@ class Game:
             self.health_bar.update()
             self.health_tick_timer = 0
 
-    def draw_layer_if(self, layer, condition=lambda x:True):
+    def draw_layer_if(self, layer, condition=lambda x:True, sort=None):
         """
         Draw all tiles in visible chunks, passing a layer parameter.
         If a condition is passed, only draw objects if the tile meets that condition.
         """
+        tiles = []
         for chunk_id in self.map.get_visible_chunks(self.player):
             with self.map.lock:
                 if chunk_id in self.map.chunks:
@@ -97,7 +99,10 @@ class Game:
                     continue
             for tile in chunk.tiles:
                 if condition(tile):
-                    tile.draw(layer, self.screen, self.camera)
+                    tiles.append(tile)
+        # draw ties in order by ascending y coordinate
+        for tile in sorted(tiles, key=lambda t: t.y):
+            tile.draw(layer, self.screen, self.camera)
 
     def draw(self):
         """
@@ -117,17 +122,9 @@ class Game:
         self.player.draw(self.screen, self.camera)
         # self.camp.draw(self.screen, self.camera)
 
-        # draw sprites that are positioned south of the player
+        # draw the sprite layer in order of Y coordinate for proper layering
         for layer in [SPRITE_LAYER]:
-            for chunk_id in self.map.get_visible_chunks(self.player):
-                with self.map.lock:
-                    if chunk_id in self.map.chunks:
-                        chunk = self.map.chunks[chunk_id]
-                    else:
-                        continue
-                for tile in chunk.tiles:
-                    if tile.rect.center[1] >= self.player.pos[1]:
-                        tile.draw(layer, self.screen, self.camera)
+            self.draw_layer_if(layer, lambda tile: tile.rect.center[1] >= player_pos_y)
 
         # draw menus
         self.backpack_inventory_menu.draw(self.screen)

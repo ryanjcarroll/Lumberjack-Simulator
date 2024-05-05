@@ -3,6 +3,8 @@ from map.tile import Tile
 from objects.tree import Tree
 from objects.sprite_object import SpriteObject
 from objects.inventory import Camp
+from pygame import Vector2 as vec
+import pygame as pg
 import random
 
 class Chunk:
@@ -13,27 +15,51 @@ class Chunk:
         self.rect = Rect(x, y, x+CHUNK_SIZE*TILE_SIZE, y+CHUNK_SIZE*TILE_SIZE)
         self.id = f"{self.rect.topleft[0]},{self.rect.topleft[1]}"
 
+        self.render_tiles()
+        self.render_objects()
+
+    def render_tiles(self):
         # fill the chunk with Tiles
         for row in range(CHUNK_SIZE):
             for col in range(CHUNK_SIZE):
                 self.tiles.append(Tile(
                     game = self.game,
+                    chunk=self,
                     x = self.rect.topleft[0] + col*TILE_SIZE,
                     y = self.rect.topleft[1] + row*TILE_SIZE,
                     row = row,
                     col = col
                 ))
 
-        self.render_objects()
-
-    def render_objects(self):
+    def render_objects(self, tree_density=0.9):
         """
         Render objects on Tiles within the chunk.
         """
-        # TODO update this method to change how chunks are laid out, what is on each tile, etc
+        # spawn trees everywhere except the 3x3 square around the spawn location
+        spawn_attempts = 3
+        buffer = TILE_SIZE//2
+        max_offset = TILE_SIZE//2
+    
         for tile in self.tiles:
-            if random.random() < 0.9:
-               tile.objects.append(Tree(self.game, *tile.rect.topleft))
+            if random.random() < 0.7: # spawn only on a percentage of tiles
+                if abs(CHUNK_SIZE//2-tile.row) > 1 or abs(CHUNK_SIZE//2-tile.col) > 1: # don't spawn on camp tiles
+                
+                    neighbors = tile.get_neighbors()
+                    neighbor_objs = [obj for n_tile in neighbors for obj in n_tile.objects]
+                    for i in range(spawn_attempts):
+                        try_pos = vec(
+                            tile.rect.topleft[0] + random.randrange(0,max_offset), 
+                            tile.rect.topleft[1] + random.randrange(0,max_offset)
+                        )
+                        spawn = True
+                        for obj in [obj for obj in neighbor_objs if type(obj)==Tree]:
+                            if try_pos.distance_to(obj.pos) <= buffer:
+                                spawn = False
+                                break
+
+                        if spawn:
+                            tile.objects.append(Tree(self.game, *try_pos))
+                            break
 
     def save(self):
         pass
@@ -50,12 +76,9 @@ class Chunk:
     
 class SpawnChunk(Chunk):
     def __init__(self, game,x, y):
-        self.game = game
-        
-        self.tiles = []
-        self.rect = Rect(x, y, x+CHUNK_SIZE*TILE_SIZE, y+CHUNK_SIZE*TILE_SIZE)
-        self.id = f"{self.rect.topleft[0]},{self.rect.topleft[1]}"
+        super().__init__(game, x, y)
 
+    def render_tiles(self):
         # fill the chunk with Tiles
         for row in range(CHUNK_SIZE):
             for col in range(CHUNK_SIZE):
@@ -81,6 +104,7 @@ class SpawnChunk(Chunk):
                     terrain_type = "grass"
                 tile = Tile(
                     game = self.game,
+                    chunk=self,
                     x = self.rect.topleft[0] + col*TILE_SIZE,
                     y = self.rect.topleft[1] + row*TILE_SIZE,
                     row = row,
@@ -91,15 +115,12 @@ class SpawnChunk(Chunk):
 
                 self.tiles.append(tile)
 
-        self.render_objects()
-
     def render_objects(self):
         for tile in self.tiles:
-            # spawn trees everywhere except the 3x3 square around the spawn location
-            if abs(CHUNK_SIZE//2-tile.row) > 1 or abs(CHUNK_SIZE//2-tile.col) > 1:
-                if random.random() < 0.7:
-                    tile.objects.append(Tree(self.game, *tile.rect.topleft))
+
             # spawn the camp
             if CHUNK_SIZE//2 == tile.row and CHUNK_SIZE//2 + 1== tile.col:
                 self.game.camp = Camp(self.game, *tile.rect.topleft)
                 tile.objects.append(self.game.camp)
+
+        super().render_objects(tree_density=0.7)

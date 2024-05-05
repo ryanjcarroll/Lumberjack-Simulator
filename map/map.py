@@ -10,6 +10,7 @@ class Map:
         self.game = game
         self.lock = threading.Lock() # to prevent two threads (or thread and main) from trying to modify self.chunks at the same time
 
+    def new(self):
         # generate the starting chunk with the top left corner at (0,0)
         self.generate_chunk(0,0, type=SpawnChunk)
 
