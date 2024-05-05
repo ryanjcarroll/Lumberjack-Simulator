@@ -197,7 +197,7 @@ class Player(pg.sprite.Sprite):
 
         # normalize diagonal walking movements
         if movement.length_squared() > PLAYER_MOVE_DISTANCE:
-            movement.normalize() * PLAYER_MOVE_DISTANCE
+            movement = movement.normalize() * PLAYER_MOVE_DISTANCE
             self.last_movement = movement
             self.action = "walk"
         # if horizontal/vertical movement, set the action
