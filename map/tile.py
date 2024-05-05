@@ -43,7 +43,7 @@ class Tile:
             return pg.transform.scale(pg.image.load("assets/textures/bedrock.png"), (TILE_SIZE, TILE_SIZE))
         
     def load_decor(self):
-        # generate between 0 and 2 decorative items to randomly place on the tile
+        # generate between decorative items to randomly place on the tile
         item_type_weights = {
             # "bush"      : 2,
             "butterfly" : 2,
@@ -52,7 +52,7 @@ class Tile:
             # "fence"     : 1,
             "flower"    : 3,
             "grass"     : 30,
-            "patch"     : 50,
+            "patch"     : 20,
             "pebble"    : 5,
             # "signpost"  : 1,
             # "stone"     : 2,

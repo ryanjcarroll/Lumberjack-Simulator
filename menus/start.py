@@ -12,7 +12,7 @@ class StartMenu:
         start_button_width = 200
         start_button_height = 50
         start_button_x = (WINDOW_WIDTH - start_button_width) // 2
-        start_button_y = WINDOW_HEIGHT - 100  # 100 pixels from the bottom
+        start_button_y = (WINDOW_HEIGHT - start_button_height) //2 # 100 pixels from the bottom
         self.start_button = pg.Rect(start_button_x, start_button_y, start_button_width, start_button_height)
 
         self.font = pg.font.Font(None, 36)
