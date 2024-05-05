@@ -2,14 +2,15 @@ import pygame as pg
 from settings import *
 from pygame import Vector2 as vec
 import math
-from utility import get_frames
+from utility import extract_image_from_spritesheet, combine_images
 from objects.inventory import Backpack
+import json
 
 class Player(pg.sprite.Sprite):
     """
     Player x and y refers to the center of the Player sprite.
     """
-    def __init__(self, game, x, y):
+    def __init__(self, game, x:int, y:int, loadout:dict):
         self.game = game
 
         # set player attributes
@@ -22,6 +23,7 @@ class Player(pg.sprite.Sprite):
         self.angle = 0
         self.hitbox = PLAYER_HITBOX
         self.hitbox.center = self.pos
+        self.last_movement = vec(0,0)
 
         # set default values
         self.move_distance = PLAYER_MOVE_DISTANCE
@@ -34,31 +36,92 @@ class Player(pg.sprite.Sprite):
         self.direction = "down"
         self.action = "stand"
         self.animation_speed = PLAYER_ANIMATION_SPEED
-        self.load_animations()
+        self.load_animations(loadout)
 
         self.image = self.frames[f"walk_down"][0]
         self.rect = self.image.get_rect(center=self.pos)
         # run an initial update to set the first frame of the spritesheet
         self.update()
 
-    def load_animations(self):
+    def load_animations(self, loadout:dict):
         """
         Load spritesheets and animation frames.
         """
-        # load spritesheet(s) for animations
-        self.walk_spritesheet = pg.image.load("assets/player/axe_sprite_sheet.png")
+        # holds a spritesheet for each player attribute to be rendered
+        self.spritesheets = {}
 
-        self.frames = {
-            "walk_up":get_frames(self.walk_spritesheet, 8, 9, 64),
-            "walk_down":get_frames(self.walk_spritesheet, 10, 9, 64),
-            "walk_left":get_frames(self.walk_spritesheet, 9, 9, 64),
-            "walk_right":get_frames(self.walk_spritesheet, 11, 9, 64),
-            "axe_up":get_frames(self.walk_spritesheet, 12, 6, 64),
-            "axe_down":get_frames(self.walk_spritesheet, 14, 6, 64),
-            "axe_left":get_frames(self.walk_spritesheet, 13, 6, 64),
-            "axe_right":get_frames(self.walk_spritesheet, 15, 6, 64),
-        }
+        for attribute, d in loadout.items():
+            if d['category'] != "none":
+                # load the spritesheet for the given asset category based on loadout params
+                spritesheet = pg.image.load(f"assets/player/{attribute}/{d['category']}.png")
+                
+                # if the sheet has multiple columns, crop to the correct one (this selects the style)
+                if spritesheet.get_width() > SPRITESHEET_NUM_COLUMNS * SPRITESHEET_TILE_SIZE:
+                    cropped_spritesheet = spritesheet.subsurface(pg.Rect(
+                        d['style']*SPRITESHEET_TILE_SIZE*SPRITESHEET_NUM_COLUMNS,
+                        0,
+                        SPRITESHEET_TILE_SIZE*SPRITESHEET_NUM_COLUMNS,
+                        spritesheet.get_height()
+                    ))
+                else:
+                    cropped_spritesheet = spritesheet
+                self.spritesheets[attribute] = cropped_spritesheet
 
+        self.load_frames()
+
+    def load_frames(self):
+
+        # holds a list of combined images for each animation type
+        self.frames = {}
+
+        # actions we want to import
+        action_substrings = ["walk","axe"]
+        layer_order = ["body","hair","face","shirt","pants","accessories"]
+
+        # load the spritesheet key to determine which rows go with which animations
+        with open("assets/player/spritesheet_key.json") as f_in:
+            row_key = json.load(f_in)
+        frames_to_load = {}
+        # Iterate over original dictionary
+        for key, value in row_key.items():
+            # Check if any substring is present in the key
+            if any(substring in key for substring in action_substrings):
+                # Include the key-value pair in the filtered dictionary
+                frames_to_load[key] = value
+
+        # iterate through loadable actions
+        for action, d in frames_to_load.items():
+            row = d['row']
+            num_frames = d['num_frames']
+
+            # initalize an empty list for this action's combined frames
+            self.frames[action] = []
+
+            # load all attributes for frame 1, then all for frame 2, etc...
+            for i in range(num_frames):
+                images = []
+
+                # load in layer order
+                for attribute in layer_order:
+                    # check that attribute was not left empty
+                    if attribute in self.spritesheets.keys():
+                        # load each image layer from its spritesheet and combine them
+                        sheet = self.spritesheets[attribute]
+                        
+                        images.append(
+                            pg.transform.scale(
+                                extract_image_from_spritesheet(
+                                    spritesheet=sheet,
+                                    row_index=row,
+                                    col_index=i,
+                                    tile_size=SPRITESHEET_TILE_SIZE
+                                ),
+                                (PLAYER_SPRITE_WIDTH, PLAYER_SPRITE_HEIGHT)
+                            )
+                        )
+
+                self.frames[action].append((combine_images(images)))
+        
     def check_keys(self):
         """
         Check for keyboard input and update movement and angle information accordingly. 
@@ -67,8 +130,11 @@ class Player(pg.sprite.Sprite):
         keys = pg.key.get_pressed()
         movement = self.get_movement(keys)
 
-        self.check_at_camp(movement)
+        # # always update angle, regardless of collision and movement
+        # self.angle = math.degrees(math.atan2(-movement.y, movement.x))
 
+        self.check_at_camp(movement)
+        
         # break movement into X and Y component vectors
         movement_x_only = vec(movement.x, 0)
         movement_y_only = vec(0, movement.y)
@@ -88,9 +154,6 @@ class Player(pg.sprite.Sprite):
         if movement.length_squared() > 0:
             self.hitbox.center += movement
             self.pos += movement
-
-            # always update angle, regardless of collision
-            self.angle = math.degrees(math.atan2(-movement.y, movement.x))
             self.rect.center = self.pos
             self.hitbox.center = self.pos
 
@@ -135,6 +198,7 @@ class Player(pg.sprite.Sprite):
         # normalize diagonal walking movements
         if movement.length_squared() > PLAYER_MOVE_DISTANCE:
             movement.normalize() * PLAYER_MOVE_DISTANCE
+            self.last_movement = movement
             self.action = "walk"
         # if horizontal/vertical movement, set the action
         else:
@@ -150,6 +214,9 @@ class Player(pg.sprite.Sprite):
             self.direction = "down"
         elif movement.y < 0:
             self.direction = "up"
+
+        # Update player angle based on the last movement direction
+        self.angle = math.degrees(math.atan2(-self.last_movement.y, self.last_movement.x))
 
         return movement
            
@@ -206,7 +273,7 @@ class Player(pg.sprite.Sprite):
                 self.current_frame_index += 1
                 self.animation_timer = 0
                 # finish the attack operations when the animation reaches the final frame
-                if self.current_frame_index == len(self.frames[f"{self.action}_{self.direction}"])-1:
+                if self.current_frame_index == len(self.frames[f"{self.action}_{self.direction}"]):
                     self.attack()
                     self.action = "stand"
         elif self.action == "walk":
@@ -237,4 +304,38 @@ class Player(pg.sprite.Sprite):
         self.hitbox.center = self.pos
 
     def draw(self, screen, camera):
+        # self.draw_hitboxes(screen, camera)
         screen.blit(self.image, camera.apply(self.rect))
+    
+    def draw_hitboxes(self, screen, camera):
+        """
+        Debugging method to show player attack hitboxes
+        """
+        # Draw grey hitboxes in every angle except the active one
+        for angle in [-180, -135, -90, -45, 0, 45, 90, 135]:
+            if angle == self.angle:
+                continue
+            # Calculate the position and radius of the attack swing
+            attack_pos = (
+                self.pos[0] + self.attack_distance * math.cos(math.radians(angle)),
+                self.pos[1] - self.attack_distance * math.sin(math.radians(angle))  # Negative sin because Y-axis is inverted in Pygame
+            )
+            # Calculate the top-left corner of the square area
+            top_left_corner = (
+                attack_pos[0] - self.attack_distance / 2,
+                attack_pos[1] - self.attack_distance / 2
+            )
+            attack_rect = pg.Rect(top_left_corner, (self.attack_distance, self.attack_distance))
+            pg.draw.rect(screen, LIGHT_GREY, camera.apply(attack_rect))
+        
+        # Draw red box for current hitbox last (so it will be on top)
+        attack_pos = (
+            self.pos[0] + self.attack_distance * math.cos(math.radians(self.angle)),
+            self.pos[1] - self.attack_distance * math.sin(math.radians(self.angle))  # Negative sin because Y-axis is inverted in Pygame
+        )
+        top_left_corner = (
+            attack_pos[0] - self.attack_distance / 2,
+            attack_pos[1] - self.attack_distance / 2
+        )
+        attack_rect = pg.Rect(top_left_corner, (self.attack_distance, self.attack_distance))
+        pg.draw.rect(screen, RED, camera.apply(attack_rect))

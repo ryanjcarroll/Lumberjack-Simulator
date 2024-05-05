@@ -9,6 +9,7 @@ from ui.compass import Compass
 from ui.bars import HealthBar
 from ui.inventory import BackpackInventoryMenu, CampInventoryMenu
 from menus.start import StartMenu
+from menus.loadout import LoadoutMenu
 pg.init()
 
 class Game:
@@ -26,7 +27,15 @@ class Game:
         self.map_reload_timer = 0
         self.health_tick_timer = 0
 
-    def new(self):
+        # default options if no loadout selected
+        self.loadout = {
+            "character":"char1"
+        }
+
+        self.at_loadout_menu = False
+        self.at_start_menu = False
+
+    def new(self, loadout:dict):
         """
         Create a new game by initializing sprite lists and loading game objects based on the mapfile.
         """
@@ -40,7 +49,7 @@ class Game:
         self.compass = Compass(self)
 
         # initialize necessary game objects and variables
-        self.player = Player(self, (CHUNK_SIZE*TILE_SIZE)//2, (CHUNK_SIZE*TILE_SIZE)//2)
+        self.player = Player(self, (CHUNK_SIZE*TILE_SIZE)//2, (CHUNK_SIZE*TILE_SIZE)//2, loadout)
         self.camera = Camera(WINDOW_WIDTH, WINDOW_HEIGHT)
         self.backpack = Backpack()
         self.visible_chunks = []
@@ -111,7 +120,7 @@ class Game:
         # draw menus
         self.backpack_inventory_menu.draw(self.screen)
         self.camp_inventory_menu.draw(self.screen)
-        self.compass.draw(self.screen)
+        self.compass.draw(self.screen) 
         self.health_bar.draw(self.screen)
 
         pg.display.flip()
@@ -124,8 +133,11 @@ class Game:
             if event.type == pg.QUIT:
                 pg.quit()
                 sys.exit()    
-            elif event.type == pg.MOUSEBUTTONDOWN and self.at_start_menu:
-                self.start_menu.handle_click(pg.mouse.get_pos())   
+            elif event.type == pg.MOUSEBUTTONDOWN:
+                if self.at_start_menu:
+                    self.start_menu.handle_click(pg.mouse.get_pos())
+                elif self.at_loadout_menu:
+                    self.loadout_menu.handle_click(pg.mouse.get_pos())   
 
     def start_screen(self):
         self.start_menu = StartMenu(self)
@@ -135,8 +147,18 @@ class Game:
             self.start_menu.update()
             self.start_menu.draw()
 
+    def loadout_screen(self):
+        self.loadout_menu = LoadoutMenu(self)
+        self.at_loadout_menu = True
+        while self.at_loadout_menu:
+            self.events()
+            self.loadout_menu.update(pg.mouse.get_pos())
+            self.loadout_menu.draw()
+        return self.loadout_menu.get_loadout()
+
 # initialize a game object and start running
 game = Game()
 game.start_screen()
-game.new()
+loadout = game.loadout_screen()
+game.new(loadout)
 game.run() 
