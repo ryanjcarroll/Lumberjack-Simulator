@@ -23,7 +23,7 @@ class Player(pg.sprite.Sprite):
         self.angle = 0
         self.hitbox = PLAYER_HITBOX
         self.hitbox.center = self.pos
-        self.last_movement = vec(0,0)
+        self.last_movement = vec(0,0) 
 
         # set default values
         self.move_distance = PLAYER_MOVE_DISTANCE
@@ -138,18 +138,19 @@ class Player(pg.sprite.Sprite):
         movement_x_only = vec(movement.x, 0)
         movement_y_only = vec(0, movement.y)
 
-        # check for collision in each of the X and Y directions independently
-        # this allows movement with multiple direction inputs, even if there is a collision on one of them
+        # check for collision in the X direction
         self.hitbox.center += movement_x_only
         if any(self.hitbox.colliderect(obj.rect) for obj in self.game.collision_list):
             movement -= movement_x_only
         self.hitbox.center -= movement_x_only
 
+        # check for collision in the Y direction
         self.hitbox.center += movement_y_only
         if any(self.hitbox.colliderect(obj.rect) for obj in self.game.collision_list):
             movement -= movement_y_only
         self.hitbox.center -= movement_y_only
 
+        # after removing collisions, apply remaining movement vector
         if movement.length_squared() > 0:
             self.hitbox.center += movement
             self.pos += movement

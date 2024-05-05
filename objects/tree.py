@@ -3,27 +3,25 @@ from settings import *
 from utility import remove_padding_and_scale
 from pygame import Vector2 as vec
 import random
-from glob import glob
+from objects.sprite_object import SpriteObject
 
-class Tree(pg.sprite.Sprite):
+import pygame as pg
+from settings import *
+from utility import remove_padding_and_scale
+from pygame import Vector2 as vec
+import random
+from objects.sprite_object import SpriteObject
+
+class Tree(SpriteObject):
     def __init__(self, game, x, y):
-        pg.sprite.Sprite.__init__(self, game.collision_list, game.hittable_list)
-        self.game = game
-
-        # the initial x, y is based on topleft coordinate of the sprite
-        # howver, the .pos attribute is based on the center coordinate of the sprite
-        self.pos = vec(x + TILE_SIZE/2, y + TILE_SIZE/2)       
-        self.rect = pg.Rect(0, 0, TILE_SIZE, TILE_SIZE)
-        self.rect.center = self.pos
-
-        self.flipped = random.random() > 0.5
-
-        self.load_texture()
+        super().__init__(game, x, y, img_path=None, collision=True, hittable=True)
+        
         self.health = TREE_HEALTH
-        self.tree_type == None
 
     def load_texture(self):
-        
+       
+        self.flipped = random.random() > 0.5
+
         tree_type_weights = {
             "Burned_tree1":5,
             "Burned_tree2":5,
@@ -61,6 +59,3 @@ class Tree(pg.sprite.Sprite):
         if self.flipped:
             scaled_image = pg.transform.flip(scaled_image, True, False)
         self.image = scaled_image
-
-    def draw(self, screen, camera):
-        screen.blit(self.image, camera.apply(self.rect))

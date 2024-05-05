@@ -9,15 +9,7 @@ class SpriteObject(pg.sprite.Sprite):
     """
     def __init__(self, game, x, y, img_path, img_resize:tuple=None, collision=False, hittable=False):
 
-        groups = []
-        if collision:
-            groups.append(game.collision_list)
-        if hittable:
-            groups.append(game.hittable_list)
-        if not collision and not hittable:
-            groups.append(game.decor_list)
-        pg.sprite.Sprite.__init__(self, groups)
-
+        # initiation variables
         self.x = x
         self.y = y
         self.game = game
@@ -27,7 +19,8 @@ class SpriteObject(pg.sprite.Sprite):
 
         self.img_path = img_path
         self.img_resize = img_resize
-        self.load_texture()
+        self.load_texture() # sets self.image
+        self.rect = self.image.get_rect()
 
         # the initial x, y is based on topleft coordinate of the sprite
         # howver, the .pos attribute is based on the center coordinate of the sprite
@@ -35,6 +28,17 @@ class SpriteObject(pg.sprite.Sprite):
         self.height = self.rect.height
         self.pos = vec(self.x + self.width/2, self.y + self.height/2) 
         self.rect.center = self.pos
+
+        # this needs to happen last otherwise there can be a race condition
+        # where the SpriteObject is in a game group but isn't fully loaded yet
+        self.groups = []
+        if collision:
+            self.groups.append(game.collision_list)
+        if hittable:
+            self.groups.append(game.hittable_list)
+        if not collision and not hittable:
+            self.groups.append(game.decor_list)
+        pg.sprite.Sprite.__init__(self, self.groups)
 
     def load_texture(self):
         """
@@ -50,14 +54,11 @@ class SpriteObject(pg.sprite.Sprite):
                 )
                 ,self.img_resize
             )
-            self.rect = pg.Rect(0, 0, *self.img_resize)
         # otherwise, load as current size
         else:
             self.image = pg.image.load(
                 self.img_path
             )
-            self.rect = self.image.get_rect()
-
 
     def draw(self, screen, camera):
         screen.blit(self.image, camera.apply(self.rect))

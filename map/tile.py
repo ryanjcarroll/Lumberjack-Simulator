@@ -69,7 +69,7 @@ class Tile:
                 game=self.game,
                 x = decor_x,
                 y = decor_y,
-                img_path = random.choice(glob(f"assets/decor/{item_type}/*.png"))     
+                img_path = random.choice(glob(f"assets/decor/{item_type}/*.png")),
         ))
 
     def draw_base(self, screen, camera):

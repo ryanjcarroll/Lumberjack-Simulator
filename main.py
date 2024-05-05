@@ -137,6 +137,9 @@ class Game:
                     self.game_over_menu.handle_click(pg.mouse.get_pos())  
 
     def start_screen(self):
+        """
+        Screen to let the user start a new game.
+        """
         self.start_menu = StartMenu(self)
         self.at_start_menu = True
         while self.at_start_menu:
@@ -144,15 +147,18 @@ class Game:
             self.start_menu.update()
             self.start_menu.draw()
         self.at_start_menu = False
-        game.loadout_screen()
 
     def loadout_screen(self):
+        """
+        Screen to let the user choose character customization options.
+        """
         self.loadout_menu = LoadoutMenu(self)
         self.at_loadout_menu = True
         while self.at_loadout_menu:
             self.events()
             self.loadout_menu.update(pg.mouse.get_pos())
             self.loadout_menu.draw()
+        # afterwards, start the gameplay loop
         self.at_loadout_menu = False
         self.new(self.loadout_menu.get_loadout())
         self.run()
@@ -179,4 +185,8 @@ class Game:
 
 # initialize a game object and start running
 game = Game()
-game.start_screen()
+# game.start_screen()
+# loadout = game.loadout_screen()
+loadout = {'body': {'category': 'char1', 'style': 0}, 'hair': {'category': 'bob ', 'style': 0}, 'face': {'category': 'eyes', 'style': 0}, 'shirt': {'category': 'basic', 'style': 0}, 'pants': {'category': 'pants', 'style': 0}, 'accessories': {'category': 'beard', 'style': 0}}
+game.new(loadout)
+game.run()
