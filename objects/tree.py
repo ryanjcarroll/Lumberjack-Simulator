@@ -12,6 +12,8 @@ class Tree(SpriteObject):
         
         # settings for taking damage from axes
         self.health = TREE_HEALTH
+        if "Burned" in self.tree_type:
+            self.health = 1
         self.hitbox = pg.Rect(
             self.rect.width//4,
             self.rect.y,
@@ -22,7 +24,7 @@ class Tree(SpriteObject):
 
         # variables for shake effect
         self.draw_rect = self.rect  # .draw_rect may be different while shaking, but .rect will stay the same
-        self.shaking = True
+        self.shaking = False
         self.shake_timer = 0
         self.shake_duration = 0.3 # in seconds
         self.shake_amplitude = 1 # in pixels
@@ -56,9 +58,6 @@ class Tree(SpriteObject):
             population = list(tree_type_weights.keys()),
             weights = list(tree_type_weights.values())
         )[0]
-
-        if "Burned" in self.tree_type:
-            self.health = 1
 
         # load an image, remove transparent boundaries, and scale it to size
         scaled_image = pg.transform.scale(
