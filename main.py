@@ -47,7 +47,6 @@ class Game:
         self.decor_list = pg.sprite.Group() # objects the player can walk through and is not able to hit with their axe
         self.hittable_list = pg.sprite.Group() # objects the player can hit with their axe
         self.map = Map(self)
-        self.camp = Camp(self)
         self.compass = Compass(self)
 
         # initialize necessary game objects and variables
@@ -80,6 +79,21 @@ class Game:
             self.health_bar.update()
             self.health_tick_timer = 0
 
+    def draw_layer_if(self, layer, condition=lambda x:True):
+        """
+        Draw all tiles in visible chunks, passing a layer parameter.
+        If a condition is passed, only draw objects if the tile meets that condition.
+        """
+        for chunk_id in self.map.get_visible_chunks(self.player):
+            with self.map.lock:
+                if chunk_id in self.map.chunks:
+                    chunk = self.map.chunks[chunk_id]
+                else:
+                    continue
+            for tile in chunk.tiles:
+                if condition(tile):
+                    tile.draw(layer, self.screen, self.camera)
+
     def draw(self):
         """
         Draw images and sprites.
@@ -87,28 +101,29 @@ class Game:
         self.screen.fill(BG_COLOR)
 
         # draw tile bases if they are in visible chunks
-        for chunk_id in self.map.get_visible_chunks(self.player):
-            with self.map.lock:
-                if chunk_id in self.map.chunks:
-                    chunk = self.map.chunks[chunk_id]
-                else:
-                    continue
-            for tile in chunk.tiles:
-                tile.draw_base(self.screen, self.camera)
-        # once bases are drawn, draw objects in visible chunks
-        for chunk_id in self.map.get_visible_chunks(self.player):
-            with self.map.lock:
-                if chunk_id in self.map.chunks:
-                    chunk = self.map.chunks[chunk_id]
-                else:
-                    continue
-            for tile in chunk.tiles:
-                tile.draw_objects(self.screen, self.camera)
+        for layer in [BASE_LAYER, DECOR_LAYER]:
+            self.draw_layer_if(layer)
 
-        # draw player
-        self.player.draw(self.screen, self.camera)
-        self.camp.draw(self.screen, self.camera)
+        # draw sprites that are positioned north of the player
+        player_pos_y = self.player.pos[1]
+        for layer in [SPRITE_LAYER]:
+            self.draw_layer_if(layer, lambda tile: tile.rect.center[1] < player_pos_y)
         
+        self.player.draw(self.screen, self.camera)
+        # self.camp.draw(self.screen, self.camera)
+
+        # draw sprites that are positioned south of the player
+        for layer in [SPRITE_LAYER]:
+            for chunk_id in self.map.get_visible_chunks(self.player):
+                with self.map.lock:
+                    if chunk_id in self.map.chunks:
+                        chunk = self.map.chunks[chunk_id]
+                    else:
+                        continue
+                for tile in chunk.tiles:
+                    if tile.rect.center[1] >= self.player.pos[1]:
+                        tile.draw(layer, self.screen, self.camera)
+
         # draw menus
         self.backpack_inventory_menu.draw(self.screen)
         self.camp_inventory_menu.draw(self.screen)
@@ -185,8 +200,11 @@ class Game:
 
 # initialize a game object and start running
 game = Game()
-# game.start_screen()
-# loadout = game.loadout_screen()
-loadout = {'body': {'category': 'char1', 'style': 0}, 'hair': {'category': 'bob ', 'style': 0}, 'face': {'category': 'eyes', 'style': 0}, 'shirt': {'category': 'basic', 'style': 0}, 'pants': {'category': 'pants', 'style': 0}, 'accessories': {'category': 'beard', 'style': 0}}
-game.new(loadout)
-game.run()
+menu_loop = True
+# loop multiple games in a row if necessary
+while menu_loop:
+    # game.start_screen()
+    # loadout = game.loadout_screen()
+    loadout = {'body': {'category': 'char1', 'style': 0}, 'hair': {'category': 'bob ', 'style': 0}, 'face': {'category': 'eyes', 'style': 0}, 'shirt': {'category': 'basic', 'style': 0}, 'pants': {'category': 'pants', 'style': 0}, 'accessories': {'category': 'beard', 'style': 0}}
+    game.new(loadout)
+    game.run()

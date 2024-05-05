@@ -14,9 +14,16 @@ from objects.sprite_object import SpriteObject
 
 class Tree(SpriteObject):
     def __init__(self, game, x, y):
-        super().__init__(game, x, y, img_path=None, collision=True, hittable=True)
+        super().__init__(game, x, y, layer=SPRITE_LAYER, img_path=None, collision=True, hittable=True)
         
         self.health = TREE_HEALTH
+        self.hitbox = pg.Rect(
+            self.rect.width//4,
+            self.rect.y,
+            self.rect.width //2,
+            2 * self.rect.height //3
+        )
+        self.hitbox.center = self.rect.center
 
     def load_texture(self):
        

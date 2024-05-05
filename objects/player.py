@@ -2,7 +2,7 @@ import pygame as pg
 from settings import *
 from pygame import Vector2 as vec
 import math
-from utility import extract_image_from_spritesheet, combine_images
+from utility import *
 from objects.inventory import Backpack
 import json
 
@@ -220,25 +220,36 @@ class Player(pg.sprite.Sprite):
 
         return movement
            
+    def get_attack_hitboxes(self):
+        
+        attack_rects = []
+        for angle in [self.angle-45, self.angle, self.angle+45]:
+            # Calculate the position and radius of the attack swing
+            attack_pos = (
+                self.pos[0] + self.attack_distance * math.cos(math.radians(angle)),
+                self.pos[1] - self.attack_distance * math.sin(math.radians(angle))  # Negative sin because Y-axis is inverted in Pygame
+            )
+            # Calculate the top-left corner of the square area
+            top_left_corner = (
+                attack_pos[0] - self.attack_distance / 2,
+                attack_pos[1] - self.attack_distance / 2
+            )
+            attack_rects.append(pg.Rect(top_left_corner, (self.attack_distance, self.attack_distance)))
+
+        return attack_rects
+        
     def attack(self):
         """
         Called once an axe swing animation has finished.
         Determines whether anything was hit and deals damage.
         """
-        # Calculate the position and radius of the attack swing
-        attack_pos = (
-            self.pos[0] + self.attack_distance * math.cos(math.radians(self.angle)),
-            self.pos[1] - self.attack_distance * math.sin(math.radians(self.angle))  # Negative sin because Y-axis is inverted in Pygame
-        )
-        # Calculate the top-left corner of the square area
-        top_left_corner = (
-            attack_pos[0] - self.attack_distance / 2,
-            attack_pos[1] - self.attack_distance / 2
-        )
-        attack_rect = pg.Rect(top_left_corner, (self.attack_distance, self.attack_distance))
-
         # Check for tree collisions at the attack position and reduce tree HP accordingly
-        trees_hit = [tree for tree in self.game.hittable_list if tree.rect.colliderect(attack_rect)]
+        attack_rects = self.get_attack_hitboxes()
+        trees_hit = []
+        for tree in self.game.hittable_list:
+            for rect in attack_rects:
+                if tree.hitbox.colliderect(rect):
+                    trees_hit.append(tree)
 
         # Reduce the health of the collided tree(s)
         for tree in trees_hit:
@@ -336,17 +347,9 @@ class Player(pg.sprite.Sprite):
             attack_rect = pg.Rect(top_left_corner, (self.attack_distance, self.attack_distance))
             pg.draw.rect(screen, LIGHT_GREY, camera.apply(attack_rect))
         
-        # Draw red box for current hitbox last (so it will be on top)
-        attack_pos = (
-            self.pos[0] + self.attack_distance * math.cos(math.radians(self.angle)),
-            self.pos[1] - self.attack_distance * math.sin(math.radians(self.angle))  # Negative sin because Y-axis is inverted in Pygame
-        )
-        top_left_corner = (
-            attack_pos[0] - self.attack_distance / 2,
-            attack_pos[1] - self.attack_distance / 2
-        )
-        attack_rect = pg.Rect(top_left_corner, (self.attack_distance, self.attack_distance))
-        pg.draw.rect(screen, RED, camera.apply(attack_rect))
+        attack_hitboxes = self.get_attack_hitboxes()
+        for hitbox in attack_hitboxes:
+            pg.draw.rect(screen, RED, camera.apply(hitbox))
 
     def game_over_update(self):
         self.action = "sleep"

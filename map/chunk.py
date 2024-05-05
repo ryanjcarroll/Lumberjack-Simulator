@@ -2,6 +2,7 @@ from settings import *
 from map.tile import Tile
 from objects.tree import Tree
 from objects.sprite_object import SpriteObject
+from objects.inventory import Camp
 import random
 
 class Chunk:
@@ -98,3 +99,7 @@ class SpawnChunk(Chunk):
             if abs(CHUNK_SIZE//2-tile.row) > 1 or abs(CHUNK_SIZE//2-tile.col) > 1:
                 if random.random() < 0.7:
                     tile.objects.append(Tree(self.game, *tile.rect.topleft))
+            # spawn the camp
+            if CHUNK_SIZE//2 == tile.row and CHUNK_SIZE//2 + 1== tile.col:
+                self.game.camp = Camp(self.game, *tile.rect.topleft)
+                tile.objects.append(self.game.camp)

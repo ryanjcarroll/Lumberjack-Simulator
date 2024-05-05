@@ -7,12 +7,13 @@ class SpriteObject(pg.sprite.Sprite):
     """
     Sprite objects to be loaded within the game.
     """
-    def __init__(self, game, x, y, img_path, img_resize:tuple=None, collision=False, hittable=False):
+    def __init__(self, game, x, y, img_path, layer, img_resize:tuple=None, collision=False, hittable=False):
 
         # initiation variables
         self.x = x
         self.y = y
         self.game = game
+        self.render_layer = layer
 
         self.hittable = hittable
         self.collision = collision
@@ -20,7 +21,10 @@ class SpriteObject(pg.sprite.Sprite):
         self.img_path = img_path
         self.img_resize = img_resize
         self.load_texture() # sets self.image
+
+        # set collision rect and attack hitbox
         self.rect = self.image.get_rect()
+        self.hitbox = None
 
         # the initial x, y is based on topleft coordinate of the sprite
         # howver, the .pos attribute is based on the center coordinate of the sprite
@@ -36,6 +40,7 @@ class SpriteObject(pg.sprite.Sprite):
             self.groups.append(game.collision_list)
         if hittable:
             self.groups.append(game.hittable_list)
+            self.hitbox = self.rect
         if not collision and not hittable:
             self.groups.append(game.decor_list)
         pg.sprite.Sprite.__init__(self, self.groups)
@@ -61,7 +66,12 @@ class SpriteObject(pg.sprite.Sprite):
             )
 
     def draw(self, screen, camera):
+        # self.draw_hitboxes(screen, camera)
         screen.blit(self.image, camera.apply(self.rect))
+
+    def draw_hitboxes(self, screen, camera):
+        if self.hitbox:
+            pg.draw.rect(screen, RED, camera.apply(self.hitbox))
 
     def to_json(self):
         return {

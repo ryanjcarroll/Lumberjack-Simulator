@@ -1,6 +1,5 @@
 import pygame as pg
-import math
-import datetime
+from settings import *
 
 def remove_padding_and_scale(sprite_image):
     """

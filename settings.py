@@ -28,13 +28,11 @@ SPRITESHEET_TILE_SIZE = 32
 SPRITESHEET_NUM_COLUMNS = 8
 ACTIONS_TO_LOAD = ["walk","axe","sleep"]
 LAYER_ORDER = ["body","hair","face","shirt","pants","accessories"]
-LAYERS = [
-    0, # tile base
-    1, # decor objects
-    2, # sprite objects with Y above the player
-    3,  # player sprite
-    4, # sprite objects with Y below the player
-]
+
+# render layer settings (0 is drawn first)
+BASE_LAYER = 0
+DECOR_LAYER = 1
+SPRITE_LAYER = 2
 
 # player settings
 PLAYER_ATTACK_DAMAGE = 10

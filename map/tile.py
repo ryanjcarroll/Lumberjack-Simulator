@@ -21,7 +21,7 @@ class Tile:
 
         self.image = self.load_texture()
         self.rect = self.image.get_rect()
-        self.rect.topleft = vec(x,y)       
+        self.rect.topleft = vec(x,y)     
         self.objects = []
 
         if has_decor:
@@ -70,15 +70,18 @@ class Tile:
                 x = decor_x,
                 y = decor_y,
                 img_path = random.choice(glob(f"assets/decor/{item_type}/*.png")),
+                layer = DECOR_LAYER
         ))
 
-    def draw_base(self, screen, camera):
-        screen.blit(self.image, camera.apply(self.rect))
+    def draw(self, layer, screen, camera):
+        # draw self.image for base layer
+        if layer == BASE_LAYER:
+            screen.blit(self.image, camera.apply(self.rect))
 
-    def draw_objects(self, screen, camera):
-        for object in self.objects:
-            if object.alive():
-                object.draw(screen, camera)
+        # for other layers, draw all objects in that layer
+        for obj in self.objects:
+            if obj.alive() and obj.render_layer == layer:
+                obj.draw(screen, camera)
 
     def to_json(self):
         return {

@@ -1,5 +1,6 @@
 from objects.sprite_object import SpriteObject
 from settings import *
+import pygame as pg
 
 class Backpack:
     def __init__(self):
@@ -17,17 +18,19 @@ class Backpack:
         self.wood = 0
 
 class Camp(SpriteObject):
-    def __init__(self, game):
+    def __init__(self, game, x ,y):
         super().__init__(
             game=game,
-            x=(CHUNK_SIZE*TILE_SIZE)//2 + TILE_SIZE//2,
-            y=(CHUNK_SIZE*TILE_SIZE)//2 - TILE_SIZE//2,
+            x=x,
+            y=y,
+            layer=SPRITE_LAYER,
             img_path="assets/decor/camp/1.png",
             img_resize=(72,72),
             collision=True
         )
 
         self.wood = 0
+        self.hitbox = self.rect
 
     def add_wood(self, n=1):
         self.wood += n
