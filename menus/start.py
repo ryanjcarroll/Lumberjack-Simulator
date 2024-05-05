@@ -33,7 +33,7 @@ class StartMenu:
     def handle_click(self, pos):
         if self.start_button.collidepoint(pos):
             self.game.at_start_menu = False  # progress to the next phase
-        self.start_text = self.font.render(f"Loading...", True, BLACK)
-        self.start_text_x = self.start_button.centerx - self.start_text.get_width() // 2  # Center the text horizontally within the rectangle
-        self.start_text_y = self.start_button.centery - self.start_text.get_height() // 2  # Center the text vertically within the rectangle
-        self.draw() # draw again to update with Loading text during buffer time
+            self.start_text = self.font.render(f"Loading...", True, BLACK)
+            self.start_text_x = self.start_button.centerx - self.start_text.get_width() // 2  # Center the text horizontally within the rectangle
+            self.start_text_y = self.start_button.centery - self.start_text.get_height() // 2  # Center the text vertically within the rectangle
+            self.draw() # draw again to update with Loading text during buffer time

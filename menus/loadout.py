@@ -44,7 +44,7 @@ class LoadoutMenu:
     def __init__(self, game):
         self.game = game
 
-        self.attributes = ["body","hair","face","shirt","pants","accessories"]
+        self.attributes = LAYER_ORDER
 
         # build a dictionary of category options for the player to choose between
         self.assets = {}

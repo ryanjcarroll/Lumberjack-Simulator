@@ -26,6 +26,8 @@ FPS = 60
 # sprite settings
 SPRITESHEET_TILE_SIZE = 32
 SPRITESHEET_NUM_COLUMNS = 8
+ACTIONS_TO_LOAD = ["walk","axe","sleep"]
+LAYER_ORDER = ["body","hair","face","shirt","pants","accessories"]
 
 # player settings
 PLAYER_ATTACK_DAMAGE = 10
@@ -35,7 +37,7 @@ PLAYER_SPRITE_HEIGHT = 72
 PLAYER_SPRITE_WIDTH = 72
 PLAYER_ANIMATION_SPEED = 0.1
 PLAYER_HITBOX = Rect(0,0,15,15)
-PLAYER_STARTING_HEALTH = 80
+PLAYER_STARTING_HEALTH = 1 #80
 PLAYER_MAX_HEALTH = 100
 
 # inventory menu settings

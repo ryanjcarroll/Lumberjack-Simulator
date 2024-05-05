@@ -10,6 +10,7 @@ from ui.bars import HealthBar
 from ui.inventory import BackpackInventoryMenu, CampInventoryMenu
 from menus.start import StartMenu
 from menus.loadout import LoadoutMenu
+from menus.game_over import GameOverMenu
 pg.init()
 
 class Game:
@@ -34,6 +35,7 @@ class Game:
 
         self.at_loadout_menu = False
         self.at_start_menu = False
+        self.at_game_over = False
 
     def new(self, loadout:dict):
         """
@@ -56,22 +58,12 @@ class Game:
         self.backpack_inventory_menu = BackpackInventoryMenu(self)
         self.camp_inventory_menu = CampInventoryMenu(self)
         self.health_bar = HealthBar(self)
-        
-    def run(self):
-        """
-        Main game loop.
-        """
-        self.playing = True
-
-        while(self.playing):
-            self.events()
-            self.update()
-            self.draw()
 
     def update(self):
         """
         Update sprites and camera.
         """
+        self.player.check_keys()
         self.player.update()
         self.camera.update(self.player)
 
@@ -123,6 +115,9 @@ class Game:
         self.compass.draw(self.screen) 
         self.health_bar.draw(self.screen)
 
+        if self.at_game_over:
+            self.player.game_over_update()
+
         pg.display.flip()
             
     def events(self):
@@ -137,7 +132,9 @@ class Game:
                 if self.at_start_menu:
                     self.start_menu.handle_click(pg.mouse.get_pos())
                 elif self.at_loadout_menu:
-                    self.loadout_menu.handle_click(pg.mouse.get_pos())   
+                    self.loadout_menu.handle_click(pg.mouse.get_pos()) 
+                elif self.at_game_over:
+                    self.game_over_menu.handle_click(pg.mouse.get_pos())  
 
     def start_screen(self):
         self.start_menu = StartMenu(self)
@@ -146,6 +143,8 @@ class Game:
             self.events()
             self.start_menu.update()
             self.start_menu.draw()
+        self.at_start_menu = False
+        game.loadout_screen()
 
     def loadout_screen(self):
         self.loadout_menu = LoadoutMenu(self)
@@ -154,11 +153,30 @@ class Game:
             self.events()
             self.loadout_menu.update(pg.mouse.get_pos())
             self.loadout_menu.draw()
-        return self.loadout_menu.get_loadout()
+        self.at_loadout_menu = False
+        self.new(self.loadout_menu.get_loadout())
+        self.run()
+
+    def run(self):
+        """
+        Main game loop.
+        """
+        self.playing = True
+
+        while(self.playing):
+            self.events()
+            self.update()
+            self.draw()
+        
+        # handle game over
+        self.at_game_over = True
+        self.game_over_menu = GameOverMenu(self)
+        while self.at_game_over:
+            self.events()
+            self.draw()
+        self.at_game_over = False
+        self.start_screen()
 
 # initialize a game object and start running
 game = Game()
 game.start_screen()
-loadout = game.loadout_screen()
-game.new(loadout)
-game.run() 

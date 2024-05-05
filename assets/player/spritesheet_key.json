@@ -27,7 +27,7 @@
     "sit_up": {"row": 25, "num_frames": 1},
     "sit_right": {"row": 26, "num_frames": 1},
     "sit_left": {"row": 27, "num_frames": 1},
-    "sleep_down": {"row": 28, "num_frames": 1},
+    "sleep": {"row": 28, "num_frames": 1},
     "pick_down": {"row": 29, "num_frames": 5},
     "pick_up": {"row": 30, "num_frames": 5},
     "pick_right": {"row": 31, "num_frames": 5},

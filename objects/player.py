@@ -75,8 +75,8 @@ class Player(pg.sprite.Sprite):
         self.frames = {}
 
         # actions we want to import
-        action_substrings = ["walk","axe"]
-        layer_order = ["body","hair","face","shirt","pants","accessories"]
+        action_substrings = ACTIONS_TO_LOAD
+        layer_order = LAYER_ORDER
 
         # load the spritesheet key to determine which rows go with which animations
         with open("assets/player/spritesheet_key.json") as f_in:
@@ -126,7 +126,6 @@ class Player(pg.sprite.Sprite):
         """
         Check for keyboard input and update movement and angle information accordingly. 
         """
-        
         keys = pg.key.get_pressed()
         movement = self.get_movement(keys)
 
@@ -281,20 +280,24 @@ class Player(pg.sprite.Sprite):
             if self.animation_timer >= self.animation_speed:
                 self.current_frame_index = (self.current_frame_index + 1) % len(self.frames[f"{self.action}_{self.direction}"])
                 self.animation_timer = 0
-
+        elif self.action == "sleep":
+            if self.animation_timer >= self.animation_speed:
+                self.current_frame_index = (self.current_frame_index + 1) % len(self.frames[f"{self.action}"])
+                self.animation_timer = 0
+                
     def update(self):
         """
         Called each game step to update the Player object.
         """
-
-        self.check_keys()
         self.set_animation_counters(self.game.dt)
 
         if self.action == "walk":
             # set the frame for walk animations
             self.image = self.frames[f"walk_{self.direction}"][self.current_frame_index]
-        elif self.action == "axe":                
+        elif self.action == "axe":               
             self.image = self.frames[f"axe_{self.direction}"][self.current_frame_index]
+        elif self.action == "sleep":
+            self.image = self.frames["sleep"][self.current_frame_index]
         else:
             # to stand, set to the first frame of the directional walk animation
             self.image = self.frames[f"walk_{self.direction}"][0]
@@ -302,6 +305,10 @@ class Player(pg.sprite.Sprite):
         self.rect = self.image.get_rect(center=self.rect.center)
         self.rect.center = self.pos
         self.hitbox.center = self.pos
+
+        # if player health reaches 0 or lower, end the game
+        if self.health <= 0:
+            self.game.playing = False
 
     def draw(self, screen, camera):
         # self.draw_hitboxes(screen, camera)
@@ -339,3 +346,9 @@ class Player(pg.sprite.Sprite):
         )
         attack_rect = pg.Rect(top_left_corner, (self.attack_distance, self.attack_distance))
         pg.draw.rect(screen, RED, camera.apply(attack_rect))
+
+    def game_over_update(self):
+        self.action = "sleep"
+        self.current_frame_index = 0
+        self.update()
+        self.game.game_over_menu.draw(self.game.screen)
