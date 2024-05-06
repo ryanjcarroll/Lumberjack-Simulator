@@ -17,10 +17,10 @@ class Tree(SpriteObject):
         self.collision_rect = pg.Rect(
             0,
             0,
-            self.rect.width //2,
+            2 * self.rect.width //3,
             2 * self.rect.height //3
         )
-        self.collision_rect.topleft = (self.rect.topleft[0] + self.rect.width//4, self.rect.topleft[1] + self.rect.width//3)
+        self.collision_rect.topleft = (self.rect.topleft[0] + self.rect.width//6, self.rect.topleft[1] + self.rect.width//3)
 
         # variables for shake effect
         self.draw_rect = self.rect  # .draw_rect may be different while shaking, but .rect will stay the same

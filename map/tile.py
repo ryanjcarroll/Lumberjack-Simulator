@@ -6,6 +6,7 @@ from glob import glob
 from objects.sprite_object import SpriteObject
 from abc import ABC, abstractmethod
 from objects.tree import *
+import opensimplex
 
 class Tile(ABC):
     def __init__(self, game, chunk, row, col, has_decor):
@@ -58,7 +59,7 @@ class Tile(ABC):
         else:
             row_index, col_index = (4,5) # grass
 
-        return pg.transform.scale(
+        image = pg.transform.scale(
             self.game.sprites.load_from_spritesheet(
                 path=self.get_spritesheet_path(),
                 row_index=row_index,
@@ -67,6 +68,20 @@ class Tile(ABC):
             )
             ,(TILE_SIZE, TILE_SIZE)
         )
+        # return image
+
+        TILE_NOISE_FACTOR = .005
+        darkness = 215 + (30 * opensimplex.noise2(self.x*TILE_NOISE_FACTOR, self.y*TILE_NOISE_FACTOR))
+        # Create a semi-transparent black surface with the same size as the image
+        dark_surface = pg.Surface(image.get_size(), pg.SRCALPHA)
+        dark_surface.fill((darkness,darkness,darkness+10, 200))  # Fill with semi-transparent black
+
+        # Blend the original image with the dark surface
+        darkened_image = pg.Surface(image.get_size(), pg.SRCALPHA)
+        darkened_image.blit(image, (0, 0))  # Blit the original image onto the darkened surface
+        darkened_image.blit(dark_surface, (0, 0), special_flags=pg.BLEND_MULT)  # Multiply blend the dark surface
+
+        return darkened_image
 
     @abstractmethod
     def get_decor_weights(self) -> dict:        
@@ -272,17 +287,16 @@ class AutumnForestTile(Tile):
 
     def get_decor_weights(self):
         return {
-            "pebble":10,
+            "pebble":2,
             "flower":10,
-            "grass":100,
-            "patch":100,
+            "grass":50,
             "butterfly":5
         }
     
-    def load_decor(self):
-        # load decor multiple times
-        for i in range(2):
-            super().load_decor()
+    # def load_decor(self):
+    #     # load decor multiple times
+    #     for i in range(2):
+    #         super().load_decor()
     
     def load_objects(self):
         # spawn trees everywhere except the 3x3 square around the spawn location
