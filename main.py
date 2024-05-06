@@ -85,7 +85,7 @@ class Game:
             self.health_bar.update()
             self.health_tick_timer = 0
 
-    def draw_layer_if(self, layer, condition=lambda x:True, sort=None):
+    def draw_layer_if(self, layer, condition=lambda x:True):
         """
         Draw all tiles in visible chunks, passing a layer parameter.
         If a condition is passed, only draw objects if the tile meets that condition.
@@ -100,7 +100,7 @@ class Game:
             for tile in chunk.tiles:
                 if condition(tile):
                     tiles.append(tile)
-        # draw ties in order by ascending y coordinate
+        # draw tiles in order by ascending y coordinate
         for tile in sorted(tiles, key=lambda t: t.y):
             tile.draw(layer, self.screen, self.camera)
 
@@ -205,8 +205,8 @@ game = Game()
 menu_loop = True
 # loop multiple games in a row if necessary
 while menu_loop:
-    # game.start_screen()
-    # loadout = game.loadout_screen()
-    loadout = {'body': {'category': 'body1', 'style': 0}, 'hair': {'category': 'bob ', 'style': 0}, 'face': {'category': 'eyes', 'style': 0}, 'shirt': {'category': 'basic', 'style': 0}, 'pants': {'category': 'pants', 'style': 0}, 'accessories': {'category': 'beard', 'style': 0}}
+    game.start_screen()
+    loadout = game.loadout_screen()
+    # loadout = {'body': {'category': 'body1', 'style': 0}, 'hair': {'category': 'bob ', 'style': 0}, 'face': {'category': 'eyes', 'style': 0}, 'shirt': {'category': 'basic', 'style': 0}, 'pants': {'category': 'pants', 'style': 0}, 'accessories': {'category': 'beard', 'style': 0}}
     game.new(loadout)
     game.run()
