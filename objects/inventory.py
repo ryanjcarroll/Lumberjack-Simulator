@@ -30,7 +30,7 @@ class Camp(SpriteObject):
         )
 
         self.wood = 0
-        self.hitbox = self.rect
+        self.collision_rect = self.rect
 
     def add_wood(self, n=1):
         self.wood += n

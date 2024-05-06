@@ -24,16 +24,7 @@ class Chunk:
         # fill the chunk with Tiles
         for row in range(CHUNK_SIZE):
             for col in range(CHUNK_SIZE):
-                x = self.rect.topleft[0] + col*TILE_SIZE
-                y = self.rect.topleft[1] + row*TILE_SIZE
-                biome_noise = opensimplex.noise2(x*BIOME_NOISE_FACTOR, y*BIOME_NOISE_FACTOR)
-                if biome_noise > 0.33:
-                    tile_type = AutumnForestTile
-                elif biome_noise < -0.33:
-                    tile_type = IceForestTile
-                else:
-                    tile_type = ForestTile
-                tile = tile_type(
+                tile = self.get_tile_type(row, col)(
                     game = self.game,
                     chunk=self,
                     row = row,
@@ -41,6 +32,24 @@ class Chunk:
                 )
                 tile.load_objects()
                 self.tiles.append(tile)
+
+    def get_tile_type(self, row, col) -> type:
+        x = self.rect.topleft[0] + col*TILE_SIZE
+        y = self.rect.topleft[1] + row*TILE_SIZE
+        biome_noise = opensimplex.noise2(x*BIOME_NOISE_FACTOR, y*BIOME_NOISE_FACTOR)
+
+        if (-50*BIOME_NOISE_FACTOR) < biome_noise < (50*BIOME_NOISE_FACTOR):
+            tile_type = WaterTile
+        elif (-150*BIOME_NOISE_FACTOR) < biome_noise < (150*BIOME_NOISE_FACTOR):
+            tile_type = MangroveForestTile
+        elif biome_noise > 0.33:
+            tile_type = AutumnForestTile
+        elif biome_noise < -0.33:
+            tile_type = IceForestTile
+        else:
+            tile_type = ForestTile
+
+        return tile_type
 
     def save(self):
         pass
@@ -65,6 +74,24 @@ class SpawnChunk(Chunk):
                 self.game.camp = Camp(self.game, *tile.rect.topleft)
                 tile.objects.append(self.game.camp)
 
+    def get_tile_type(self, row, col) -> type:
+        x = self.rect.topleft[0] + col*TILE_SIZE
+        y = self.rect.topleft[1] + row*TILE_SIZE
+        biome_noise = opensimplex.noise2(x*BIOME_NOISE_FACTOR, y*BIOME_NOISE_FACTOR)
+
+        # if -.05 < biome_noise < .05:  # don't spawn water in the spawn chunk
+        #     tile_type = WaterTile
+        if -0.15 < biome_noise < 0.15:
+            tile_type = MangroveForestTile
+        elif biome_noise > 0.33:
+            tile_type = AutumnForestTile
+        elif biome_noise < -0.33:
+            tile_type = IceForestTile
+        else:
+            tile_type = ForestTile
+
+        return tile_type
+
     def render_tiles(self):
         # fill the chunk with Tiles
         for row in range(CHUNK_SIZE):
@@ -88,14 +115,15 @@ class SpawnChunk(Chunk):
                 elif CHUNK_SIZE//2 + 1 == row and CHUNK_SIZE//2 + 1== col:
                     terrain_type = "stone_bottomright" 
                 else:
-                    terrain_type = "grass"
-                tile = ForestTile(
+                    terrain_type = "basic"
+                tile = self.get_tile_type(row, col)(
                     game = self.game,
                     chunk=self,
                     row = row,
                     col = col,
-                    has_decor=True if terrain_type == "grass" else False
+                    has_decor=True if terrain_type == "basic" else False
                 )
-                tile.load_objects()
+                if terrain_type == "basic":
+                    tile.load_objects()
 
                 self.tiles.append(tile)

@@ -22,9 +22,12 @@ class Player(pg.sprite.Sprite):
         # set position variables
         self.pos = vec(x, y)
         self.angle = 0
-        self.hitbox = PLAYER_HITBOX
-        self.hitbox.center = self.pos
-        self.last_movement = vec(0,0) 
+        self.sprite_offset = vec(0, -int(PLAYER_SPRITE_HEIGHT*3/8))
+
+        # collision_rect is for collision detection, rect is for sprite/image positioning
+        self.collision_rect = PLAYER_COLLISION_RECT
+        self.collision_rect.center = self.pos
+        self.last_movement = vec(0,0)
 
         # set default values
         self.move_distance = PLAYER_MOVE_DISTANCE
@@ -40,7 +43,7 @@ class Player(pg.sprite.Sprite):
         self.load_animations(loadout)
 
         self.image = self.frames[f"walk_down"][0]
-        self.rect = self.image.get_rect(center=self.pos)
+        self.rect = self.image.get_rect(center=self.pos + self.sprite_offset)
         # run an initial update to set the first frame of the spritesheet
         self.update()
 
@@ -48,79 +51,52 @@ class Player(pg.sprite.Sprite):
         """
         Load spritesheets and animation frames.
         """
-        # holds a spritesheet for each player attribute to be rendered
-        self.spritesheets = {}
-
-        for attribute, d in loadout.items():
-            if d['category'] != "none":
-                # load the spritesheet for the given asset category based on loadout params
-                spritesheet = self.game.sprites.load(f"assets/player/{attribute}/{d['category']}.png")
-                
-                # if the sheet has multiple columns, crop to the correct one (this selects the style)
-                if spritesheet.get_width() > SPRITESHEET_NUM_COLUMNS * SPRITESHEET_TILE_SIZE:
-                    cropped_spritesheet = spritesheet.subsurface(pg.Rect(
-                        d['style']*SPRITESHEET_TILE_SIZE*SPRITESHEET_NUM_COLUMNS,
-                        0,
-                        SPRITESHEET_TILE_SIZE*SPRITESHEET_NUM_COLUMNS,
-                        spritesheet.get_height()
-                    ))
-                else:
-                    cropped_spritesheet = spritesheet
-                self.spritesheets[attribute] = cropped_spritesheet
-
-        self.load_frames()
-
-    def load_frames(self):
-
-        # holds a list of combined images for each animation type
-        self.frames = {}
-
-        # actions we want to import
-        action_substrings = ACTIONS_TO_LOAD
-        layer_order = LAYER_ORDER
-
         # load the spritesheet key to determine which rows go with which animations
         with open("assets/player/spritesheet_key.json") as f_in:
             row_key = json.load(f_in)
+
         frames_to_load = {}
         # Iterate over original dictionary
         for key, value in row_key.items():
             # Check if any substring is present in the key
-            if any(substring in key for substring in action_substrings):
+            if any(substring in key for substring in ACTIONS_TO_LOAD):
                 # Include the key-value pair in the filtered dictionary
                 frames_to_load[key] = value
 
-        # iterate through loadable actions
-        for action, d in frames_to_load.items():
-            row = d['row']
-            num_frames = d['num_frames']
 
-            # initalize an empty list for this action's combined frames
+        self.frames = {}
+        # load and build the combined animation frames for each action
+        for action, d_action in frames_to_load.items():
+            row = d_action['row']
+            num_frames = d_action['num_frames']
+            
             self.frames[action] = []
+        
+            # get each combined animation frame for the given action
+            for col in range(num_frames):
+                images = []  # a list of component images for a single frame
 
-            # load all attributes for frame 1, then all for frame 2, etc...
-            for i in range(num_frames):
-                images = []
+                # load an animation frame for each attribute (e.g. body, hair, etc)
+                for attribute, d_loadout in loadout.items():
 
-                # load in layer order
-                for attribute in layer_order:
-                    # check that attribute was not left empty
-                    if attribute in self.spritesheets.keys():
-                        # load each image layer from its spritesheet and combine them
-                        sheet = self.spritesheets[attribute]
-                        
-                        images.append(
-                            pg.transform.scale(
-                                extract_image_from_spritesheet(
-                                    spritesheet=sheet,
-                                    row_index=row,
-                                    col_index=i,
-                                    tile_size=SPRITESHEET_TILE_SIZE
-                                ),
-                                (PLAYER_SPRITE_WIDTH, PLAYER_SPRITE_HEIGHT)
-                            )
+                    # skip any attribute that was left unselected
+                    if d_loadout['category'] == "none":
+                        continue
+                    
+                    # load the component frame and add to images list
+                    images.append(
+                        pg.transform.scale(
+                            self.game.sprites.load_from_spritesheet(
+                                path=f"assets/player/{attribute}/{d_loadout['category']}.png",
+                                row_index=row,
+                                col_index=col,
+                                tile_size=SPRITESHEET_TILE_SIZE
+                            ),
+                            (PLAYER_SPRITE_WIDTH, PLAYER_SPRITE_HEIGHT)
                         )
+                    )
 
+                # combine cimponents into a single animation frame and add to the frames library
                 self.frames[action].append((combine_images(images)))
         
     def check_keys(self):
@@ -140,32 +116,41 @@ class Player(pg.sprite.Sprite):
         movement_y_only = vec(0, movement.y)
 
         # check for collision in the X direction
-        self.hitbox.center += movement_x_only
-        if any(self.hitbox.colliderect(obj.rect) for obj in self.game.collision_list):
+        self.collision_rect.center += movement_x_only
+        flag=False
+        for obj in self.game.collision_list:
+            try:
+                if self.collision_rect.colliderect(obj.collision_rect):
+                    flag = True
+            except TypeError as e:
+                print(self.collision_rect)
+                print(obj.collision_rect, type(obj))
+                raise(e)
+        if flag:
             movement -= movement_x_only
-        self.hitbox.center -= movement_x_only
+        self.collision_rect.center -= movement_x_only
 
         # check for collision in the Y direction
-        self.hitbox.center += movement_y_only
-        if any(self.hitbox.colliderect(obj.rect) for obj in self.game.collision_list):
+        self.collision_rect.center += movement_y_only
+        if any(self.collision_rect.colliderect(obj.collision_rect) for obj in self.game.collision_list):
             movement -= movement_y_only
-        self.hitbox.center -= movement_y_only
+        self.collision_rect.center -= movement_y_only
 
         # after removing collisions, apply remaining movement vector
         if movement.length_squared() > 0:
-            self.hitbox.center += movement
+            self.collision_rect.center += movement
             self.pos += movement
-            self.rect.center = self.pos
-            self.hitbox.center = self.pos
+            self.rect.center = self.pos + self.sprite_offset
+            self.collision_rect.center = self.pos
 
     def check_at_camp(self, movement):
         # before adjusting for collisions, check if colliding with camp
         # we only need to check if we actually have something to unpack
         if self.backpack.wood:
-            self.hitbox.center += movement
-            if self.hitbox.colliderect(self.game.camp.rect):
+            self.collision_rect.center += movement
+            if self.collision_rect.colliderect(self.game.camp.rect):
                 self.backpack.unpack(self.game.camp)
-            self.hitbox.center -= movement
+            self.collision_rect.center -= movement
 
     def get_movement(self, keys) -> vec:
         """
@@ -221,8 +206,7 @@ class Player(pg.sprite.Sprite):
 
         return movement
            
-    def get_attack_hitboxes(self):
-        
+    def get_attack_rects(self):
         attack_rects = []
         for angle in [self.angle-45, self.angle, self.angle+45]:
             # Calculate the position and radius of the attack swing
@@ -245,13 +229,13 @@ class Player(pg.sprite.Sprite):
         Determines whether anything was hit and deals damage.
         """
         # Check for tree collisions at the attack position and reduce tree HP accordingly
-        attack_rects = self.get_attack_hitboxes()
+        attack_rects = self.get_attack_rects()
 
         # Reduce the health of the collided tree(s)
         already_damaged = []
         for rect in attack_rects:
             for obj in self.game.hittable_list:
-                if obj.hitbox.colliderect(rect):
+                if obj.collision_rect.colliderect(rect):
                     if isinstance(obj, Tree):
                         tree_type = obj.tree_type
 
@@ -265,6 +249,9 @@ class Player(pg.sprite.Sprite):
                                 self.game.backpack_inventory_menu.update_capacity()
                             elif "Fruit" in tree_type:
                                 self.health = min(self.health + 10, self.max_health)
+                                self.game.health_bar.update()
+                            elif "Apple" in tree_type:
+                                self.health = min(self.health + 20, self.max_health)
                                 self.game.health_bar.update()
                             self.backpack.add_wood(1)
 
@@ -311,22 +298,22 @@ class Player(pg.sprite.Sprite):
             self.image = self.frames[f"walk_{self.direction}"][0]
         
         self.rect = self.image.get_rect(center=self.rect.center)
-        self.rect.center = self.pos
-        self.hitbox.center = self.pos
+        self.rect.center = self.pos + self.sprite_offset
+        self.collision_rect.center = self.pos
 
         # if player health reaches 0 or lower, end the game
         if self.health <= 0:
             self.game.playing = False
 
     def draw(self, screen, camera):
-        # self.draw_hitboxes(screen, camera)
+        # self.draw_collision_rects(screen, camera)
         screen.blit(self.image, camera.apply(self.rect))
     
-    def draw_hitboxes(self, screen, camera):
+    def draw_collision_rects(self, screen, camera):
         """
-        Debugging method to show player attack hitboxes
+        Debugging method to show player attack collision_rectes
         """
-        # Draw grey hitboxes in every angle except the active one
+        # Draw grey collision_rects in every angle except the active one
         for angle in [-180, -135, -90, -45, 0, 45, 90, 135]:
             if angle == self.angle:
                 continue
@@ -343,9 +330,11 @@ class Player(pg.sprite.Sprite):
             attack_rect = pg.Rect(top_left_corner, (self.attack_distance, self.attack_distance))
             pg.draw.rect(screen, LIGHT_GREY, camera.apply(attack_rect))
         
-        attack_hitboxes = self.get_attack_hitboxes()
-        for hitbox in attack_hitboxes:
-            pg.draw.rect(screen, RED, camera.apply(hitbox))
+        attack_collision_rects = self.get_attack_rects()
+        for collision_rect in attack_collision_rects:
+            pg.draw.rect(screen, RED, camera.apply(collision_rect))
+
+        pg.draw.rect(screen, GREEN, camera.apply(self.collision_rect))
 
     def game_over_update(self):
         self.action = "sleep"

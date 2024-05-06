@@ -22,14 +22,6 @@ def remove_padding_and_scale(sprite_image):
 
     return scaled_image
 
-def extract_image_from_spritesheet(spritesheet, row_index, col_index, tile_size):
-    # Extract a single image from spritesheet
-    x = col_index * tile_size
-    y = row_index * tile_size
-
-    tile_rect = pg.Rect(x, y, tile_size, tile_size)
-    return spritesheet.subsurface(tile_rect)
-
 def point_inside_triangle(point, triangle_points):
     """
     Check if a point is inside a triangle defined by three points.

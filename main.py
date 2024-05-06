@@ -14,8 +14,6 @@ from menus.game_over import GameOverMenu
 from objects.sprite_object import SpriteAssetManager
 pg.init()
 
-DEBUG_MODE = True
-
 class Game:
     def __init__(self):
         """

@@ -1,9 +1,10 @@
 import pygame as pg
 from settings import *
 from glob import glob
-from utility import point_inside_triangle, extract_image_from_spritesheet, combine_images
+from utility import point_inside_triangle, combine_images
 import os
 import random
+import json
 
 """
 This class is relatively complex but boils down to two objects - self.assets and self.buttons.
@@ -43,7 +44,6 @@ self.buttons = {
 class LoadoutMenu:
     def __init__(self, game):
         self.game = game
-
         self.attributes = LAYER_ORDER
 
         # build a dictionary of category options for the player to choose between
@@ -55,13 +55,14 @@ class LoadoutMenu:
             for category_id, path in enumerate(glob(f"assets/player/{attribute}/*.png")):
                 spritesheet = self.game.sprites.load(path)
                 num_variations = spritesheet.get_width() // (SPRITESHEET_TILE_SIZE * SPRITESHEET_NUM_COLUMNS)
+
                 # within each category, there may be any number of variations
                 self.assets[attribute][category_id] = {
                     "name":os.path.basename(path).split(".")[0],
                     "styles":{
                             style_id : pg.transform.scale_by(
-                                extract_image_from_spritesheet(
-                                    spritesheet=spritesheet,
+                                self.game.sprites.load_from_spritesheet(
+                                    path=path,
                                     row_index=0,
                                     col_index=style_id * SPRITESHEET_NUM_COLUMNS, # extract method already accounts for tile size
                                     tile_size=SPRITESHEET_TILE_SIZE
@@ -81,7 +82,7 @@ class LoadoutMenu:
                         0:pg.Surface((SPRITESHEET_TILE_SIZE*4, SPRITESHEET_TILE_SIZE*4), pg.SRCALPHA)
                     }
                 }
-
+                
         # build the default selections (category, style)
         self.selections = self.get_random_selections()
         

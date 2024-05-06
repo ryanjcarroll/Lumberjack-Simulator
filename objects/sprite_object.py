@@ -20,7 +20,24 @@ class SpriteAssetManager:
             # hand out copies to avoid race conditions
             # TODO there's probably a better way but not sure what it is right now
             return self.images[path].copy()
-    
+
+    def load_from_spritesheet(self, path, row_index, col_index, tile_size):
+        with self.lock:
+            if path not in self.images:
+                sheet = pg.image.load(path)
+                self.images[path] = sheet
+
+            tile_path = f"{path}?{row_index},{col_index},{tile_size}"
+            if tile_path not in self.images:
+                # Extract a single image from spritesheet
+                x = col_index * tile_size
+                y = row_index * tile_size
+
+                tile_rect = pg.Rect(x, y, tile_size, tile_size)
+                self.images[tile_path] = self.images[path].subsurface(tile_rect)
+
+            return self.images[tile_path]
+                
 class SpriteObject(pg.sprite.Sprite):
     """
     Sprite objects to be loaded within the game.
@@ -32,7 +49,6 @@ class SpriteObject(pg.sprite.Sprite):
         self.y = y
         self.game = game
         self.render_layer = layer
-
         self.hittable = hittable
         self.collision = collision
 
@@ -40,9 +56,8 @@ class SpriteObject(pg.sprite.Sprite):
         self.img_resize = img_resize
         self.load_texture() # sets self.image
 
-        # set collision rect and attack hitbox
+        # set rect for image positioning and collision_rect for collision with player
         self.rect = self.image.get_rect()
-        self.hitbox = None
 
         # the initial x, y is based on topleft coordinate of the sprite
         # howver, the .pos attribute is based on the center coordinate of the sprite
@@ -56,9 +71,9 @@ class SpriteObject(pg.sprite.Sprite):
         self.groups = []
         if collision:
             self.groups.append(game.collision_list)
+            self.collision_rect = self.rect
         if hittable:
             self.groups.append(game.hittable_list)
-            self.hitbox = self.rect
         if not collision and not hittable:
             self.groups.append(game.decor_list)
         pg.sprite.Sprite.__init__(self, self.groups)
@@ -84,12 +99,12 @@ class SpriteObject(pg.sprite.Sprite):
             )
 
     def draw(self, screen, camera):
-        # self.draw_hitboxes(screen, camera)
+        # self.draw_collision_rects(screen, camera)
         screen.blit(self.image, camera.apply(self.rect))
 
-    def draw_hitboxes(self, screen, camera):
-        if self.hitbox:
-            pg.draw.rect(screen, RED, camera.apply(self.hitbox))
+    def draw_collision_rects(self, screen, camera):
+        if self.collision_rect:
+            pg.draw.rect(screen, RED, camera.apply(self.collision_rect))
 
     def to_json(self):
         return {
