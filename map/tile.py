@@ -7,7 +7,7 @@ from glob import glob
 from objects.sprite_object import SpriteObject
 import opensimplex
 from abc import ABC, abstractmethod
-from objects.tree import Tree, IceTree
+from objects.tree import Tree, IceTree, AutumnTree
 
 class Tile(ABC):
     def __init__(self, game, chunk, row, col, has_decor):
@@ -204,7 +204,7 @@ class ForestTile(Tile):
                         self.rect.topleft[1] + random.randrange(0,max_offset)
                     )
                     spawn = True
-                    for obj in [obj for obj in neighbor_objs if type(obj)==Tree]:
+                    for obj in [obj for obj in neighbor_objs if isinstance(obj, Tree)]:
                         if try_pos.distance_to(obj.pos) <= buffer:
                             spawn = False
                             break
@@ -279,7 +279,7 @@ class IceForestTile(Tile):
                     self.rect.topleft[1] + random.randrange(0,max_offset)
                 )
                 spawn = True
-                for obj in [obj for obj in neighbor_objs if type(obj)==Tree]:
+                for obj in [obj for obj in neighbor_objs if isinstance(obj, Tree)]:
                     if try_pos.distance_to(obj.pos) <= buffer:
                         spawn = False
                         break
@@ -287,3 +287,100 @@ class IceForestTile(Tile):
                 if spawn:
                     self.objects.append(IceTree(self.game, *try_pos))
                     break
+
+
+class AutumnForestTile(Tile):
+    def __init__(self, game, chunk, row, col, has_decor=True):
+        super().__init__(game, chunk, row, col, has_decor)
+
+    def get_texture(self):
+        # set specific textures for Camp in the spawn chunk
+        if self.chunk.id == "0,0":
+            if CHUNK_SIZE//2 - 1 == self.row and CHUNK_SIZE//2 - 1 == self.col:
+                row_index, col_index = (0,5) # top left
+            elif CHUNK_SIZE//2 - 1 == self.row and CHUNK_SIZE//2 == self.col:
+                row_index, col_index = (0,6) # top
+            elif CHUNK_SIZE//2 - 1 == self.row and CHUNK_SIZE//2 + 1== self.col:
+                row_index, col_index = (0,7) # top right
+            elif CHUNK_SIZE//2 == self.row and CHUNK_SIZE//2 - 1 == self.col:
+                row_index, col_index = (1,5) # left
+            elif CHUNK_SIZE//2 == self.row and CHUNK_SIZE//2 == self.col:
+                row_index, col_index = (2,2) # center
+            elif CHUNK_SIZE//2 == self.row and CHUNK_SIZE//2 + 1== self.col:
+                row_index, col_index = (1,7) # right
+            elif CHUNK_SIZE//2 + 1 == self.row and CHUNK_SIZE//2 - 1 == self.col:
+                row_index, col_index = (2,5) # bot left
+            elif CHUNK_SIZE//2 + 1 == self.row and CHUNK_SIZE//2 == self.col:
+                row_index, col_index = (2,6) # bot
+            elif CHUNK_SIZE//2 + 1 == self.row and CHUNK_SIZE//2 + 1== self.col:
+                row_index, col_index = (2,7) # bot right
+            else:
+                row_index, col_index = (4,5) # grass
+        else:
+            row_index, col_index = (4,5) # grass
+
+        return pg.transform.scale(
+            extract_image_from_spritesheet(
+                spritesheet=self.game.sprites.load("assets/textures/autumn_forest_tileset.png"),
+                row_index=row_index,
+                col_index=col_index,
+                tile_size=32
+            )
+            ,(TILE_SIZE, TILE_SIZE)
+        )
+
+    def get_decor_weights(self):
+        return {
+            "pebble":10,
+            "flower":10,
+            "grass":100,
+            "patch":100,
+            "butterfly":5
+        }
+    
+    def load_decor(self):
+        decor_weights = self.get_decor_weights()
+
+        for i in range(2):
+            item_type = random.choices(
+                population = list(decor_weights.keys()),
+                weights = list(decor_weights.values())
+            )[0]
+
+            decor_x = random.randint(self.rect.left, self.rect.right)
+            decor_y = random.randint(self.rect.top, self.rect.bottom)
+            self.objects.append(
+                SpriteObject(
+                    game=self.game,
+                    x = decor_x,
+                    y = decor_y,
+                    img_path = random.choice(glob(f"assets/decor/{item_type}/*.png")),
+                    layer = DECOR_LAYER
+            ))
+    
+    def load_objects(self):
+        # spawn trees everywhere except the 3x3 square around the spawn location
+        spawn_attempts = 3
+        buffer = TILE_SIZE//2
+        max_offset = TILE_SIZE//2
+    
+        neighbors = self.get_neighbors()
+        neighbor_objs = [obj for n_tile in neighbors for obj in n_tile.objects]
+
+        # spawn trees
+        if random.random() < 0.8: # spawn only on a percentage of tiles         
+            for i in range(spawn_attempts):
+                try_pos = vec(
+                    self.rect.topleft[0] + random.randrange(0,max_offset), 
+                    self.rect.topleft[1] + random.randrange(0,max_offset)
+                )
+                spawn = True
+                for obj in [obj for obj in neighbor_objs if isinstance(obj, Tree)]:
+                    if try_pos.distance_to(obj.pos) <= buffer:
+                        spawn = False
+                        break
+
+                if spawn:
+                    self.objects.append(AutumnTree(self.game, *try_pos))
+                    break
+ 

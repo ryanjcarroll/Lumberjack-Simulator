@@ -28,7 +28,7 @@ class Chunk:
                 y = self.rect.topleft[1] + row*TILE_SIZE
                 biome_noise = opensimplex.noise2(x*BIOME_NOISE_FACTOR, y*BIOME_NOISE_FACTOR)
                 if biome_noise > 0.33:
-                    tile_type = ForestTile
+                    tile_type = AutumnForestTile
                 elif biome_noise < -0.33:
                     tile_type = IceForestTile
                 else:
