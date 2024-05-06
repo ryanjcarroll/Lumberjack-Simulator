@@ -29,6 +29,7 @@ class Tree(SpriteObject):
         self.shake_duration = 0.3 # in seconds
         self.shake_amplitude = 1 # in pixels
         self.shake_speed = 40
+        self.shake_seed = random.random() * 2 * math.pi # unique value to differentiate this shake from others
 
     def load_texture(self):
        
@@ -70,8 +71,8 @@ class Tree(SpriteObject):
         if self.shaking:
             if self.shake_timer < self.shake_duration:
                 # Calculate the displacement based on sine and cosine functions
-                displacement_x = self.shake_amplitude * math.sin(self.shake_timer * self.shake_speed)  # Adjust frequency for faster shaking
-                displacement_y = self.shake_amplitude * math.cos(self.shake_timer * self.shake_speed)
+                displacement_x = self.shake_amplitude * math.sin((self.shake_timer*self.shake_speed)+self.shake_seed)  # Adjust frequency for faster shaking
+                displacement_y = self.shake_amplitude * math.cos((self.shake_timer*self.shake_speed)+self.shake_seed)
                 # Apply the displacement to the Tree's position
                 self.draw_rect.x += displacement_x
                 self.draw_rect.y += displacement_y
