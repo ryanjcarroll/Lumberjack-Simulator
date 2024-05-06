@@ -73,7 +73,7 @@ class Player(pg.sprite.Sprite):
             self.frames[action] = []
         
             # get each combined animation frame for the given action
-            for col in range(num_frames):
+            for n in range(num_frames):
                 images = []  # a list of component images for a single frame
 
                 # load an animation frame for each attribute (e.g. body, hair, etc)
@@ -82,6 +82,9 @@ class Player(pg.sprite.Sprite):
                     # skip any attribute that was left unselected
                     if d_loadout['category'] == "none":
                         continue
+                    
+                    # account for style offset
+                    col = n + (d_loadout['style'] * SPRITESHEET_NUM_COLUMNS)
                     
                     # load the component frame and add to images list
                     images.append(

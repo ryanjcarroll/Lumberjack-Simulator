@@ -109,6 +109,11 @@ class LoadoutMenu:
         }
 
     def build_elements(self):
+        # title
+        self.title_text = pg.font.Font(None, 48).render(f"Build Your Character", True, BLACK)
+        self.title_text_x = WINDOW_WIDTH // 2 - self.title_text.get_width() // 2
+        self.title_text_y = 10
+
         # determine position of the character preview model
         self.char_image_rect = self.char_image.get_rect()
         char_image_x = (WINDOW_WIDTH//2) - (self.char_image_rect.width//2)
@@ -253,7 +258,8 @@ class LoadoutMenu:
                     self.buttons[attribute][f"{dir}_arrow_color"] = LIGHT_GREY
 
     def draw(self):
-        self.game.screen.fill(LIGHTER_GREY)  # White background
+        self.game.screen.fill(LIGHTER_GREY)  # background
+        self.game.screen.blit(self.title_text, (self.title_text_x, self.title_text_y))
         self.game.screen.blit(self.char_image, self.char_image_rect)
 
         for attribute, d in self.buttons.items():
