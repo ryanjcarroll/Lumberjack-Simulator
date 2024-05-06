@@ -1,6 +1,7 @@
 from settings import *
 import threading
 from map.chunk import Chunk, SpawnChunk
+from pygame import Vector2 as vec
 
 class Map:
     def __init__(self, game):
@@ -37,10 +38,16 @@ class Map:
         """
         Given a coordinate position, return the top left corner coordinates.
         """
-        # if not self.update_thread_running:
+        chunk_x, chunk_y, = self.get_chunk_coords(x, y)
+        return f"{chunk_x},{chunk_y}"
+    
+    def get_chunk_coords(self, x, y):
+        """
+        Given a coordinate position, return the top left corner coordinates.
+        """
         chunk_x = int((x // (CHUNK_SIZE * TILE_SIZE)) * (CHUNK_SIZE * TILE_SIZE))
         chunk_y = int((y // (CHUNK_SIZE * TILE_SIZE)) * (CHUNK_SIZE * TILE_SIZE))
-        return f"{chunk_x},{chunk_y}"
+        return chunk_x, chunk_y
 
     def get_visible_chunks(self, player):
         """
@@ -49,12 +56,27 @@ class Map:
         # visible chunks are defined as anything within 2 tiles of the viewport
         # to test chunk-loading, you can set this value to a negative number
         buffer = TILE_SIZE*2
-        # calculate the chunk that each corner of the viewport is in. 
-        # as long as chunks are larger than the window, this gives all visible chunks
-        corners = [
-            (player.pos.x - WINDOW_WIDTH//2 - buffer, player.pos.y - WINDOW_HEIGHT//2 - buffer),
-            (player.pos.x - WINDOW_WIDTH//2 - buffer, player.pos.y + WINDOW_HEIGHT//2 + buffer),
-            (player.pos.x + WINDOW_WIDTH//2 + buffer, player.pos.y - WINDOW_HEIGHT//2 - buffer),
-            (player.pos.x + WINDOW_WIDTH//2 + buffer, player.pos.y + WINDOW_HEIGHT//2 + buffer)
-        ]
-        return set([self.get_chunk_id(*corner) for corner in corners])
+
+        # calculate the coords for opposite corners of the viewport (with an additional buffer area)
+        screen_topleft = self.get_chunk_coords(player.pos.x - WINDOW_WIDTH//2 - buffer, player.pos.y - WINDOW_HEIGHT//2 - buffer)
+        screen_botright = self.get_chunk_coords(player.pos.x + WINDOW_WIDTH//2 + buffer, player.pos.y + WINDOW_HEIGHT//2 + buffer)
+
+        # calculate the chunk coords for those same corners
+        topleft_chunk = vec(self.get_chunk_coords(*screen_topleft))
+        botright_chunk = vec(self.get_chunk_coords(*screen_botright))
+
+        # calculate the diagonal difference between the top left and bottom right corners as a vector
+        difference = botright_chunk - topleft_chunk
+        chunks_spanned = difference // (CHUNK_SIZE*TILE_SIZE)
+        
+        # build a list of chunks in the range of values between TL and BR corner
+        chunks_spanned += vec(1,1) # iterate once more to include the original chunk
+        chunks = []
+        for x in range(int(chunks_spanned[0])):
+            for y in range(int(chunks_spanned[1])):
+                chunks.append(
+                    topleft_chunk + vec(x*CHUNK_SIZE*TILE_SIZE, y*CHUNK_SIZE*TILE_SIZE)
+                )
+
+        # print(len(chunks), chunks)
+        return set([f"{int(v.x)},{int(v.y)}" for v in chunks])

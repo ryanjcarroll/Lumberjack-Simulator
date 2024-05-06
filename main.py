@@ -115,7 +115,7 @@ class Game:
             self.draw_layer_if(layer)
 
         # draw sprites that are positioned north of the player
-        player_pos_y = self.player.pos[1] + self.player.sprite_offset[1]
+        player_pos_y = self.player.pos[1] + self.player.sprite_offset[1] + self.player.rect.height // 2
         for layer in [SPRITE_LAYER]:
             self.draw_layer_if(layer, lambda tile: tile.rect.center[1] < player_pos_y)
         
