@@ -14,6 +14,8 @@ from menus.game_over import GameOverMenu
 from objects.sprite_object import SpriteAssetManager
 pg.init()
 
+DEBUG_MODE = True
+
 class Game:
     def __init__(self):
         """
@@ -205,8 +207,10 @@ game = Game()
 menu_loop = True
 # loop multiple games in a row if necessary
 while menu_loop:
-    game.start_screen()
-    loadout = game.loadout_screen()
-    # loadout = {'body': {'category': 'body1', 'style': 0}, 'hair': {'category': 'bob ', 'style': 0}, 'face': {'category': 'eyes', 'style': 0}, 'shirt': {'category': 'basic', 'style': 0}, 'pants': {'category': 'pants', 'style': 0}, 'accessories': {'category': 'beard', 'style': 0}}
+    if DEBUG_MODE:
+        loadout = {'body': {'category': 'body1', 'style': 0}, 'hair': {'category': 'bob ', 'style': 0}, 'face': {'category': 'eyes', 'style': 0}, 'shirt': {'category': 'basic', 'style': 0}, 'pants': {'category': 'pants', 'style': 0}, 'accessories': {'category': 'beard', 'style': 0}}
+    else:
+        game.start_screen()
+        loadout = game.loadout_screen()
     game.new(loadout)
     game.run()
