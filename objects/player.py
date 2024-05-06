@@ -4,6 +4,7 @@ from pygame import Vector2 as vec
 import math
 from utility import *
 from objects.inventory import Backpack
+from objects.tree import Tree
 import json
 
 class Player(pg.sprite.Sprite):
@@ -249,22 +250,23 @@ class Player(pg.sprite.Sprite):
         # Reduce the health of the collided tree(s)
         already_damaged = []
         for rect in attack_rects:
-            for tree in self.game.hittable_list:
-                if tree.hitbox.colliderect(rect):
-                    tree_type = tree.tree_type
+            for obj in self.game.hittable_list:
+                if obj.hitbox.colliderect(rect):
+                    if isinstance(obj, Tree):
+                        tree_type = obj.tree_type
 
-                    if tree not in already_damaged:
-                        tree.register_hit(PLAYER_ATTACK_DAMAGE)
-                        already_damaged.append(tree)
-                    if tree.health <= 0:
-                        tree.kill()
-                        if "Flower" in tree_type:
-                            self.backpack.row_capacity = min(self.backpack.row_capacity+1, 20)
-                            self.game.backpack_inventory_menu.update_capacity()
-                        elif "Fruit" in tree_type:
-                            self.health = min(self.health + 10, self.max_health)
-                            self.game.health_bar.update()
-                        self.backpack.add_wood(1)
+                        if obj not in already_damaged:
+                            obj.register_hit(PLAYER_ATTACK_DAMAGE)
+                            already_damaged.append(obj)
+                        if obj.health <= 0:
+                            obj.kill()
+                            if "Flower" in tree_type:
+                                self.backpack.row_capacity = min(self.backpack.row_capacity+1, 20)
+                                self.game.backpack_inventory_menu.update_capacity()
+                            elif "Fruit" in tree_type:
+                                self.health = min(self.health + 10, self.max_health)
+                                self.game.health_bar.update()
+                            self.backpack.add_wood(1)
 
     def set_animation_counters(self, dt):
         """

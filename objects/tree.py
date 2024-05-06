@@ -52,7 +52,6 @@ class Tree(SpriteObject):
             "Tree1":50,
             "Tree2":50,
             "Tree3":50,
-            "TreeDecor":50,
         }
         self.tree_type = random.choices(
             population = list(tree_type_weights.keys()),
@@ -103,3 +102,40 @@ class Tree(SpriteObject):
         else:
             self.shake_timer = 0
             self.shaking = True
+
+class IceTree(Tree):
+    def __init__(self, game, x, y):
+        super().__init__(game, x, y)
+
+    def load_texture(self):     
+        self.flipped = random.random() > 0.5
+        tree_type_weights = {
+            "Burned_tree1":5,
+            "Burned_tree2":5,
+            "Burned_tree3":5,
+            # "Christmas_tree1":10,
+            # "Christmas_tree2":10,
+            # "Christmas_tree3":10,
+            "Snow_christmas_tree1":10,
+            "Snow_christmas_tree2":10,
+            "Snow_christmas_tree3":10,
+            "Snow_tree1":10,
+            "Snow_tree2":10,
+            "Snow_tree3":10,
+        }
+        self.tree_type = random.choices(
+            population = list(tree_type_weights.keys()),
+            weights = list(tree_type_weights.values())
+        )[0]
+
+        # load an image, remove transparent boundaries, and scale it to size
+        scaled_image = pg.transform.scale(
+            remove_padding_and_scale(
+                self.game.sprites.load(f"assets/trees/{self.tree_type}.png")
+            )
+            ,(TILE_SIZE, TILE_SIZE)
+        )
+        # randomly flip 50% of images along their Y-axis
+        if self.flipped:
+            scaled_image = pg.transform.flip(scaled_image, True, False)
+        self.image = scaled_image

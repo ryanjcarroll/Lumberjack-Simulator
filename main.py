@@ -22,7 +22,8 @@ class Game:
         pg.init()
         self.screen = pg.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         pg.display.set_caption(TITLE)
-        
+
+
         # initialize the timers and event scheduling variables
         self.clock = pg.time.Clock()
         self.dt = 0
@@ -125,7 +126,7 @@ class Game:
         for layer in [SPRITE_LAYER]:
             self.draw_layer_if(layer, lambda tile: tile.rect.center[1] >= player_pos_y)
 
-        # draw menus
+        # draw menus 
         self.backpack_inventory_menu.draw(self.screen)
         self.camp_inventory_menu.draw(self.screen)
         self.compass.draw(self.screen) 
@@ -204,8 +205,8 @@ game = Game()
 menu_loop = True
 # loop multiple games in a row if necessary
 while menu_loop:
-    game.start_screen()
-    loadout = game.loadout_screen()
-    # loadout = {'body': {'category': 'body1', 'style': 0}, 'hair': {'category': 'bob ', 'style': 0}, 'face': {'category': 'eyes', 'style': 0}, 'shirt': {'category': 'basic', 'style': 0}, 'pants': {'category': 'pants', 'style': 0}, 'accessories': {'category': 'beard', 'style': 0}}
+    # game.start_screen()
+    # loadout = game.loadout_screen()
+    loadout = {'body': {'category': 'body1', 'style': 0}, 'hair': {'category': 'bob ', 'style': 0}, 'face': {'category': 'eyes', 'style': 0}, 'shirt': {'category': 'basic', 'style': 0}, 'pants': {'category': 'pants', 'style': 0}, 'accessories': {'category': 'beard', 'style': 0}}
     game.new(loadout)
     game.run()

@@ -1,5 +1,7 @@
 import pygame as pg
 from settings import *
+import math
+import random
 
 def remove_padding_and_scale(sprite_image):
     """
@@ -58,3 +60,29 @@ def combine_images(images):
         combined_surface.blit(image, (0, 0))
     
     return combined_surface
+
+
+# Interpolate values using smoothstep function
+def perlin_noise(x,y):
+    
+    def smoothstep(t):
+        return t * t * (3 - 2 * t)
+
+    def interpolate(a, b, t):
+        return a + (b - a) * smoothstep(t)
+    
+    # Generate random gradient vectors
+    vectors = [(random.uniform(-1, 1), random.uniform(-1, 1)) for _ in range(4)]
+
+    # Compute dot products between gradient vectors and input coordinates
+    dots = [(x - math.floor(x), y - math.floor(y), *vector) for vector in vectors]
+
+    # Compute weights
+    weights = [dot[0] * dot[2] + dot[1] * dot[3] for dot in dots]
+
+    # Interpolate along x-axis
+    x1 = interpolate(weights[0], weights[1], x - math.floor(x))
+    x2 = interpolate(weights[2], weights[3], x - math.floor(x))
+
+    # Interpolate along y-axis
+    return interpolate(x1, x2, y - math.floor(y))
