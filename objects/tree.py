@@ -93,8 +93,7 @@ class Tree(SpriteObject):
             else:
                 self.fall_timer = 0
                 self.falling = False
-                self.game.player.backpack.add_wood(1)
-                self.kill()
+                self.die()
 
         elif self.shaking:
             if self.shake_timer < self.shake_duration:
@@ -112,6 +111,16 @@ class Tree(SpriteObject):
                 self.shaking = False
                 self.draw_rect.x = self.rect[0]
                 self.draw_rect.y = self.rect[1]
+
+    def die(self):
+        self.game.player.backpack.add_wood(1)
+        
+        if "Fruit" in self.tree_type:
+            self.game.player.modify_health(10)
+        elif "Apple" in self.tree_type:
+            self.game.player.modify_health(10)
+
+        self.kill()
 
     def draw(self, screen, camera):
         screen.blit(self.image, camera.apply(self.draw_rect))

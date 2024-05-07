@@ -305,7 +305,11 @@ class Player(pg.sprite.Sprite):
             if self.animation_timer >= self.animation_speed:
                 self.current_frame_index = (self.current_frame_index + 1) % len(self.frames[f"{self.action}"])
                 self.animation_timer = 0
-                
+
+    def modify_health(self, n):
+        self.health = min(self.health + n, self.max_health)
+        self.game.health_bar.update()
+
     def update(self):
         """
         Called each game step to update the Player object.
