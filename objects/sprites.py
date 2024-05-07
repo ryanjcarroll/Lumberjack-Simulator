@@ -7,7 +7,7 @@ class SpriteObject(pg.sprite.Sprite):
     """
     Sprite objects to be loaded within the game.
     """
-    def __init__(self, game, x, y, img_path, layer, img_resize:tuple=None, collision=False, hittable=False):
+    def __init__(self, game, x, y, layer, image=None, collision=False, hittable=False):
 
         # initiation variables
         self.x = x
@@ -17,9 +17,10 @@ class SpriteObject(pg.sprite.Sprite):
         self.hittable = hittable
         self.collision = collision
 
-        self.img_path = img_path
-        self.img_resize = img_resize
-        self.load_texture() # sets self.image
+        if image:
+            self.image = image
+        else:
+            self.image = self.load_image() # sets self.image
 
         # set rect for image positioning and collision_rect for collision with player
         self.rect = self.image.get_rect()
@@ -43,25 +44,9 @@ class SpriteObject(pg.sprite.Sprite):
             self.groups.append(game.decor_list)
         pg.sprite.Sprite.__init__(self, self.groups)
 
-    def load_texture(self):
-        """
-        Set the image based on the image path. If resize was passed, transform the sprite to match the new dimensions.
-        """
-        # crop and resize if passed
-        if self.img_resize:
-            self.image = pg.transform.scale(
-                remove_padding_and_scale(
-                    self.game.sprites.load(
-                        self.img_path
-                    )
-                )
-                ,self.img_resize
-            )
-        # otherwise, load as current size
-        else:
-            self.image = pg.image.load(
-                self.img_path
-            )
+    def load_image(self) -> pg.image:
+        # overwrite this method to implement custom image loading in a class
+        pass
 
     def draw(self, screen, camera):
         # self.draw_collision_rects(screen, camera)

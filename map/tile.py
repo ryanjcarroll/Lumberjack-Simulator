@@ -3,7 +3,7 @@ from pygame import Vector2 as vec
 from settings import *
 import random
 from glob import glob
-from objects.sprite_object import SpriteObject
+from objects.sprites import SpriteObject
 from abc import ABC, abstractmethod
 from objects.tree import *
 import opensimplex
@@ -23,7 +23,7 @@ class Tile(ABC):
         self.y = chunk.rect.topleft[1] + (row * TILE_SIZE)
         
         # set image textures and load object sprites
-        self.image = self.get_texture()
+        self.image = self.load_texture()
         self.rect = self.image.get_rect()
         self.rect.topleft = vec(self.x,self.y)  
         if has_decor:
@@ -33,7 +33,7 @@ class Tile(ABC):
     def get_spritesheet_path(self) -> str:
         pass
 
-    def get_texture(self):
+    def load_texture(self):
         # set specific textures for Camp in the spawn chunk
         if self.chunk.id == "0,0":
             if CHUNK_SIZE//2 - 1 == self.row and CHUNK_SIZE//2 - 1 == self.col:
@@ -83,18 +83,43 @@ class Tile(ABC):
 
         return darkened_image
 
-    @abstractmethod
-    def get_decor_weights(self) -> dict:        
-        # returns a dictionary of decor asset paths and their random choice weights
-        pass
-    
-    @abstractmethod
-    def load_objects(self, tree_density=0.9):
-        # render objects within a tile
-        pass
+    def load_objects(self):
+        """
+        Uses the following params to calibrate:
+
+        self.tree_density
+        self.tree_type
+        """
+        # spawn trees everywhere except the 3x3 square around the spawn location
+        spawn_attempts = 3
+        buffer = TILE_SIZE//2
+        max_offset = TILE_SIZE//2
+
+        if TILE_SIZE*((CHUNK_SIZE//2)-1) <= self.x <= TILE_SIZE*((CHUNK_SIZE//2)+1)\
+            and TILE_SIZE*((CHUNK_SIZE//2)-1) <= self.y <= TILE_SIZE*((CHUNK_SIZE//2)+1) :
+            # spawn nothing in the Camp area
+            pass
+        else:  
+            if random.random() < self.tree_density: # spawn only on a percentage of tiles         
+                neighbors = self.get_neighbors()
+                neighbor_objs = [obj for n_tile in neighbors for obj in n_tile.objects]
+                for i in range(spawn_attempts):
+                    try_pos = vec(
+                        self.rect.topleft[0] + random.randrange(0,max_offset), 
+                        self.rect.topleft[1] + random.randrange(0,max_offset)
+                    )
+                    spawn = True
+                    for obj in [obj for obj in neighbor_objs if obj.collision]:
+                        if try_pos.distance_to(obj.pos) <= buffer:
+                            spawn = False
+                            break
+
+                    if spawn:
+                        self.objects.append(self.tree_type(self.game, *try_pos))
+                        break
 
     def load_decor(self):
-        decor_weights = self.get_decor_weights()
+        decor_weights = self.decor_weights
 
         item_type = random.choices(
             population = list(decor_weights.keys()),
@@ -110,8 +135,8 @@ class Tile(ABC):
                 game=self.game,
                 x = decor_x,
                 y = decor_y,
-                img_path = random.choice(glob(f"assets/decor/{item_type}/*.png")),
-                layer = DECOR_LAYER
+                layer = DECOR_LAYER,
+                image = self.game.sprites.load(random.choice(glob(f"assets/decor/{item_type}/*.png"))),
         ))
 
     def get_neighbors(self):
@@ -185,201 +210,93 @@ class Tile(ABC):
 
 class ForestTile(Tile):
     def __init__(self, game, chunk, row, col, has_decor=True):
-        super().__init__(game, chunk, row, col, has_decor)
-
-    def get_spritesheet_path(self) -> str:
-        return "assets/textures/forest_tileset.png"
-
-    def get_decor_weights(self):
-        # weights for various decor paths
-        # assets/decor/{item_type}/*.png
-        return {
+        self.tree_density = 0.6
+        self.tree_type = Tree
+        self.decor_weights = {
             "butterfly" : 2,
             "flower"    : 3,
             "grass"     : 30,
             "patch"     : 20,
             "pebble"    : 5,
         }
-    
-    def load_objects(self):
-        # spawn trees everywhere except the 3x3 square around the spawn location
-        spawn_attempts = 3
-        buffer = TILE_SIZE//2
-        max_offset = TILE_SIZE//2
 
-        if TILE_SIZE*((CHUNK_SIZE//2)-1) <= self.x <= TILE_SIZE*((CHUNK_SIZE//2)+1)\
-            and TILE_SIZE*((CHUNK_SIZE//2)-1) <= self.y <= TILE_SIZE*((CHUNK_SIZE//2)+1) :
-            # spawn nothing in the Camp area
-            pass
-        else:  
-            if random.random() < 0.7: # spawn only on a percentage of tiles         
-                neighbors = self.get_neighbors()
-                neighbor_objs = [obj for n_tile in neighbors for obj in n_tile.objects]
-                for i in range(spawn_attempts):
-                    try_pos = vec(
-                        self.rect.topleft[0] + random.randrange(0,max_offset), 
-                        self.rect.topleft[1] + random.randrange(0,max_offset)
-                    )
-                    spawn = True
-                    for obj in [obj for obj in neighbor_objs if obj.collision]:
-                        if try_pos.distance_to(obj.pos) <= buffer:
-                            spawn = False
-                            break
-
-                    if spawn:
-                        self.objects.append(Tree(self.game, *try_pos))
-                        break
-
-
-class IceForestTile(Tile):
-    def __init__(self, game, chunk, row, col, has_decor=True):
         super().__init__(game, chunk, row, col, has_decor)
 
     def get_spritesheet_path(self) -> str:
-        return "assets/textures/ice_forest_tileset.png"
+        return "assets/textures/forest_tileset.png"
 
-    def get_decor_weights(self):
-        return {
+class IceForestTile(Tile):
+    def __init__(self, game, chunk, row, col, has_decor=True):
+        self.tree_density = 0.5
+        self.tree_type = IceTree
+        self.decor_weights = {
             "pebble":10,
             "print":3,
             "grass":3,
             "stone":5
         }
+
+        super().__init__(game, chunk, row, col, has_decor)
+
+    def get_spritesheet_path(self) -> str:
+        return "assets/textures/ice_forest_tileset.png"
     
     def load_decor(self):
         # load decor only a percentage of the time
         if random.random() > 0.5:
             super().load_decor()
     
-    def load_objects(self):
-        # spawn trees everywhere except the 3x3 square around the spawn location
-        spawn_attempts = 3
-        buffer = TILE_SIZE//2
-        max_offset = TILE_SIZE//2
-    
-        neighbors = self.get_neighbors()
-        neighbor_objs = [obj for n_tile in neighbors for obj in n_tile.objects]
-
-        # spawn trees
-        if random.random() < 0.4: # spawn only on a percentage of tiles         
-            for i in range(spawn_attempts):
-                try_pos = vec(
-                    self.rect.topleft[0] + random.randrange(0,max_offset), 
-                    self.rect.topleft[1] + random.randrange(0,max_offset)
-                )
-                spawn = True
-                for obj in [obj for obj in neighbor_objs if obj.collision]:
-                    if try_pos.distance_to(obj.pos) <= buffer:
-                        spawn = False
-                        break
-
-                if spawn:
-                    self.objects.append(IceTree(self.game, *try_pos))
-                    break
-
-
 class AutumnForestTile(Tile):
     def __init__(self, game, chunk, row, col, has_decor=True):
-        super().__init__(game, chunk, row, col, has_decor)
-
-    def get_spritesheet_path(self) -> str:
-        return "assets/textures/autumn_forest_tileset.png"
-
-    def get_decor_weights(self):
-        return {
+        self.tree_density = 0.7
+        self.tree_type = AutumnTree
+        self.decor_weights = {
             "pebble":2,
             "flower":10,
             "grass":50,
             "butterfly":5
         }
+
+        super().__init__(game, chunk, row, col, has_decor)
+
+    def get_spritesheet_path(self) -> str:
+        return "assets/textures/autumn_forest_tileset.png"
     
     # def load_decor(self):
     #     # load decor multiple times
     #     for i in range(2):
     #         super().load_decor()
     
-    def load_objects(self):
-        # spawn trees everywhere except the 3x3 square around the spawn location
-        spawn_attempts = 3
-        buffer = TILE_SIZE//2
-        max_offset = TILE_SIZE//2
-    
-        neighbors = self.get_neighbors()
-        neighbor_objs = [obj for n_tile in neighbors for obj in n_tile.objects]
-
-        # spawn trees
-        if random.random() < 0.8: # spawn only on a percentage of tiles         
-            for i in range(spawn_attempts):
-                try_pos = vec(
-                    self.rect.topleft[0] + random.randrange(0,max_offset), 
-                    self.rect.topleft[1] + random.randrange(0,max_offset)
-                )
-                spawn = True
-                for obj in [obj for obj in neighbor_objs if obj.collision]:
-                    if try_pos.distance_to(obj.pos) <= buffer:
-                        spawn = False
-                        break
-
-                if spawn:
-                    self.objects.append(AutumnTree(self.game, *try_pos))
-                    break
  
 class MangroveForestTile(Tile):
     def __init__(self, game, chunk, row, col, has_decor=True):
+        self.tree_density = 0.8
+        self.tree_type = MangroveTree
+        self.decor_weights = {}
+
         super().__init__(game, chunk, row, col, has_decor)
 
     def get_spritesheet_path(self) -> str:
         return "assets/textures/mangrove_forest_tileset.png"
-
-    def get_decor_weights(self):
-        return {}
     
     def load_decor(self):
         # don't load decor on mangrove forest tiles
         pass
-    
-    def load_objects(self):
-        # spawn trees everywhere except the 3x3 square around the spawn location
-        spawn_attempts = 3
-        buffer = TILE_SIZE//2
-        max_offset = TILE_SIZE//2
-    
-        neighbors = self.get_neighbors()
-        neighbor_objs = [obj for n_tile in neighbors for obj in n_tile.objects]
-
-        # spawn trees
-        if random.random() < 0.8: # spawn only on a percentage of tiles         
-            for i in range(spawn_attempts):
-                try_pos = vec(
-                    self.rect.topleft[0] + random.randrange(0,max_offset), 
-                    self.rect.topleft[1] + random.randrange(0,max_offset)
-                )
-                spawn = True
-                for obj in [obj for obj in neighbor_objs if obj.collision]:
-                    if try_pos.distance_to(obj.pos) <= buffer:
-                        spawn = False
-                        break
-
-                if spawn:
-                    self.objects.append(MangroveTree(self.game, *try_pos))
-                    break
 
 class WaterTile(Tile):
     def __init__(self, game, chunk, row, col, has_decor=True):
+        self.decor_weights = {}
         super().__init__(game, chunk, row, col, has_decor)
 
     # unused
     def get_spritesheet_path(self) -> str:
         return ""
 
-    def get_texture(self):
+    def load_texture(self):
         return pg.transform.scale(
             self.game.sprites.load("assets/textures/bedrock.png"),
             (TILE_SIZE, TILE_SIZE)
         )
-
-    def get_decor_weights(self) -> dict:
-        return {}
 
     def load_decor(self):
         # dont load decor on water tiles
@@ -390,7 +307,7 @@ class WaterTile(Tile):
             game=self.game,
             x=self.x,
             y=self.y,
-            img_path="assets/textures/water.png",
+            image=self.game.sprites.load("assets/textures/water.png"),
             layer=BASE_LAYER,
             collision=True
         ))

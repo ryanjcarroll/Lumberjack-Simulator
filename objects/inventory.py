@@ -1,4 +1,4 @@
-from objects.sprite_object import SpriteObject
+from objects.sprites import SpriteObject
 from settings import *
 import pygame as pg
 
@@ -19,17 +19,18 @@ class Backpack:
 
 class Camp(SpriteObject):
     def __init__(self, game, x ,y):
+        self.game = game        
         super().__init__(
             game=game,
             x=x,
             y=y,
             layer=SPRITE_LAYER,
-            img_path="assets/decor/camp/1.png",
-            img_resize=(72,72),
             collision=True
         )
-
+    
         self.wood = 0
+
+        # separate (smaller) collision rect for better player collisions
         self.collision_rect = pg.Rect(
             0,
             0,
@@ -37,6 +38,12 @@ class Camp(SpriteObject):
             self.height // 2
         )
         self.collision_rect.center = self.rect.center
+    
+    def load_image(self):
+        return pg.transform.scale(
+            self.game.sprites.load("assets/decor/camp/1.png"),
+            (TILE_SIZE, TILE_SIZE)
+        )
 
     def add_wood(self, n=1):
         self.wood += n

@@ -121,7 +121,6 @@ class Game:
             self.draw_layer_if(layer, lambda tile: tile.rect.center[1] < player_pos_y)
         
         self.player.draw(self.screen, self.camera)
-        # self.camp.draw(self.screen, self.camera)
 
         # draw the sprite layer in order of Y coordinate for proper layering
         for layer in [SPRITE_LAYER]:
