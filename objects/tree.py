@@ -31,8 +31,15 @@ class Tree(SpriteObject):
         self.shake_speed = 40
         self.shake_seed = random.random() * 2 * math.pi # unique value to differentiate this shake from others
 
-    def load_texture(self):
-       
+        # variables for fall effect
+        self.angle = 0
+        self.falling = False
+        self.fall_timer = 0
+        self.fall_duration = 1
+        self.fall_direction = 1
+        self.fall_speed = 2 + (random.random() * 3)
+
+    def load_texture(self):   
         self.flipped = random.random() > 0.5
         tree_type_weights = {
             "Burned_tree1":5,
@@ -67,8 +74,29 @@ class Tree(SpriteObject):
             scaled_image = pg.transform.flip(scaled_image, True, False)
         self.image = scaled_image
 
+        self.fall_image = pg.transform.scale(
+            remove_padding_and_scale(
+                self.game.sprites.load(f"assets/trees/no_shadow/{self.tree_type}.png")
+            )
+            ,(TILE_SIZE, TILE_SIZE)
+        )
+
     def update(self, dt):
-        if self.shaking:
+        if self.falling:
+            if self.fall_timer < self.fall_duration:
+                self.angle += self.fall_speed * self.fall_direction
+                self.image = pg.transform.rotate(self.fall_image, self.angle)
+                self.draw_rect = self.image.get_rect(midbottom=self.rect.midbottom)
+                if self.angle >= 360:
+                    self.angle = 0
+                self.fall_timer += dt
+            else:
+                self.fall_timer = 0
+                self.falling = False
+                self.game.player.backpack.add_wood(1)
+                self.kill()
+
+        elif self.shaking:
             if self.shake_timer < self.shake_duration:
                 # Calculate the displacement based on sine and cosine functions
                 displacement_x = self.shake_amplitude * math.sin((self.shake_timer*self.shake_speed)+self.shake_seed)  # Adjust frequency for faster shaking
@@ -95,7 +123,10 @@ class Tree(SpriteObject):
         """
         self.health -= damage
         if self.health <= 0:
-            self.kill()
+            self.fall_timer = 0
+            self.falling = True
+            self.fall_direction = 1 if self.game.player.pos[0] > self.pos[0] else -1
+            self.game.collision_list.remove(self)
         else:
             self.shake_timer = 0
             self.shaking = True
@@ -134,6 +165,13 @@ class IceTree(Tree):
             scaled_image = pg.transform.flip(scaled_image, True, False)
         self.image = scaled_image
 
+        self.fall_image = pg.transform.scale(
+            remove_padding_and_scale(
+                self.game.sprites.load(f"assets/trees/no_shadow/{self.tree_type}.png")
+            )
+            ,(TILE_SIZE, TILE_SIZE)
+        )
+
 class AutumnTree(Tree):
     def __init__(self, game, x, y):
         super().__init__(game, x, y)
@@ -171,6 +209,13 @@ class AutumnTree(Tree):
             scaled_image = pg.transform.flip(scaled_image, True, False)
         self.image = scaled_image
 
+        self.fall_image = pg.transform.scale(
+            remove_padding_and_scale(
+                self.game.sprites.load(f"assets/trees/no_shadow/{self.tree_type}.png")
+            )
+            ,(TILE_SIZE, TILE_SIZE)
+        )
+
 class MangroveTree(Tree):
     def __init__(self, game, x, y):
         super().__init__(game, x, y)
@@ -205,3 +250,10 @@ class MangroveTree(Tree):
         if self.flipped:
             scaled_image = pg.transform.flip(scaled_image, True, False)
         self.image = scaled_image
+
+        self.fall_image = pg.transform.scale(
+            remove_padding_and_scale(
+                self.game.sprites.load(f"assets/trees/no_shadow/{self.tree_type}.png")
+            )
+            ,(TILE_SIZE, TILE_SIZE)
+        )

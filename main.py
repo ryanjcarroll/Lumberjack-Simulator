@@ -75,7 +75,7 @@ class Game:
 
         # update shake for hittable objects
         for sprite in self.hittable_list:
-            if sprite.shaking:
+            if sprite.shaking or sprite.falling:
                 sprite.update(self.dt)
     
         # every N seconds, update the map to see if new chunks need to be generated
