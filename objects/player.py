@@ -153,6 +153,7 @@ class Player(pg.sprite.Sprite):
             self.collision_rect.center += movement
             if self.collision_rect.colliderect(self.game.camp.rect):
                 self.backpack.unpack(self.game.camp)
+                self.game.sounds.play("unpack",0)
             self.collision_rect.center -= movement
 
     def get_movement(self, keys) -> vec:
@@ -236,27 +237,37 @@ class Player(pg.sprite.Sprite):
 
         # Reduce the health of the collided tree(s)
         already_damaged = []
+
+        hit_a_tree = False # track whether a tree was hit/killed, for sound triggers
+        felled_a_tree = False
         for rect in attack_rects:
             for obj in self.game.hittable_list:
                 if obj.collision_rect.colliderect(rect):
                     if isinstance(obj, Tree):
                         tree_type = obj.tree_type
+                        hit_a_tree = True
 
                         if obj not in already_damaged:
                             obj.register_hit(PLAYER_ATTACK_DAMAGE)
                             already_damaged.append(obj)
                         if obj.health <= 0:
                             obj.kill()
+                            felled_a_tree = True
                             if "Flower" in tree_type:
-                                self.backpack.row_capacity = min(self.backpack.row_capacity+1, 20)
-                                self.game.backpack_inventory_menu.update_capacity()
+                                # self.backpack.row_capacity = min(self.backpack.row_capacity+1, 20)
+                                # self.game.backpack_inventory_menu.update_capacity()
+                                pass
                             elif "Fruit" in tree_type:
                                 self.health = min(self.health + 10, self.max_health)
                                 self.game.health_bar.update()
                             elif "Apple" in tree_type:
                                 self.health = min(self.health + 20, self.max_health)
                                 self.game.health_bar.update()
-                            self.backpack.add_wood(1)
+                            self.backpack.add_wood(1)                            
+        if felled_a_tree:
+            self.game.sounds.play_random("fell_tree")   
+        elif hit_a_tree:
+            self.game.sounds.play_random("chop_tree")
 
     def set_animation_counters(self, dt):
         """

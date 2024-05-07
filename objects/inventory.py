@@ -30,7 +30,13 @@ class Camp(SpriteObject):
         )
 
         self.wood = 0
-        self.collision_rect = self.rect
+        self.collision_rect = pg.Rect(
+            0,
+            0,
+            self.width // 2,
+            self.height // 2
+        )
+        self.collision_rect.center = self.rect.center
 
     def add_wood(self, n=1):
         self.wood += n

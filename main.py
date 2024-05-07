@@ -11,7 +11,8 @@ from ui.inventory import BackpackInventoryMenu, CampInventoryMenu
 from menus.start import StartMenu
 from menus.loadout import LoadoutMenu
 from menus.game_over import GameOverMenu
-from objects.sprite_object import SpriteAssetManager
+from objects.assets import SpriteAssetManager, SoundAssetManager
+from objects.music import MusicPlayer
 pg.init()
 
 class Game:
@@ -31,7 +32,8 @@ class Game:
         self.health_tick_timer = 0
 
         # sprite asset manager
-        self.sprites = SpriteAssetManager()
+        self.sprites = SpriteAssetManager()  
+        self.sounds = SoundAssetManager()
 
         self.at_loadout_menu = False
         self.at_start_menu = False

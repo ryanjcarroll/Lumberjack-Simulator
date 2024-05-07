@@ -2,42 +2,7 @@ import pygame as pg
 from settings import *
 from utility import remove_padding_and_scale
 from pygame import Vector2 as vec
-import math
-import threading
 
-class SpriteAssetManager:
-    def __init__(self):
-        self.images = {}
-        self.lock = threading.Lock()
-
-    def load(self, path):
-        with self.lock:
-            if path not in self.images:
-                # add new entries to the saved images
-                image = pg.image.load(path)
-                self.images[path] = image
-
-            # hand out copies to avoid race conditions
-            # TODO there's probably a better way but not sure what it is right now
-            return self.images[path].copy()
-
-    def load_from_spritesheet(self, path, row_index, col_index, tile_size):
-        with self.lock:
-            if path not in self.images:
-                sheet = pg.image.load(path)
-                self.images[path] = sheet
-
-            tile_path = f"{path}?{row_index},{col_index},{tile_size}"
-            if tile_path not in self.images:
-                # Extract a single image from spritesheet
-                x = col_index * tile_size
-                y = row_index * tile_size
-
-                tile_rect = pg.Rect(x, y, tile_size, tile_size)
-                self.images[tile_path] = self.images[path].subsurface(tile_rect)
-
-            return self.images[tile_path]
-                
 class SpriteObject(pg.sprite.Sprite):
     """
     Sprite objects to be loaded within the game.
