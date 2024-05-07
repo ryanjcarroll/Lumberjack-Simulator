@@ -60,7 +60,7 @@ class Tile(ABC):
             row_index, col_index = (4,5) # grass
 
         image = pg.transform.scale(
-            self.game.sprites.load_from_spritesheet(
+            self.game.sprites.load_from_tilesheet(
                 path=self.get_spritesheet_path(),
                 row_index=row_index,
                 col_index=col_index,

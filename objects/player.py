@@ -89,7 +89,7 @@ class Player(pg.sprite.Sprite):
                     # load the component frame and add to images list
                     images.append(
                         pg.transform.scale(
-                            self.game.sprites.load_from_spritesheet(
+                            self.game.sprites.load_from_tilesheet(
                                 path=f"assets/player/{attribute}/{d_loadout['category']}.png",
                                 row_index=row,
                                 col_index=col,

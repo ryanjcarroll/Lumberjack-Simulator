@@ -61,7 +61,7 @@ class LoadoutMenu:
                     "name":os.path.basename(path).split(".")[0],
                     "styles":{
                             style_id : pg.transform.scale_by(
-                                self.game.sprites.load_from_spritesheet(
+                                self.game.sprites.load_from_tilesheet(
                                     path=path,
                                     row_index=0,
                                     col_index=style_id * SPRITESHEET_NUM_COLUMNS, # extract method already accounts for tile size

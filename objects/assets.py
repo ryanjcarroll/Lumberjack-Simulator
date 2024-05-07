@@ -19,7 +19,7 @@ class SpriteAssetManager:
             # TODO there's probably a better way but not sure what it is right now
             return self.images[path].copy()
 
-    def load_from_spritesheet(self, path, row_index, col_index, tile_size):
+    def load_from_tilesheet(self, path, row_index, col_index, tile_size):
         with self.lock:
             if path not in self.images:
                 sheet = pg.image.load(path)
@@ -32,6 +32,20 @@ class SpriteAssetManager:
                 y = row_index * tile_size
 
                 tile_rect = pg.Rect(x, y, tile_size, tile_size)
+                self.images[tile_path] = self.images[path].subsurface(tile_rect)
+
+            return self.images[tile_path]
+        
+def load_from_spritesheet(self, path, topleft:tuple, width:int, height:int):
+        with self.lock:
+            if path not in self.images:
+                sheet = pg.image.load(path)
+                self.images[path] = sheet
+            
+            tile_path = f"{path}?{topleft},width,height"
+            if tile_path not in self.images:
+                # Extract a single image from spritesheet by pixel coordinates
+                tile_rect = pg.Rect(topleft[0], topleft[1], width, height)
                 self.images[tile_path] = self.images[path].subsurface(tile_rect)
 
             return self.images[tile_path]
