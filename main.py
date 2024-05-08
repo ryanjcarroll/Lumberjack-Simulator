@@ -68,17 +68,15 @@ class Game:
         """
         Update sprites and camera.
         """
-        self.player.check_keys()
-        self.player.update()
-        self.camera.update(self.player)
+
+        # update timers and dt        
         self.dt = self.clock.tick(FPS) / 1000
         self.map_reload_timer += self.dt
         self.health_tick_timer += self.dt
 
-        # update shake for hittable objects
-        for sprite in self.can_hit_list:
-            if sprite.shaking or sprite.falling:
-                sprite.update(self.dt)
+        # call .update() on all sprites
+        self.sprite_list.update()
+        self.camera.update(self.player)
     
         # every N seconds, update the map to see if new chunks need to be generated
         if self.map_reload_timer >= 1:
