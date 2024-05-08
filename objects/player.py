@@ -316,6 +316,7 @@ class Player(SpriteObject):
         """
         Called each game step to update the Player object.
         """
+        self.check_keys()
         self.set_animation_counters(self.game.dt)
 
         if self.action == "walk":

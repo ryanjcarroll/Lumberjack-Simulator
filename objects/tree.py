@@ -88,7 +88,7 @@ class Tree(SpriteObject):
 
         return scaled_image
   
-    def update(self, dt):
+    def update(self):
         if self.falling:
             if self.fall_timer < self.fall_duration:
                 self.angle += self.fall_speed * self.fall_direction
@@ -96,7 +96,7 @@ class Tree(SpriteObject):
                 self.draw_rect = self.image.get_rect(midbottom=self.rect.midbottom)
                 if self.angle >= 360:
                     self.angle = 0
-                self.fall_timer += dt
+                self.fall_timer += self.game.dt
             else:
                 self.fall_timer = 0
                 self.falling = False
@@ -111,7 +111,7 @@ class Tree(SpriteObject):
                 self.draw_rect.x += displacement_x
                 self.draw_rect.y += displacement_y
                 # Increment the timer
-                self.shake_timer += dt
+                self.shake_timer += self.game.dt
             else:
                 # Reset the shake timer and position
                 self.shake_timer = 0
