@@ -3,8 +3,9 @@ from settings import *
 import pygame as pg
 
 class Backpack:
-    def __init__(self):
+    def __init__(self, game):
         self.wood = 0
+        self.game = game
 
         self.row_capacity = BACKPACK_ROW_CAPACITY
         self.num_rows = BACKPACK_NUM_ROWS
@@ -16,6 +17,7 @@ class Backpack:
     def unpack(self, camp):
         camp.add_wood(n=self.wood)
         self.wood = 0
+        self.game.builder.add_building()
 
 class Camp(SpriteObject):
     def __init__(self, game, x ,y):

@@ -8,32 +8,20 @@ from objects.tree import Tree
 import json
 from objects.sprites import SpriteObject
 
-class Player(SpriteObject):
-    """
-    Player x and y refers to the center of the Player sprite.
-    """
-    def __init__(self, game, x:int, y:int, loadout:dict):
+class Character(SpriteObject):
+    def __init__(self, game, x, y, loadout):
         self.loadout = loadout
+        self.actions_to_load = ["walk","axe","sleep"]
+        
         super().__init__(game, x, y, layer=SPRITE_LAYER, image=None)
 
-        # set player attributes
-        self.backpack = Backpack()
-        self.health = PLAYER_STARTING_HEALTH
-        self.max_health = PLAYER_MAX_HEALTH
-
-        # set position variables
-        self.angle = 0
         self.sprite_offset = vec(0, -int(PLAYER_SPRITE_HEIGHT*3/8))
 
         # collision_rect is for collision detection, rect is for sprite/image positioning
         self.collision_rect = PLAYER_COLLISION_RECT
         self.collision_rect.center = self.pos
         self.last_movement = vec(0,0)
-
-        # set default values
         self.move_distance = PLAYER_MOVE_DISTANCE
-        self.attack_distance = PLAYER_ATTACK_DISTANCE
-        self.axe_damage = PLAYER_ATTACK_DAMAGE
 
         # initialize animation settings
         self.animation_timer = 0
@@ -41,7 +29,7 @@ class Player(SpriteObject):
         self.direction = "down"
         self.action = "stand"
         self.animation_speed = PLAYER_ANIMATION_SPEED
-        
+
         self.rect = self.image.get_rect(center=self.pos + self.sprite_offset)
         self.game.character_list.add(self)
 
@@ -61,7 +49,7 @@ class Player(SpriteObject):
         # Iterate over original dictionary
         for key, value in row_key.items():
             # Check if any substring is present in the key
-            if any(substring in key for substring in ACTIONS_TO_LOAD):
+            if any(substring in key for substring in self.actions_to_load):
                 # Include the key-value pair in the filtered dictionary
                 frames_to_load[key] = value
 
@@ -103,7 +91,130 @@ class Player(SpriteObject):
 
                 # combine cimponents into a single animation frame and add to the frames library
                 self.frames[action].append((combine_images(images)))
+
+    def get_movement(self, keys) -> vec:
+        """
+        Given a set of keyboard inputs, set action and direction, and return movement vector. 
+        """
+        movement = vec(0, 0)
+
+        # if axe attack is ongoing, don't exceute any movements
+        if self.action == "axe":
+            return movement
+
+        if keys[pg.K_SPACE]:
+            self.current_frame_index = -1 # start the animation sequence for new inputs
+            self.action = "axe"
+            return movement
         
+        if keys[pg.K_a] or keys[pg.K_LEFT]:
+            movement.x -= self.move_distance
+        if keys[pg.K_d] or keys[pg.K_RIGHT]:
+            movement.x += self.move_distance
+        if keys[pg.K_w] or keys[pg.K_UP]:
+            movement.y -= self.move_distance
+        if keys[pg.K_s] or keys[pg.K_DOWN]:
+            movement.y += self.move_distance
+
+        # if no movement, set action to stand
+        if movement.length_squared() == 0:
+            self.action = "stand"
+            return movement
+
+        # normalize diagonal walking movements
+        if movement.length_squared() > self.move_distance:
+            movement = movement.normalize() * self.move_distance
+            self.last_movement = movement
+            self.action = "walk"
+        # if horizontal/vertical movement, set the action
+        else:
+            self.action = "walk"
+
+        # for any walk, set the direction
+        # if moving diagonally, we want the L/R sprite animation instead of U/D
+        if movement.x > 0:
+            self.direction = "right"
+        elif movement.x < 0:
+            self.direction = "left"
+        elif movement.y > 0:
+            self.direction = "down"
+        elif movement.y < 0:
+            self.direction = "up"
+
+        # Update player angle based on the last movement direction
+        self.angle = math.degrees(math.atan2(-self.last_movement.y, self.last_movement.x))
+
+        return movement
+
+    def set_animation_counters(self, dt):
+        """
+        Increment the animation counters for axe swing and walking animations.
+        """
+        self.animation_timer += dt
+
+        # if not moving
+        if self.action == "axe":
+            if self.animation_timer >= self.animation_speed:
+                self.current_frame_index += 1
+                self.animation_timer = 0
+                # finish the attack operations when the animation reaches the final frame
+                if self.current_frame_index == len(self.frames[f"{self.action}_{self.direction}"]):
+                    self.attack()
+                    self.action = "stand"
+        elif self.action == "walk":
+            # update walk animation frame if enough time has passed
+            if self.animation_timer >= self.animation_speed:
+                self.current_frame_index = (self.current_frame_index + 1) % len(self.frames[f"{self.action}_{self.direction}"])
+                self.animation_timer = 0
+        elif self.action == "sleep":
+            if self.animation_timer >= self.animation_speed:
+                self.current_frame_index = (self.current_frame_index + 1) % len(self.frames[f"{self.action}"])
+                self.animation_timer = 0
+
+    def update(self):
+        """
+        Called each game step to update the Player object.
+        """
+        self.set_animation_counters(self.game.dt)
+
+        if self.action == "walk":
+            # set the frame for walk animations
+            self.image = self.frames[f"walk_{self.direction}"][self.current_frame_index]
+        elif self.action == "axe":               
+            self.image = self.frames[f"axe_{self.direction}"][self.current_frame_index]
+        elif self.action == "sleep":
+            self.image = self.frames["sleep"][self.current_frame_index]
+        else:
+            # to stand, set to the first frame of the directional walk animation
+            self.image = self.frames[f"walk_{self.direction}"][0]
+        
+        self.rect = self.image.get_rect(center=self.rect.center)
+        self.rect.center = self.pos + self.sprite_offset
+        self.collision_rect.center = self.pos
+
+    def draw(self, screen, camera):
+        super().draw(screen, camera)
+
+class Player(Character):
+    """
+    Player x and y refers to the center of the Player sprite.
+    """
+    def __init__(self, game, x:int, y:int, loadout:dict):
+        self.actions_to_load = ["walk","axe","sleep"]
+        super().__init__(game, x, y, loadout=loadout)
+
+        # set player attributes
+        self.backpack = Backpack(self.game)
+        self.health = PLAYER_STARTING_HEALTH
+        self.max_health = PLAYER_MAX_HEALTH
+
+        # set position variables
+        self.angle = 0
+
+        # set default values
+        self.attack_distance = PLAYER_ATTACK_DISTANCE
+        self.axe_damage = PLAYER_ATTACK_DAMAGE
+
     def check_keys(self):
         """
         Check for keyboard input and update movement and angle information accordingly. 
@@ -157,60 +268,6 @@ class Player(SpriteObject):
                 self.backpack.unpack(self.game.camp)
                 self.game.sounds.play("unpack",0)
             self.collision_rect.center -= movement
-
-    def get_movement(self, keys) -> vec:
-        """
-        Given a set of keyboard inputs, set action and direction, and return movement vector. 
-        """
-        movement = vec(0, 0)
-
-        # if axe attack is ongoing, don't exceute any movements
-        if self.action == "axe":
-            return movement
-
-        if keys[pg.K_SPACE]:
-            self.current_frame_index = -1 # start the animation sequence for new inputs
-            self.action = "axe"
-            return movement
-        
-        if keys[pg.K_a] or keys[pg.K_LEFT]:
-            movement.x -= self.move_distance
-        if keys[pg.K_d] or keys[pg.K_RIGHT]:
-            movement.x += self.move_distance
-        if keys[pg.K_w] or keys[pg.K_UP]:
-            movement.y -= self.move_distance
-        if keys[pg.K_s] or keys[pg.K_DOWN]:
-            movement.y += self.move_distance
-
-        # if no movement, set action to stand
-        if movement.length_squared() == 0:
-            self.action = "stand"
-            return movement
-
-        # normalize diagonal walking movements
-        if movement.length_squared() > PLAYER_MOVE_DISTANCE:
-            movement = movement.normalize() * PLAYER_MOVE_DISTANCE
-            self.last_movement = movement
-            self.action = "walk"
-        # if horizontal/vertical movement, set the action
-        else:
-            self.action = "walk"
-
-        # for any walk, set the direction
-        # if moving diagonally, we want the L/R sprite animation instead of U/D
-        if movement.x > 0:
-            self.direction = "right"
-        elif movement.x < 0:
-            self.direction = "left"
-        elif movement.y > 0:
-            self.direction = "down"
-        elif movement.y < 0:
-            self.direction = "up"
-
-        # Update player angle based on the last movement direction
-        self.angle = math.degrees(math.atan2(-self.last_movement.y, self.last_movement.x))
-
-        return movement
            
     def get_attack_rects(self):
         attack_rects = []
@@ -283,31 +340,6 @@ class Player(SpriteObject):
         elif len(trees_hit):
             self.game.sounds.play_random("chop_tree")
 
-    def set_animation_counters(self, dt):
-        """
-        Increment the animation counters for axe swing and walking animations.
-        """
-        self.animation_timer += dt
-
-        # if not moving
-        if self.action == "axe":
-            if self.animation_timer >= self.animation_speed:
-                self.current_frame_index += 1
-                self.animation_timer = 0
-                # finish the attack operations when the animation reaches the final frame
-                if self.current_frame_index == len(self.frames[f"{self.action}_{self.direction}"]):
-                    self.attack()
-                    self.action = "stand"
-        elif self.action == "walk":
-            # update walk animation frame if enough time has passed
-            if self.animation_timer >= self.animation_speed:
-                self.current_frame_index = (self.current_frame_index + 1) % len(self.frames[f"{self.action}_{self.direction}"])
-                self.animation_timer = 0
-        elif self.action == "sleep":
-            if self.animation_timer >= self.animation_speed:
-                self.current_frame_index = (self.current_frame_index + 1) % len(self.frames[f"{self.action}"])
-                self.animation_timer = 0
-
     def modify_health(self, n):
         self.health = min(self.health + n, self.max_health)
         self.game.health_bar.update()
@@ -316,22 +348,8 @@ class Player(SpriteObject):
         """
         Called each game step to update the Player object.
         """
-        self.set_animation_counters(self.game.dt)
-
-        if self.action == "walk":
-            # set the frame for walk animations
-            self.image = self.frames[f"walk_{self.direction}"][self.current_frame_index]
-        elif self.action == "axe":               
-            self.image = self.frames[f"axe_{self.direction}"][self.current_frame_index]
-        elif self.action == "sleep":
-            self.image = self.frames["sleep"][self.current_frame_index]
-        else:
-            # to stand, set to the first frame of the directional walk animation
-            self.image = self.frames[f"walk_{self.direction}"][0]
-        
-        self.rect = self.image.get_rect(center=self.rect.center)
-        self.rect.center = self.pos + self.sprite_offset
-        self.collision_rect.center = self.pos
+        self.check_keys()
+        super().update()
 
         # if player health reaches 0 or lower, end the game
         if self.health <= 0:
@@ -339,7 +357,7 @@ class Player(SpriteObject):
 
     def draw(self, screen, camera):
         # self.draw_collision_rects(screen, camera)
-        screen.blit(self.image, camera.apply(self.rect))
+        super().draw(screen, camera)
     
     def draw_collision_rects(self, screen, camera):
         """
