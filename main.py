@@ -154,8 +154,8 @@ class Game:
                     self.loadout_menu.handle_click(pg.mouse.get_pos()) 
                 elif self.at_game_over:
                     self.game_over_menu.handle_click(pg.mouse.get_pos())
-                else:
-                    self.builder.add_building()
+                # else:
+                #     self.builder.add_building()
 
     def start_screen(self):
         """
