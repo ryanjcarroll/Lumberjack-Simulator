@@ -5,9 +5,9 @@ import pygame as pg
 from pygame import Vector2 as vec
 
 class Building(SpriteObject):
-    def __init__(self, game, x, y, size):
+    def __init__(self, game, build_x, build_y, size):
         self.size = size
-        super().__init__(game, x, y, layer=SPRITE_LAYER, image=None, can_collide=True)
+        super().__init__(game, build_x, build_y-TILE_SIZE, layer=SPRITE_LAYER, image=None, can_collide=True)
         
         # rectangle for clearing a build area is equal to the image size
         self.build_rect = pg.Rect(
@@ -16,7 +16,7 @@ class Building(SpriteObject):
             self.rect.width,
             self.rect.height
         )
-        self.build_rect.bottomleft = self.rect.bottomleft
+        self.build_rect.topleft = (build_x, build_y)
 
         # rectangle for calculating collisions is smaller and shifted down
         self.collision_rect = pg.Rect(
@@ -27,7 +27,8 @@ class Building(SpriteObject):
         )
         self.collision_rect.bottomleft = self.rect.bottomleft
 
-        # super().add([self.game.buildings_list])
+        # add to buildings sprite group
+        self.game.buildings_list.add(self)
 
     def load_image(self):
         if self.size == (2,2):
@@ -65,6 +66,6 @@ class Building(SpriteObject):
         )
     
     def draw(self, screen, camera):
-        # pg.draw.rect(screen, RED, camera.apply(self.build_rect))
+        # pg.draw.rect(screen, RED, camera.apply(self.build_rect), pg.SRCALPHA)
         # pg.draw.rect(screen, BLUE, camera.apply(self.collision_rect))
         super().draw(screen, camera)

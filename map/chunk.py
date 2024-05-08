@@ -50,6 +50,13 @@ class Chunk:
             tile_type = ForestTile
 
         return tile_type
+    
+    def get_tile_at(self, x, y) -> Tile:
+        for tile in self.tiles:
+            if tile.rect.topleft == (x,y):
+                return tile
+    
+        return False        
 
     def save(self):
         pass

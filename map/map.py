@@ -2,6 +2,7 @@ from settings import *
 import threading
 from map.chunk import Chunk, SpawnChunk
 from pygame import Vector2 as vec
+import pygame as pg
 
 class Map:
     def __init__(self, game):
@@ -48,6 +49,13 @@ class Map:
         chunk_x = int((x // (CHUNK_SIZE * TILE_SIZE)) * (CHUNK_SIZE * TILE_SIZE))
         chunk_y = int((y // (CHUNK_SIZE * TILE_SIZE)) * (CHUNK_SIZE * TILE_SIZE))
         return chunk_x, chunk_y
+    
+    def get_chunk_intersections(self, rect):
+        with self.lock:
+            return [
+                chunk_id for chunk_id, chunk in self.chunks.items()
+                if pg.Rect.colliderect(chunk.rect, rect)
+            ]
 
     def get_visible_chunks(self, player):
         """

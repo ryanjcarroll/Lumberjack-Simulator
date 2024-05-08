@@ -58,7 +58,6 @@ class Game:
         # initialize necessary game objects and variables
         self.player = Player(self, (CHUNK_SIZE*TILE_SIZE)//2, (CHUNK_SIZE*TILE_SIZE)//2, loadout)
         self.camera = Camera(WINDOW_WIDTH, WINDOW_HEIGHT)
-        self.backpack = Backpack()
         self.builder = Builder(self)
 
         self.backpack_inventory_menu = BackpackInventoryMenu(self)
@@ -154,8 +153,8 @@ class Game:
                     self.loadout_menu.handle_click(pg.mouse.get_pos()) 
                 elif self.at_game_over:
                     self.game_over_menu.handle_click(pg.mouse.get_pos())
-                # else:
-                #     self.builder.add_building()
+                else:
+                    self.builder.add_building()
 
     def start_screen(self):
         """

@@ -1,6 +1,6 @@
 from pygame import Rect
 
-DEBUG_MODE = False
+DEBUG_MODE = True
 
 # colors (RGB)
 WHITE = (255, 255, 255)
@@ -29,7 +29,6 @@ BIOME_NOISE_FACTOR = .0005
 # sprite settings
 SPRITESHEET_TILE_SIZE = 32
 SPRITESHEET_NUM_COLUMNS = 8
-ACTIONS_TO_LOAD = ["walk","axe","sleep"]
 LAYER_ORDER = ["body","hair","face","shirt","pants","accessories"]
 
 # render layer settings (0 is drawn first)
@@ -44,7 +43,7 @@ PLAYER_ATTACK_DISTANCE = 24
 PLAYER_SPRITE_HEIGHT = 72
 PLAYER_SPRITE_WIDTH = 72
 PLAYER_ANIMATION_SPEED = 0.1
-PLAYER_COLLISION_RECT = Rect(0,0,0,0) if DEBUG_MODE else Rect(0,0,32,32)
+PLAYER_COLLISION_RECT = Rect(0,0,1,1) if DEBUG_MODE else Rect(0,0,32,32)
 PLAYER_STARTING_HEALTH = 80
 PLAYER_MAX_HEALTH = 100
 
