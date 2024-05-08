@@ -89,6 +89,7 @@ class Tree(SpriteObject):
         return scaled_image
   
     def update(self):
+        # update falling animation after killed
         if self.falling:
             if self.fall_timer < self.fall_duration:
                 self.angle += self.fall_speed * self.fall_direction
@@ -102,6 +103,7 @@ class Tree(SpriteObject):
                 self.falling = False
                 self.die()
 
+        # update shake animation after hit
         elif self.shaking:
             if self.shake_timer < self.shake_duration:
                 # Calculate the displacement based on sine and cosine functions
@@ -130,7 +132,7 @@ class Tree(SpriteObject):
         self.kill()
 
     def draw(self, screen, camera):
-        super().draw(screen, camera)
+        screen.blit(self.image, camera.apply(self.draw_rect))
         # self.draw_collision_rects(screen, camera)
 
     def register_hit(self, damage):
