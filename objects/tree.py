@@ -11,7 +11,7 @@ class Tree(SpriteObject):
 
         self.tree_spawn_weights = self.get_spawn_weights()
 
-        super().__init__(game, x, y, layer=SPRITE_LAYER, image=None, collision=True, hittable=True)
+        super().__init__(game, x, y, layer=SPRITE_LAYER, image=None, can_collide=True, can_hit=True)
 
         # settings for taking damage from axes
         self.health = TREE_HEALTH
@@ -87,8 +87,7 @@ class Tree(SpriteObject):
         )
 
         return scaled_image
-
-        
+  
     def update(self, dt):
         if self.falling:
             if self.fall_timer < self.fall_duration:
@@ -131,7 +130,7 @@ class Tree(SpriteObject):
         self.kill()
 
     def draw(self, screen, camera):
-        screen.blit(self.image, camera.apply(self.draw_rect))
+        super().draw(screen, camera)
         # self.draw_collision_rects(screen, camera)
 
     def register_hit(self, damage):
@@ -143,7 +142,7 @@ class Tree(SpriteObject):
             self.fall_timer = 0
             self.falling = True
             self.fall_direction = 1 if self.game.player.pos[0] > self.pos[0] else -1
-            self.game.collision_list.remove(self)
+            self.game.can_collide_list.remove(self)
         else:
             self.shake_timer = 0
             self.shaking = True

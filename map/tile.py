@@ -111,7 +111,7 @@ class Tile(ABC):
                         self.rect.topleft[1] + random.randrange(0,max_offset)
                     )
                     spawn = True
-                    for obj in [obj for obj in neighbor_objs if obj.collision]:
+                    for obj in [obj for obj in neighbor_objs if obj in self.game.can_collide_list]:
                         if try_pos.distance_to(obj.pos) <= buffer:
                             spawn = False
                             break
@@ -352,7 +352,7 @@ class WaterTile(Tile):
 
     def load_texture(self):
         return pg.transform.scale(
-            self.game.sprites.load("assets/textures/bedrock.png"),
+            self.game.sprites.load("assets/textures/water.png"),
             (TILE_SIZE, TILE_SIZE)
         )
 
@@ -365,7 +365,7 @@ class WaterTile(Tile):
             game=self.game,
             x=self.x,
             y=self.y,
-            image=self.game.sprites.load("assets/textures/water.png"),
+            image=self.game.sprites.load("assets/textures/transparent.png"),
             layer=BASE_LAYER,
-            collision=True
+            can_collide=True
         ))

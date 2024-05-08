@@ -10,15 +10,20 @@ class Camera:
         """
         Position an entity's rectangle attribute using relative coordinates within the camera frame.
         """
-        return rect.move(self.rect.topleft)
+        return pg.Rect(
+            rect.topleft[0] - self.rect.topleft[0],
+            rect.topleft[1] - self.rect.topleft[1],
+            rect.width,
+            rect.height
+        )
 
     def update(self, target):
         """
         Update the camera's position to follow the target (player).
         """
-        x = -target.rect.center[0] + int(self.width / 2)
-        y = -target.rect.center[1] + int(self.height / 2)
-        self.rect = pg.Rect(x, y, self.width, self.height)
+        x = target.rect.center[0] - int(self.width / 2)
+        y = target.rect.center[1] - int(self.height / 2)
+        self.rect.topleft = (x,y)
 
     def is_visible(self, entity):
         return self.rect.colliderect(entity.rect)

@@ -6,15 +6,13 @@ class SpriteObject(pg.sprite.Sprite):
     """
     Sprite objects to be loaded within the game.
     """
-    def __init__(self, game, x, y, layer, image=None, collision=False, hittable=False, is_building=False):
+    def __init__(self, game, x, y, layer, image=None, can_collide=False, can_hit=False, is_building=False):
+        super().__init__()
 
         # initiation variables
         self.x = x
         self.y = y
         self.game = game
-        self.render_layer = layer
-        self.hittable = hittable
-        self.collision = collision
 
         if image:
             self.image = image
@@ -33,18 +31,22 @@ class SpriteObject(pg.sprite.Sprite):
 
         # this needs to happen last otherwise there can be a race condition
         # where the SpriteObject is in a game group but isn't fully loaded yet
-        self.groups = []
-        if collision:
-            self.groups.append(game.collision_list)
+        self.layer = layer
+        self.game.sprite_list.add(self)
+        if can_collide:
+            self.game.can_collide_list.add(self)
             self.collision_rect = self.rect
-        if hittable:
-            self.groups.append(game.hittable_list)
+        if can_hit:
+            self.game.can_hit_list.add(self)
         if is_building:
-            self.groups.append(game.buildings_list)
-        pg.sprite.Sprite.__init__(self, self.groups)
+            self.game.buildings_list.add(self)
+        
 
     def load_image(self) -> pg.image:
         # overwrite this method to implement custom image loading in a class
+        pass
+
+    def update(self):
         pass
 
     def draw(self, screen, camera):
@@ -60,6 +62,4 @@ class SpriteObject(pg.sprite.Sprite):
             "topleft":(self.x, self.y),
             "img_path":self.img_path,
             "resize":self.img_resize,
-            "collision":self.collision,
-            "hittable":self.hittable
         }

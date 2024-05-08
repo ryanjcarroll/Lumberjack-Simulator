@@ -7,8 +7,8 @@ from pygame import Vector2 as vec
 class Building(SpriteObject):
     def __init__(self, game, x, y, size):
         self.size = size
-        super().__init__(game, x, y, layer=SPRITE_LAYER, image=None, collision=True, is_building=True)
-
+        super().__init__(game, x, y, layer=SPRITE_LAYER, image=None, can_collide=True)
+        
         # rectangle for clearing a build area is equal to the image size
         self.build_rect = pg.Rect(
             0,
@@ -27,16 +27,7 @@ class Building(SpriteObject):
         )
         self.collision_rect.bottomleft = self.rect.bottomleft
 
-    # def load_image(self):
-    #     return pg.transform.scale(
-    #         self.game.sprites.load_from_spritesheet(
-    #             "assets/buildings/buildings.png",
-    #             topleft=(0,400),
-    #             width=48,
-    #             height=48
-    #         ),
-    #         (TILE_SIZE*self.size[0], TILE_SIZE*(self.size[1]))
-    #     )
+        # super().add([self.game.buildings_list])
 
     def load_image(self):
         if self.size == (2,2):
@@ -75,5 +66,5 @@ class Building(SpriteObject):
     
     def draw(self, screen, camera):
         # pg.draw.rect(screen, RED, camera.apply(self.build_rect))
-        pg.draw.rect(screen, BLUE, camera.apply(self.collision_rect))
+        # pg.draw.rect(screen, BLUE, camera.apply(self.collision_rect))
         super().draw(screen, camera)

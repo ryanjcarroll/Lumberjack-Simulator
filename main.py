@@ -47,8 +47,9 @@ class Game:
         # initialize sprite lists and the map 
         # IMPORTANT: Map must go after sprite lists because it creates sprites
         self.sprite_list = pg.sprite.Group() # all sprites to render go in this list
-        self.collision_list = pg.sprite.Group() # objects the player can collide with
-        self.hittable_list = pg.sprite.Group() # objects the player can hit with their axe
+        self.character_list = pg.sprite.Group()
+        self.can_collide_list = pg.sprite.Group() # objects the player can collide with
+        self.can_hit_list = pg.sprite.Group() # objects the player can hit with their axe
         self.buildings_list = pg.sprite.Group() # buildings
         self.map = Map(self)
         self.map.new()
@@ -71,13 +72,12 @@ class Game:
         self.player.check_keys()
         self.player.update()
         self.camera.update(self.player)
-
         self.dt = self.clock.tick(FPS) / 1000
         self.map_reload_timer += self.dt
         self.health_tick_timer += self.dt
 
         # update shake for hittable objects
-        for sprite in self.hittable_list:
+        for sprite in self.can_hit_list:
             if sprite.shaking or sprite.falling:
                 sprite.update(self.dt)
     
@@ -114,39 +114,19 @@ class Game:
         """
         self.screen.fill(BG_COLOR)
 
-        tiles_in_visible_chunks = []
+        # draw tiles if they are visible on screen
         for chunk_id in self.map.get_visible_chunks(self.player):
-            if chunk_id in self.map.chunks:
+            if chunk_id in self.map.chunks: 
                 for tile in self.map.chunks[chunk_id].tiles:
-                    tiles_in_visible_chunks.append(tile)
-                    tile.draw(self.screen, self.camera)
+                    if self.camera.is_visible(tile):
+                        tile.draw(self.screen, self.camera)
 
-        # draw on-screen objects in order of ascending Y-coordinate
-        objs_on_screen = [self.player]
-        for tile in tiles_in_visible_chunks:
-            for obj in tile.objects:
-                # if self.camera.is_visible(obj):
-                objs_on_screen.append(obj)
-
-        print(len(objs_on_screen))
-        for obj in sorted(objs_on_screen, key=lambda obj: obj.rect.center[1]):
-            if obj.alive():
-                obj.draw(self.screen, self.camera)
-
-        # # draw tile bases if they are in visible chunks
-        # for layer in [BASE_LAYER, DECOR_LAYER]:
-        #     self.draw_layer_if(layer)
-
-        # # draw sprites that are positioned north of the player
-        # player_pos_y = self.player.pos[1]
-        # for layer in [SPRITE_LAYER]:
-        #     self.draw_layer_if(layer, lambda tile: tile.rect.center[1] < player_pos_y)
-        
-        # self.player.draw(self.screen, self.camera)
-
-        # # draw the sprite layer in order of Y coordinate for proper layering
-        # for layer in [SPRITE_LAYER]:
-        #     self.draw_layer_if(layer, lambda tile: tile.rect.center[1] >= player_pos_y)
+        # draw on-screen objects in layer order, and by ascending Y-coordinate
+        for sprite in sorted(
+            [sprite for sprite in self.sprite_list if self.camera.is_visible(sprite)]
+            ,key = lambda sprite:(sprite.layer, sprite.rect.center[1])
+        ):
+            sprite.draw(self.screen, self.camera)
 
         # draw menus 
         self.backpack_inventory_menu.draw(self.screen)
@@ -173,7 +153,9 @@ class Game:
                 elif self.at_loadout_menu:
                     self.loadout_menu.handle_click(pg.mouse.get_pos()) 
                 elif self.at_game_over:
-                    self.game_over_menu.handle_click(pg.mouse.get_pos())  
+                    self.game_over_menu.handle_click(pg.mouse.get_pos())
+                else:
+                    self.builder.add_building()
 
     def start_screen(self):
         """
