@@ -1,13 +1,12 @@
 import pygame as pg
 from settings import *
-from utility import remove_padding_and_scale
 from pygame import Vector2 as vec
 
 class SpriteObject(pg.sprite.Sprite):
     """
     Sprite objects to be loaded within the game.
     """
-    def __init__(self, game, x, y, layer, image=None, collision=False, hittable=False):
+    def __init__(self, game, x, y, layer, image=None, collision=False, hittable=False, is_building=False):
 
         # initiation variables
         self.x = x
@@ -40,8 +39,8 @@ class SpriteObject(pg.sprite.Sprite):
             self.collision_rect = self.rect
         if hittable:
             self.groups.append(game.hittable_list)
-        if not collision and not hittable:
-            self.groups.append(game.decor_list)
+        if is_building:
+            self.groups.append(game.buildings_list)
         pg.sprite.Sprite.__init__(self, self.groups)
 
     def load_image(self) -> pg.image:

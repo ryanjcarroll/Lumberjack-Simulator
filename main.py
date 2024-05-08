@@ -13,6 +13,7 @@ from menus.loadout import LoadoutMenu
 from menus.game_over import GameOverMenu
 from objects.assets import SpriteAssetManager, SoundAssetManager
 from objects.music import MusicPlayer
+from objects.builder import Builder
 pg.init()
 
 class Game:
@@ -45,9 +46,10 @@ class Game:
         """
         # initialize sprite lists and the map 
         # IMPORTANT: Map must go after sprite lists because it creates sprites
+        self.sprite_list = pg.sprite.Group() # all sprites to render go in this list
         self.collision_list = pg.sprite.Group() # objects the player can collide with
-        self.decor_list = pg.sprite.Group() # objects the player can walk through and is not able to hit with their axe
         self.hittable_list = pg.sprite.Group() # objects the player can hit with their axe
+        self.buildings_list = pg.sprite.Group() # buildings
         self.map = Map(self)
         self.map.new()
         self.compass = Compass(self)
@@ -56,11 +58,12 @@ class Game:
         self.player = Player(self, (CHUNK_SIZE*TILE_SIZE)//2, (CHUNK_SIZE*TILE_SIZE)//2, loadout)
         self.camera = Camera(WINDOW_WIDTH, WINDOW_HEIGHT)
         self.backpack = Backpack()
-        self.visible_chunks = []
+        self.builder = Builder(self)
+
         self.backpack_inventory_menu = BackpackInventoryMenu(self)
         self.camp_inventory_menu = CampInventoryMenu(self)
         self.health_bar = HealthBar(self)
-
+    
     def update(self):
         """
         Update sprites and camera.
@@ -111,20 +114,39 @@ class Game:
         """
         self.screen.fill(BG_COLOR)
 
-        # draw tile bases if they are in visible chunks
-        for layer in [BASE_LAYER, DECOR_LAYER]:
-            self.draw_layer_if(layer)
+        tiles_in_visible_chunks = []
+        for chunk_id in self.map.get_visible_chunks(self.player):
+            if chunk_id in self.map.chunks:
+                for tile in self.map.chunks[chunk_id].tiles:
+                    tiles_in_visible_chunks.append(tile)
+                    tile.draw(self.screen, self.camera)
 
-        # draw sprites that are positioned north of the player
-        player_pos_y = self.player.pos[1]
-        for layer in [SPRITE_LAYER]:
-            self.draw_layer_if(layer, lambda tile: tile.rect.center[1] < player_pos_y)
+        # draw on-screen objects in order of ascending Y-coordinate
+        objs_on_screen = [self.player]
+        for tile in tiles_in_visible_chunks:
+            for obj in tile.objects:
+                # if self.camera.is_visible(obj):
+                objs_on_screen.append(obj)
+
+        print(len(objs_on_screen))
+        for obj in sorted(objs_on_screen, key=lambda obj: obj.rect.center[1]):
+            if obj.alive():
+                obj.draw(self.screen, self.camera)
+
+        # # draw tile bases if they are in visible chunks
+        # for layer in [BASE_LAYER, DECOR_LAYER]:
+        #     self.draw_layer_if(layer)
+
+        # # draw sprites that are positioned north of the player
+        # player_pos_y = self.player.pos[1]
+        # for layer in [SPRITE_LAYER]:
+        #     self.draw_layer_if(layer, lambda tile: tile.rect.center[1] < player_pos_y)
         
-        self.player.draw(self.screen, self.camera)
+        # self.player.draw(self.screen, self.camera)
 
-        # draw the sprite layer in order of Y coordinate for proper layering
-        for layer in [SPRITE_LAYER]:
-            self.draw_layer_if(layer, lambda tile: tile.rect.center[1] >= player_pos_y)
+        # # draw the sprite layer in order of Y coordinate for proper layering
+        # for layer in [SPRITE_LAYER]:
+        #     self.draw_layer_if(layer, lambda tile: tile.rect.center[1] >= player_pos_y)
 
         # draw menus 
         self.backpack_inventory_menu.draw(self.screen)

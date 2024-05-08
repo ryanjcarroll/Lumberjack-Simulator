@@ -14,6 +14,8 @@ class Tile(ABC):
         self.chunk = chunk
         self.objects = []
 
+        self.is_road = False
+
         # row & col position within chunk        
         self.row = row
         self.col = col
@@ -145,7 +147,7 @@ class Tile(ABC):
         """
         neighbors = []
 
-        # find neighboring tiles by coordinate offsetss
+        # find neighboring tiles by coordinate offsets
         offsets = [(drow, dcol) for drow in [-1, 0, 1] for dcol in [-1, 0, 1] if (drow,dcol)!=(0,0)]
 
         # if we need to access any chunks besides the current one, store them in a dict by id for quick re-access
@@ -191,15 +193,71 @@ class Tile(ABC):
 
         return neighbors
 
-    def draw(self, layer, screen, camera):
-        # draw self.image for base layer
-        if layer == BASE_LAYER:
-            screen.blit(self.image, camera.apply(self.rect))
+    def get_neighbor(self, direction):
+        """
+        Get the neighbor of this tile in the specified direction.
+        
+        Args:
+            direction (str): The direction of the neighbor ('north', 'south', 'east', or 'west').
+        
+        Returns:
+            Tile or None: The neighbor tile if it exists, otherwise None.
+        """
+        # Calculate the row and col offsets based on the direction
+        if direction == 'north':
+            d_row, d_col = -1, 0
+        elif direction == 'south':
+            d_row, d_col = 1, 0
+        elif direction == 'east':
+            d_row, d_col = 0, 1
+        elif direction == 'west':
+            d_row, d_col = 0, -1
+        else:
+            raise ValueError("Invalid direction. Please use 'north', 'south', 'east', or 'west'.")
 
-        # for other layers, draw all objects in that layer
-        for obj in self.objects:
-            if obj.alive() and obj.render_layer == layer:
-                obj.draw(screen, camera)
+        # Calculate the row and col of the neighbor tile
+        neighbor_row = self.row + d_row
+        neighbor_col = self.col + d_col
+
+        # If the neighbor tile is within the bounds of the chunk
+        if 0 <= neighbor_row < CHUNK_SIZE and 0 <= neighbor_col < CHUNK_SIZE:
+            # Find the neighbor tile in the current chunk
+            for tile in self.chunk.tiles:
+                if tile.row == neighbor_row and tile.col == neighbor_col:
+                    return tile
+        else:
+            # If the neighbor tile is outside the current chunk, attempt to load it from another chunk
+            neighbor_row %= CHUNK_SIZE
+            neighbor_col %= CHUNK_SIZE
+
+            # Calculate the position of the neighbor tile in the game world
+            neighbor_x = self.rect.topleft[0] + d_col * TILE_SIZE
+            neighbor_y = self.rect.topleft[1] + d_row * TILE_SIZE
+            
+            # Get the chunk ID corresponding to the position
+            chunk_id = self.game.map.get_chunk_id(neighbor_x, neighbor_y)
+
+            # If the chunk is loaded
+            if chunk_id in self.game.map.chunks:
+                # Get the chunk
+                chunk = self.game.map.chunks[chunk_id]
+
+                # Find the neighbor tile in the chunk
+                for tile in chunk.tiles:
+                    if tile.row == neighbor_row and tile.col == neighbor_col:
+                        return tile
+
+        return None  # If the neighbor tile is not found, return None
+
+    def draw(self, screen, camera):
+        # draw self.image for base layer
+        # if layer == BASE_LAYER:
+        screen.blit(self.image, camera.apply(self.rect))
+
+        # # for other layers, draw all objects in that layer
+        # for obj in self.objects:
+        #     if obj.alive() and obj.render_layer == layer:
+        #         obj.draw(screen, camera)
 
     def to_json(self):
         return {

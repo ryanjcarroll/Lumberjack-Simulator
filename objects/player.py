@@ -13,6 +13,7 @@ class Player(pg.sprite.Sprite):
     """
     def __init__(self, game, x:int, y:int, loadout:dict):
         self.game = game
+        pg.sprite.Sprite.__init__(self, self.game.sprite_list)
 
         # set player attributes
         self.backpack = Backpack()

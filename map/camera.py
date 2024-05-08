@@ -19,3 +19,6 @@ class Camera:
         x = -target.rect.center[0] + int(self.width / 2)
         y = -target.rect.center[1] + int(self.height / 2)
         self.rect = pg.Rect(x, y, self.width, self.height)
+
+    def is_visible(self, entity):
+        return self.rect.colliderect(entity.rect)
