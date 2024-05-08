@@ -36,7 +36,7 @@ class SpriteAssetManager:
 
             return self.images[tile_path]
         
-def load_from_spritesheet(self, path, topleft:tuple, width:int, height:int):
+    def load_from_spritesheet(self, path, topleft:tuple, width:int, height:int):
         with self.lock:
             if path not in self.images:
                 sheet = pg.image.load(path)

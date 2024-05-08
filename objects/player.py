@@ -6,13 +6,15 @@ from utility import *
 from objects.inventory import Backpack
 from objects.tree import Tree
 import json
+from objects.sprites import SpriteObject
 
-class Player(pg.sprite.Sprite):
+class Player(SpriteObject):
     """
     Player x and y refers to the center of the Player sprite.
     """
     def __init__(self, game, x:int, y:int, loadout:dict):
-        self.game = game
+        self.loadout = loadout
+        super().__init__(game, x, y, layer=SPRITE_LAYER, image=None)
 
         # set player attributes
         self.backpack = Backpack()
@@ -20,7 +22,6 @@ class Player(pg.sprite.Sprite):
         self.max_health = PLAYER_MAX_HEALTH
 
         # set position variables
-        self.pos = vec(x, y)
         self.angle = 0
         self.sprite_offset = vec(0, -int(PLAYER_SPRITE_HEIGHT*3/8))
 
@@ -40,12 +41,13 @@ class Player(pg.sprite.Sprite):
         self.direction = "down"
         self.action = "stand"
         self.animation_speed = PLAYER_ANIMATION_SPEED
-        self.load_animations(loadout)
-
-        self.image = self.frames[f"walk_down"][0]
+        
         self.rect = self.image.get_rect(center=self.pos + self.sprite_offset)
-        # run an initial update to set the first frame of the spritesheet
-        self.update()
+        self.game.character_list.add(self)
+
+    def load_image(self):
+        self.load_animations(self.loadout)
+        return self.frames[f"walk_down"][0]
 
     def load_animations(self, loadout:dict):
         """
@@ -121,7 +123,7 @@ class Player(pg.sprite.Sprite):
         # check for collision in the X direction
         self.collision_rect.center += movement_x_only
         flag=False
-        for obj in self.game.collision_list:
+        for obj in self.game.can_collide_list:
             try:
                 if self.collision_rect.colliderect(obj.collision_rect):
                     flag = True
@@ -135,7 +137,7 @@ class Player(pg.sprite.Sprite):
 
         # check for collision in the Y direction
         self.collision_rect.center += movement_y_only
-        if any(self.collision_rect.colliderect(obj.collision_rect) for obj in self.game.collision_list):
+        if any(self.collision_rect.colliderect(obj.collision_rect) for obj in self.game.can_collide_list):
             movement -= movement_y_only
         self.collision_rect.center -= movement_y_only
 
@@ -242,7 +244,7 @@ class Player(pg.sprite.Sprite):
 
         trees_hit = set()
         for rect in attack_rects:
-            for obj in self.game.hittable_list:
+            for obj in self.game.can_hit_list:
                 if obj.collision_rect.colliderect(rect):
                     if isinstance(obj, Tree):
                         trees_hit.add(obj)

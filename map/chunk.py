@@ -1,7 +1,7 @@
 from settings import *
 from map.tile import *
-from objects.tree import Tree
-from objects.sprites import SpriteObject
+# from objects.tree import Tree
+# from objects.sprites import SpriteObject
 from objects.inventory import Camp
 from pygame import Vector2 as vec
 import pygame as pg

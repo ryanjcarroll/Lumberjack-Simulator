@@ -25,7 +25,7 @@ class Camp(SpriteObject):
             x=x,
             y=y,
             layer=SPRITE_LAYER,
-            collision=True
+            can_collide=True
         )
     
         self.wood = 0
