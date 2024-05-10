@@ -2,8 +2,7 @@ import pygame as pg
 from settings import *
 import random
 from objects.building import Building
-from pygame import Vector2 as vec
-from objects.player import Character
+from objects.characters import Character
 
 """
 When we propose a new plot:
@@ -22,28 +21,42 @@ If we reach any coordinate outside the max bounds of existing build_rects, we kn
 If we reach any tile from a previous search, we know there is a good path.
 """
 
-class Builder:
-    def __init__(self, game):
-        self.game = game
+class Builder(Character):
+    def __init__(self, game, x, y, loadout):
+        self.actions_to_load = ["walk","pick"]
+        super().__init__(game, x, y, loadout=loadout)
 
         # the number of logs the player needs to bring for the next building
-        self.current_goal = 20
+        self.goal = 5
+        self.wood = 0
 
-        # the building under construction, if any
+        # pointers for the building under construction and the first building constructed
         self.building_in_progress = None
-
         self.original_building = None
 
+    def add_wood(self,n=1):
+        self.wood += n
+        while self.wood >= self.goal:
+            self.wood -= self.goal
+            self.build()
+            self.goal += 5
+
     def build(self):
+        # finish an in-progress building if it exists
         if self.building_in_progress:
             self.building_in_progress.build()
             self.building_in_progress = None
+            self.action = "stand"
+            self.direction = "down"
+        # otherwise, start a new building
         else:
             self.building_in_progress = self.plan_building()
-            self.game.buddy.move(
+            self.move(
                 self.building_in_progress.build_rect.bottomleft[0] + TILE_SIZE//2,
-                self.building_in_progress.build_rect.bottomleft[1] - TILE_SIZE//2
+                self.building_in_progress.build_rect.bottomleft[1] - self.building_in_progress.build_rect.height // 3
             )
+            self.action = "pick"
+            self.direction = "right"
 
     def plan_building(self):
         building_size = random.choice([
@@ -85,9 +98,6 @@ class Builder:
             elif direction == "west":
                 try_build_rect.topleft = (try_build_rect.topleft[0] - TILE_SIZE, try_build_rect.topleft[1])
 
-        # check that there is a path to the bottom left tile of the build rect
-        # print(self.check_path_to_building(*try_build_rect.bottomleft))
-
         # once we find a good area to spawn a new building, spawn it
         bld = Building(
             game=self.game,
@@ -111,62 +121,6 @@ class Builder:
             self.original_building = bld
 
         return bld
-
-    # def check_building_is_accessible(self, building, visited_tiles):
-
-    #     starting_chunk = self.game.map.chunks[self.game.map.get_chunk_id(*building.build_rect.bottomleft)]
-    #     starting_tile = starting_chunk.get_tile_at(building.build_rect.bottomleft)
-
-    #     stack = [starting_tile]
-
-    #     while stack:
-    #         current_tile = stack.pop()
-    #         visited_tiles.add(current_tile)
-
-    #         # Explore neighboring tiles
-    #         for direction in ["east", "west", "north", "south"]:
-    #             neighbor = current_tile.get_neighbor(direction)
-    #             if neighbor and neighbor not in visited_tiles:
-    #                 stack.append(neighbor)
-
-    # def check_buildings_have_paths(self):
-    #     # get the furthest bounds where buildings currently exist
-    #     # if we can find a valid path to someplace beyond these bounds, we know there is a path to the building.
-    #     min_building_x = CHUNK_SIZE//2
-    #     max_building_x = CHUNK_SIZE//2
-    #     min_building_y = CHUNK_SIZE//2
-    #     max_building_y = CHUNK_SIZE//2
-    #     for existing in self.game.buildings_list:
-    #         if existing.build_rect[0] > max_building_x:
-    #             max_building_x = existing.build_rect[0]
-    #         if existing.build_rect[0] < min_building_x:
-    #             min_building_x = existing.build_rect[0]
-    #         if existing.build_rect[1] > max_building_y:
-    #             max_building_y = existing.build_rect[1]
-    #         if existing.build_rect[1] < min_building_y:
-    #             min_building_y = existing.build_rect[1]
-
-    #     # # Identify the starting tile
-    #     # starting_chunk = self.game.map.chunks[self.game.map.get_chunk_id(x, y)]
-    #     # starting_tile = starting_chunk.get_tile_at(x, y)
-
-    #     # # Perform DFS to find a path to a location outside the bounds of existing buildings
-    #     # stack = [starting_tile]
-    #     # visited = set()
-
-    #     # while stack:
-    #     #     current_tile = stack.pop()
-    #     #     if (current_tile.x < min_building_x or current_tile.x > max_building_x or
-    #     #             current_tile.y < min_building_y or current_tile.y > max_building_y):
-    #     #         return True  # Found a path to a location outside the bounds of existing buildings
-
-    #     #     visited.add(current_tile)
-
-    #     #     # Explore neighboring tiles
-    #     #     for direction in ["east", "west", "north", "south"]:
-    #     #         neighbor = current_tile.get_neighbor(direction)
-    #     #         if neighbor and neighbor not in visited:
-    #     #             stack.append(neighbor)
-
-    #     # # Couldn't find a path to a location outside the bounds of existing buildings
-    #     # return False
+    
+    def update(self):
+        super().update()

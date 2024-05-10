@@ -2,7 +2,7 @@ from settings import *
 from map.tile import *
 # from objects.tree import Tree
 # from objects.sprites import SpriteObject
-from objects.inventory import Camp
+# from objects.inventory import Camp
 from pygame import Vector2 as vec
 import pygame as pg
 import random
@@ -75,11 +75,11 @@ class SpawnChunk(Chunk):
     def __init__(self, game,x, y):
         super().__init__(game, x, y)
 
-        for tile in self.tiles:
-            # spawn the camp
-            if CHUNK_SIZE//2 == tile.row and CHUNK_SIZE//2 + 1== tile.col:
-                self.game.camp = Camp(self.game, *tile.rect.topleft)
-                tile.objects.append(self.game.camp)
+        # for tile in self.tiles:
+            # # spawn the camp
+            # if CHUNK_SIZE//2 == tile.row and CHUNK_SIZE//2 + 1== tile.col:
+            #     self.game.camp = Camp(self.game, *tile.rect.topleft)
+            #     tile.objects.append(self.game.camp)
 
     def get_tile_type(self, row, col) -> type:
         x = self.rect.topleft[0] + col*TILE_SIZE

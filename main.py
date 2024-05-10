@@ -3,8 +3,7 @@ from settings import *
 from map.map import Map
 from map.camera import Camera
 import sys
-from objects.player import Player
-from objects.player import NPC
+from objects.characters.player import Player
 from objects.inventory import *
 from ui.compass import Compass
 from ui.bars import HealthBar
@@ -14,7 +13,7 @@ from menus.loadout import LoadoutMenu
 from menus.game_over import GameOverMenu
 from objects.assets import SpriteAssetManager, SoundAssetManager
 from objects.music import MusicPlayer
-from objects.builder import Builder
+from objects.characters.builder import Builder
 pg.init()        
 
 class Game:
@@ -58,8 +57,7 @@ class Game:
         # initialize necessary game objects and variables
         self.player = Player(self, (CHUNK_SIZE*TILE_SIZE)//2, (CHUNK_SIZE*TILE_SIZE)//2, loadout)
         self.camera = Camera(WINDOW_WIDTH, WINDOW_HEIGHT)
-        self.builder = Builder(self)
-        self.buddy = NPC(self, TILE_SIZE+(CHUNK_SIZE*TILE_SIZE)//2, TILE_SIZE+(CHUNK_SIZE*TILE_SIZE)//2, loadout=DEFAULT_LOADOUT if DEBUG_MODE else self.loadout_menu.get_random_loadout())
+        self.builder = Builder(self, TILE_SIZE+(CHUNK_SIZE*TILE_SIZE)//2, TILE_SIZE+(CHUNK_SIZE*TILE_SIZE)//2, loadout=DEFAULT_LOADOUT if DEBUG_MODE else self.loadout_menu.get_random_loadout())
 
         self.backpack_inventory_menu = BackpackInventoryMenu(self)
         self.camp_inventory_menu = CampInventoryMenu(self)
@@ -69,7 +67,6 @@ class Game:
         """
         Update sprites and camera.
         """
-
         # update timers and dt        
         self.dt = self.clock.tick(FPS) / 1000
         self.map_reload_timer += self.dt

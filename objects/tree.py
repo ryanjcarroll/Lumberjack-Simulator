@@ -121,9 +121,7 @@ class Tree(SpriteObject):
                 self.draw_rect.x = self.rect[0]
                 self.draw_rect.y = self.rect[1]
 
-    def die(self):
-        self.game.player.backpack.add_wood(1)
-        
+    def die(self):       
         if "Fruit" in self.tree_type:
             self.game.player.modify_health(10)
         elif "Apple" in self.tree_type:
@@ -140,11 +138,15 @@ class Tree(SpriteObject):
         Take damage and/or start the shake cycle.
         """
         self.health -= damage
+        # kill trees with 0 health
         if self.health <= 0:
             self.fall_timer = 0
-            self.falling = True
             self.fall_direction = 1 if self.game.player.pos[0] > self.pos[0] else -1
             self.game.can_collide_list.remove(self)
+            if not self.falling:
+                self.falling = True
+                self.game.player.backpack.add_wood(1) # ensure hitting a falling tree doesn't add wood
+        # shake trees that still have health
         else:
             self.shake_timer = 0
             self.shaking = True

@@ -63,7 +63,7 @@ class CampInventoryMenu:
         # draw the menu background
         text_rect = pg.draw.rect(self.surface, (255, 255, 255), (0, 0, self.width, self.height))
 
-        text = self.font.render(f"{self.game.camp.wood}", True, BLACK)
+        text = self.font.render(f"{self.game.builder.wood}/{self.game.builder.goal}", True, BLACK)
         text_x = text_rect.centerx - text.get_width() // 2  # Center the text horizontally within the rectangle
         text_y = text_rect.centery - text.get_height() // 2  # Center the text vertically within the rectangle
         self.surface.blit(text, (text_x, text_y))
