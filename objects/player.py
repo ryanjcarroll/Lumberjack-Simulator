@@ -18,7 +18,12 @@ class Character(SpriteObject):
         self.sprite_offset = vec(0, -int(PLAYER_SPRITE_HEIGHT*3/8))
 
         # collision_rect is for collision detection, rect is for sprite/image positioning
-        self.collision_rect = PLAYER_COLLISION_RECT
+        self.collision_rect = pg.Rect(
+            0,
+            0,
+            CHARACTER_COLLISION_WIDTH,
+            CHARACTER_COLLISION_HEIGHT
+        )
         self.collision_rect.center = self.pos
         self.last_movement = vec(0,0)
         self.move_distance = PLAYER_MOVE_DISTANCE
@@ -32,6 +37,15 @@ class Character(SpriteObject):
 
         self.rect = self.image.get_rect(center=self.pos + self.sprite_offset)
         self.game.character_list.add(self)
+
+        if not isinstance(self, Player):
+            self.game.can_collide_list.add(self)
+
+    def move(self, x, y):
+        self.pos = vec(x, y)
+
+        self.collision_rect.center = self.pos
+        self.rect.center = self.pos + self.sprite_offset
 
     def load_image(self):
         self.load_animations(self.loadout)
@@ -195,6 +209,15 @@ class Character(SpriteObject):
     def draw(self, screen, camera):
         super().draw(screen, camera)
 
+
+class NPC(Character):
+    def __init__(self, game, x, y, loadout):
+        self.actions_to_load = ["walk"]
+        super().__init__(game, x, y, loadout=loadout)
+
+    def update(self):
+        pass
+
 class Player(Character):
     """
     Player x and y refers to the center of the Player sprite.
@@ -264,7 +287,7 @@ class Player(Character):
         # we only need to check if we actually have something to unpack
         if self.backpack.wood:
             self.collision_rect.center += movement
-            if self.collision_rect.colliderect(self.game.camp.rect):
+            if any([self.collision_rect.colliderect(character.rect) for character in self.game.character_list if not isinstance(character, Player)]):
                 self.backpack.unpack(self.game.camp)
                 self.game.sounds.play("unpack",0)
             self.collision_rect.center -= movement
@@ -295,8 +318,6 @@ class Player(Character):
         attack_rects = self.get_attack_rects()
 
         # Reduce the health of the collided tree(s)
-        already_damaged = []
-
         felled_a_tree = False
 
         trees_hit = set()
@@ -305,27 +326,7 @@ class Player(Character):
                 if obj.collision_rect.colliderect(rect):
                     if isinstance(obj, Tree):
                         trees_hit.add(obj)
-                        # tree_type = obj.tree_type
-                        # hit_a_tree = True
 
-                        # if obj not in already_damaged:
-                        #     obj.register_hit(PLAYER_ATTACK_DAMAGE)
-                        #     already_damaged.append(obj)
-                        # if obj.health <= 0:
-                        #     # obj.kill()
-                        #     felled_a_tree = True
-                        #     if "Flower" in tree_type:
-                        #         # self.backpack.row_capacity = min(self.backpack.row_capacity+1, 20)
-                        #         # self.game.backpack_inventory_menu.update_capacity()
-                        #         pass
-                        #     elif "Fruit" in tree_type:
-                        #         self.health = min(self.health + 10, self.max_health)
-                        #         self.game.health_bar.update()
-                        #     elif "Apple" in tree_type:
-                        #         self.health = min(self.health + 20, self.max_health)
-                        #         self.game.health_bar.update()
-                        #     self.backpack.add_wood(1)
-        # register hits
         for tree in trees_hit:
             tree.register_hit(PLAYER_ATTACK_DAMAGE)
         # determine if any trees were felled

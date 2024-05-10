@@ -18,8 +18,9 @@ class Compass:
         self.rect = self.image.get_rect(topleft=self.pos)
 
     def draw(self, screen):
-        direction = (self.game.camp.pos - self.game.player.pos)
-        if math.sqrt(direction.length_squared()) >= WINDOW_WIDTH//4:
+        direction = (vec(self.game.buddy.pos) - self.game.player.pos)
+        # direction = (vec(TILE_SIZE*CHUNK_SIZE//2, TILE_SIZE*CHUNK_SIZE//2) - self.game.player.pos)
+        if math.sqrt(direction.length_squared()) > WINDOW_WIDTH//2:
             # Calculate angle between vector and positive x-axis
             angle = direction.angle_to(vec(1, 0))
 

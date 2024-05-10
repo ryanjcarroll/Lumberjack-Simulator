@@ -17,29 +17,29 @@ class Backpack:
     def unpack(self, camp):
         camp.add_wood(n=self.wood)
         self.wood = 0
-        self.game.builder.add_building()
+        self.game.builder.build()
 
 class Camp(SpriteObject):
     def __init__(self, game, x ,y):
         self.game = game        
-        super().__init__(
-            game=game,
-            x=x,
-            y=y,
-            layer=SPRITE_LAYER,
-            can_collide=True
-        )
+        # super().__init__(
+        #     game=game,
+        #     x=x,
+        #     y=y,
+        #     layer=SPRITE_LAYER,
+        #     can_collide=True
+        # )
     
         self.wood = 0
 
-        # separate (smaller) collision rect for better player collisions
-        self.collision_rect = pg.Rect(
-            0,
-            0,
-            self.width // 2,
-            self.height // 2
-        )
-        self.collision_rect.center = self.rect.center
+        # # separate (smaller) collision rect for better player collisions
+        # self.collision_rect = pg.Rect(
+        #     0,
+        #     0,
+        #     self.width // 2,
+        #     self.height // 2
+        # )
+        # self.collision_rect.center = self.rect.center
     
     def load_image(self):
         return pg.transform.scale(

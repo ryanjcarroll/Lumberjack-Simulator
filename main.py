@@ -4,6 +4,7 @@ from map.map import Map
 from map.camera import Camera
 import sys
 from objects.player import Player
+from objects.player import NPC
 from objects.inventory import *
 from ui.compass import Compass
 from ui.bars import HealthBar
@@ -14,7 +15,7 @@ from menus.game_over import GameOverMenu
 from objects.assets import SpriteAssetManager, SoundAssetManager
 from objects.music import MusicPlayer
 from objects.builder import Builder
-pg.init()
+pg.init()        
 
 class Game:
     def __init__(self):
@@ -24,7 +25,6 @@ class Game:
         pg.init()
         self.screen = pg.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         pg.display.set_caption(TITLE)
-
 
         # initialize the timers and event scheduling variables
         self.clock = pg.time.Clock()
@@ -59,6 +59,7 @@ class Game:
         self.player = Player(self, (CHUNK_SIZE*TILE_SIZE)//2, (CHUNK_SIZE*TILE_SIZE)//2, loadout)
         self.camera = Camera(WINDOW_WIDTH, WINDOW_HEIGHT)
         self.builder = Builder(self)
+        self.buddy = NPC(self, TILE_SIZE+(CHUNK_SIZE*TILE_SIZE)//2, TILE_SIZE+(CHUNK_SIZE*TILE_SIZE)//2, loadout=DEFAULT_LOADOUT if DEBUG_MODE else self.loadout_menu.get_random_loadout())
 
         self.backpack_inventory_menu = BackpackInventoryMenu(self)
         self.camp_inventory_menu = CampInventoryMenu(self)
@@ -83,7 +84,7 @@ class Game:
             self.map.update()
             self.map_reload_timer = 0
         if self.health_tick_timer >= 15:
-            self.player.modify_health(-5)
+            self.player.modify_health(-1)
             self.health_tick_timer = 0
 
     def draw_layer_if(self, layer, condition=lambda x:True):
@@ -151,8 +152,6 @@ class Game:
                     self.loadout_menu.handle_click(pg.mouse.get_pos()) 
                 elif self.at_game_over:
                     self.game_over_menu.handle_click(pg.mouse.get_pos())
-                else:
-                    self.builder.add_building()
 
     def start_screen(self):
         """
@@ -207,7 +206,7 @@ menu_loop = True
 # loop multiple games in a row if necessary
 while menu_loop:
     if DEBUG_MODE:
-        loadout = {'body': {'category': 'body1', 'style': 0}, 'hair': {'category': 'bob ', 'style': 0}, 'face': {'category': 'eyes', 'style': 0}, 'shirt': {'category': 'basic', 'style': 0}, 'pants': {'category': 'pants', 'style': 0}, 'accessories': {'category': 'beard', 'style': 0}}
+        loadout = DEFAULT_LOADOUT
     else:
         game.start_screen()
         loadout = game.loadout_screen()

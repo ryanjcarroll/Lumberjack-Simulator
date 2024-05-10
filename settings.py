@@ -1,6 +1,7 @@
 from pygame import Rect
 
 DEBUG_MODE = True
+DEFAULT_LOADOUT = {'body': {'category': 'body1', 'style': 0}, 'hair': {'category': 'bob ', 'style': 0}, 'face': {'category': 'eyes', 'style': 0}, 'shirt': {'category': 'basic', 'style': 0}, 'pants': {'category': 'pants', 'style': 0}, 'accessories': {'category': 'beard', 'style': 0}}
 
 # colors (RGB)
 WHITE = (255, 255, 255)
@@ -43,9 +44,12 @@ PLAYER_ATTACK_DISTANCE = 24
 PLAYER_SPRITE_HEIGHT = 72
 PLAYER_SPRITE_WIDTH = 72
 PLAYER_ANIMATION_SPEED = 0.1
-PLAYER_COLLISION_RECT = Rect(0,0,1,1) if DEBUG_MODE else Rect(0,0,32,32)
 PLAYER_STARTING_HEALTH = 80
 PLAYER_MAX_HEALTH = 100
+
+CHARACTER_COLLISION_WIDTH = 32
+CHARACTER_COLLISION_HEIGHT = 32
+NPC_MOVE_DISTANCE = 1
 
 # inventory menu settings
 BACKPACK_TILE_SIZE = 28

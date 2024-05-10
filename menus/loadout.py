@@ -107,6 +107,15 @@ class LoadoutMenu:
             }
             for attribute, (category, style) in self.selections.items()
         }
+    
+    def get_random_loadout(self):
+        return {
+            attribute:{
+                "category":self.assets[attribute][category]['name'],
+                "style":style
+            }
+            for attribute, (category, style) in self.get_random_selections().items()
+        }
 
     def build_elements(self):
         # title
