@@ -27,7 +27,7 @@ class Builder(Character):
         super().__init__(game, x, y, loadout=loadout)
 
         # the number of logs the player needs to bring for the next building
-        self.goal = 5
+        self.goal = 4
         self.wood = 0
 
         # pointers for the building under construction and the first building constructed
@@ -39,7 +39,7 @@ class Builder(Character):
         while self.wood >= self.goal:
             self.wood -= self.goal
             self.build()
-            self.goal += 5
+            self.goal += 2
 
     def build(self):
         # finish an in-progress building if it exists
@@ -62,7 +62,7 @@ class Builder(Character):
         building_size = random.choice([
             (2,2),
             (3,2),
-            # (1,2),
+            (1,2),
             (4,3)
         ])  # TODO update the size choice algorithm
 

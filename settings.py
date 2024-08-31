@@ -1,6 +1,6 @@
 from pygame import Rect
 
-DEBUG_MODE = True
+DEBUG_MODE = False
 DEFAULT_LOADOUT = {'body': {'category': 'body1', 'style': 0}, 'hair': {'category': 'bob ', 'style': 0}, 'face': {'category': 'eyes', 'style': 0}, 'shirt': {'category': 'basic', 'style': 0}, 'pants': {'category': 'pants', 'style': 0}, 'accessories': {'category': 'beard', 'style': 0}}
 
 # colors (RGB)
