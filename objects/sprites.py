@@ -59,7 +59,6 @@ class SpriteObject(pg.sprite.Sprite):
 
     def to_json(self):
         return {
-            "topleft":(self.x, self.y),
-            "img_path":self.img_path,
-            "resize":self.img_resize,
+            "type":type(self).__name__,
+            "topleft":(self.x, self.y)
         }

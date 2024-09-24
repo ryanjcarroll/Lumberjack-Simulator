@@ -2,6 +2,16 @@ import pygame as pg
 from settings import *
 import math
 import random
+import os
+import json
+
+def write_json(path, data):
+    dirname = os.path.dirname(path)
+    if not os.path.exists(dirname):
+        os.makedirs(dirname)
+    with open(path, "w") as f:
+        json.dump(data, f, indent=2)
+    
 
 def remove_padding_and_scale(sprite_image):
     """

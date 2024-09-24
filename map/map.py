@@ -49,13 +49,13 @@ class Map:
         chunk_y = int((y // (CHUNK_SIZE * TILE_SIZE)) * (CHUNK_SIZE * TILE_SIZE))
         return chunk_x, chunk_y
 
-    def get_visible_chunks(self, player):
+    def get_visible_chunks(self, player, tile_buffer=0):
         """
         Get a list of chunks that are on screen, given the player position.
         """
         # visible chunks are defined as anything within 2 tiles of the viewport
         # to test chunk-loading, you can set this value to a negative number
-        buffer = TILE_SIZE*2
+        buffer = TILE_SIZE*tile_buffer
 
         # calculate the coords for opposite corners of the viewport (with an additional buffer area)
         screen_topleft = self.get_chunk_coords(player.pos.x - WINDOW_WIDTH//2 - buffer, player.pos.y - WINDOW_HEIGHT//2 - buffer)

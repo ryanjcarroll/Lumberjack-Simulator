@@ -14,6 +14,8 @@ from menus.game_over import GameOverMenu
 from objects.assets import SpriteAssetManager, SoundAssetManager
 from objects.music import MusicPlayer
 from objects.builder import Builder
+import uuid
+from utility import write_json
 pg.init()
 
 class Game:
@@ -25,6 +27,7 @@ class Game:
         self.screen = pg.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         pg.display.set_caption(TITLE)
 
+        self.game_id = uuid.uuid4()
 
         # initialize the timers and event scheduling variables
         self.clock = pg.time.Clock()
@@ -64,6 +67,17 @@ class Game:
         self.backpack_inventory_menu = BackpackInventoryMenu(self)
         self.camp_inventory_menu = CampInventoryMenu(self)
         self.health_bar = HealthBar(self)
+
+        self.save()
+
+    def save(self):
+        """
+        Save the current Game data to disk.
+        """
+
+        # chunk data
+        for chunk_id, chunk in self.map.chunks.items():
+            write_json(f"data/saves/{self.game_id}/chunks/{chunk_id}.json", chunk.to_json())
     
     def update(self):
         """
@@ -93,7 +107,7 @@ class Game:
         If a condition is passed, only draw objects if the tile meets that condition.
         """
         tiles = []
-        for chunk_id in self.map.get_visible_chunks(self.player):
+        for chunk_id in self.map.get_visible_chunks(self.player, tile_buffer=0):
             with self.map.lock:
                 if chunk_id in self.map.chunks:
                     chunk = self.map.chunks[chunk_id]

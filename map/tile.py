@@ -261,9 +261,9 @@ class Tile(ABC):
 
     def to_json(self):
         return {
-            "type":type(self),
+            "type":type(self).__name__,
             "topleft":self.rect.topleft,
-            "objects":[obj.to_json for obj in self.objects]
+            "objects":[obj.to_json() for obj in self.objects]
         }
 
 class ForestTile(Tile):

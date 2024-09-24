@@ -56,7 +56,7 @@ class Chunk:
 
     def to_json(self):
         return {
-            "type":type(self),
+            "type":type(self).__name__,
             "id":self.id,
             "position":[self.rect.topleft[0],self.rect.topleft[1]],
             "tiles":[
