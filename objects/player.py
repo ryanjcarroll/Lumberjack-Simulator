@@ -7,6 +7,7 @@ from objects.inventory import Backpack
 from objects.tree import Tree
 import json
 from objects.sprites import SpriteObject
+from objects.upgrades.items import Boots
 
 class Player(SpriteObject):
     """
@@ -158,6 +159,15 @@ class Player(SpriteObject):
                 self.game.sounds.play("unpack",0)
             self.collision_rect.center -= movement
 
+    def check_can_collect(self):        
+        for obj in self.game.can_collect_list:
+            if self.collision_rect.colliderect(obj.rect):
+                if type(obj)== Boots:
+                    self.move_distance += 1
+                    print(self.move_distance)
+
+                obj.kill()
+
     def get_movement(self, keys) -> vec:
         """
         Given a set of keyboard inputs, set action and direction, and return movement vector. 
@@ -188,8 +198,8 @@ class Player(SpriteObject):
             return movement
 
         # normalize diagonal walking movements
-        if movement.length_squared() > PLAYER_MOVE_DISTANCE:
-            movement = movement.normalize() * PLAYER_MOVE_DISTANCE
+        if movement.length_squared() > self.move_distance:
+            movement = movement.normalize() * self.move_distance
             self.last_movement = movement
             self.action = "walk"
         # if horizontal/vertical movement, set the action
@@ -333,6 +343,8 @@ class Player(SpriteObject):
         self.rect = self.image.get_rect(center=self.rect.center)
         self.rect.center = self.pos + self.sprite_offset
         self.collision_rect.center = self.pos
+
+        self.check_can_collect()
 
         # if player health reaches 0 or lower, end the game
         if self.health <= 0:

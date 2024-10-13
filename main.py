@@ -14,6 +14,7 @@ from menus.game_over import GameOverMenu
 from objects.assets import SpriteAssetManager, SoundAssetManager
 from objects.music import MusicPlayer
 from objects.builder import Builder
+from objects.upgrades.items import Boots
 pg.init()
 
 class Game:
@@ -48,7 +49,8 @@ class Game:
         # IMPORTANT: Map must go after sprite lists because it creates sprites
         self.sprite_list = pg.sprite.Group() # all sprites to render go in this list
         self.character_list = pg.sprite.Group()
-        self.can_collide_list = pg.sprite.Group() # objects the player can collide with
+        self.can_collide_list = pg.sprite.Group() # objects the player can collide with, stopping movement
+        self.can_collect_list = pg.sprite.Group() # objects the player can collect by colliding with, but should not stop movement
         self.can_hit_list = pg.sprite.Group() # objects the player can hit with their axe
         self.buildings_list = pg.sprite.Group() # buildings
         self.map = Map(self)
@@ -61,9 +63,21 @@ class Game:
         self.backpack = Backpack()
         self.builder = Builder(self)
 
+         # TODO temp testing code to spawn items, will remove
+        self.test_item_spawns()
+
         self.backpack_inventory_menu = BackpackInventoryMenu(self)
         self.camp_inventory_menu = CampInventoryMenu(self)
         self.health_bar = HealthBar(self)
+
+    def test_item_spawns(self):
+        # TODO temp testing code to spawn items, will remove
+        Boots(self, (CHUNK_SIZE*TILE_SIZE)//2, ((CHUNK_SIZE*TILE_SIZE)//2)-50)
+        Boots(self, (CHUNK_SIZE*TILE_SIZE)//2, ((CHUNK_SIZE*TILE_SIZE)//2)-100)
+        Boots(self, (CHUNK_SIZE*TILE_SIZE)//2, ((CHUNK_SIZE*TILE_SIZE)//2)-150)
+        Boots(self, (CHUNK_SIZE*TILE_SIZE)//2, ((CHUNK_SIZE*TILE_SIZE)//2)-200)
+        Boots(self, (CHUNK_SIZE*TILE_SIZE)//2, ((CHUNK_SIZE*TILE_SIZE)//2)-250)
+        Boots(self, (CHUNK_SIZE*TILE_SIZE)//2, ((CHUNK_SIZE*TILE_SIZE)//2)-300)
     
     def update(self):
         """
