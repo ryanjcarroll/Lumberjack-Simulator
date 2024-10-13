@@ -125,9 +125,9 @@ class Tree(SpriteObject):
         self.game.player.backpack.add_wood(1)
         
         if "Fruit" in self.tree_type:
-            self.game.player.modify_health(10)
+            self.game.player.modify_health(self.game.player.fruit_hp)
         elif "Apple" in self.tree_type:
-            self.game.player.modify_health(10)
+            self.game.player.modify_health(self.game.player.fruit_hp)
 
         self.kill()
 

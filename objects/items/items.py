@@ -2,7 +2,6 @@ import pygame as pg
 from settings import *
 from objects.sprites import SpriteObject
 
-
 class Item(SpriteObject):
     def __init__(self, game, x, y):
 
@@ -15,13 +14,18 @@ class Item(SpriteObject):
             can_collect=True
         )
 
-class Boots(Item):
+class SkillPoint(Item):
     def __init__(self, game, x, y):
 
         super().__init__(game, x, y)
 
     def load_image(self):
         return pg.transform.scale(
-            self.game.sprites.load("assets/items/upgrades/boots.png"),
-            (PLAYER_SPRITE_WIDTH//2, PLAYER_SPRITE_HEIGHT//2)
+            self.game.sprites.load_from_spritesheet(
+                "assets/items/global_shadow.png",
+                topleft=(131,160),
+                width=10,
+                height=16
+            ),
+            (20,32)
         )

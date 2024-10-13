@@ -76,6 +76,9 @@ class SoundAssetManager:
                 self.load("sounds/music/683268__migfus20__relaxing-chiptune-music.mp3"),
                 self.load("sounds/music/714924__muyo5438__a-positive-and-inspiring-ambient.mp3"),
                 self.load("sounds/music/723287__migfus20__relaxing-jazz-music-loop.mp3")
+            ],
+            "skillpoint":[
+                self.load("sounds/misc/186719__andromadax24__chime_01.wav")
             ]
         }
 

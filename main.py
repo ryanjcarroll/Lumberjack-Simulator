@@ -3,7 +3,7 @@ from settings import *
 from map.map import Map
 from map.camera import Camera
 import sys
-from objects.player import Player
+from objects.player.player import Player
 from objects.inventory import *
 from ui.compass import Compass
 from ui.bars import HealthBar
@@ -13,9 +13,7 @@ from menus.loadout import LoadoutMenu
 from menus.game_over import GameOverMenu
 from menus.skill_tree import SkillTreeMenu
 from objects.assets import SpriteAssetManager, SoundAssetManager
-from objects.music import MusicPlayer
 from objects.builder import Builder
-from objects.skills.items import Boots
 pg.init()
 
 class Game:
@@ -66,21 +64,9 @@ class Game:
         self.backpack = Backpack()
         self.builder = Builder(self)
 
-         # TODO temp testing code to spawn items, will remove
-        self.test_item_spawns()
-
         self.backpack_inventory_menu = BackpackInventoryMenu(self)
         self.camp_inventory_menu = CampInventoryMenu(self)
         self.health_bar = HealthBar(self)
-
-    def test_item_spawns(self):
-        # TODO temp testing code to spawn items, will remove
-        Boots(self, (CHUNK_SIZE*TILE_SIZE)//2, ((CHUNK_SIZE*TILE_SIZE)//2)-50)
-        Boots(self, (CHUNK_SIZE*TILE_SIZE)//2, ((CHUNK_SIZE*TILE_SIZE)//2)-100)
-        Boots(self, (CHUNK_SIZE*TILE_SIZE)//2, ((CHUNK_SIZE*TILE_SIZE)//2)-150)
-        Boots(self, (CHUNK_SIZE*TILE_SIZE)//2, ((CHUNK_SIZE*TILE_SIZE)//2)-200)
-        Boots(self, (CHUNK_SIZE*TILE_SIZE)//2, ((CHUNK_SIZE*TILE_SIZE)//2)-250)
-        Boots(self, (CHUNK_SIZE*TILE_SIZE)//2, ((CHUNK_SIZE*TILE_SIZE)//2)-300)
     
     def update(self):
         """

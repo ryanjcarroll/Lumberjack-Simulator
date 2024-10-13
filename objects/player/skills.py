@@ -3,7 +3,7 @@ from utility import closer_to_white
 import pygame as pg
 
 class SkillNode:
-    def __init__(self, row, col, description, color):
+    def __init__(self, row, col, description, color, func=None):
         self.description = description
 
         self.status = "not_active"  # inactive, next_up, active
@@ -15,11 +15,17 @@ class SkillNode:
         self.is_hovered = False
         self.button = None # set in the SkillTreeMenu init()
 
+        # function to call once this skill is activated
+        self.func = func
+
         # possible child locations
         self.children = []
 
     def set_active(self):
         self.status = "active"
+        if self.func:
+            self.func()        
+
         for child in self.children:
             if child.status == "not_active":
                 child.status = "next_up"
@@ -39,13 +45,16 @@ class SkillTree:
             V						V						V		
             6						13						20		
     """
-    def __init__(self):
+    def __init__(self, game):
+
+        self.game = game
+        
         self.root = SkillNode(-1,0,"root", None)
 
         # Nodes of the left tree
         color = FOREST_GREEN
-        node_0 =  SkillNode(0, -3, "Node 0", color)
-        node_1 =  SkillNode(1, -3, "Node 1", color)
+        node_0 =  SkillNode(0, -3, "Increased Move Speed", color, func=lambda: setattr(self.game.player, 'move_distance', self.game.player.move_distance + 2))
+        node_1 =  SkillNode(1, -3, "More HP From Apple Trees", color, func=lambda: setattr(self.game.player, 'fruit_hp', self.game.player.fruit_hp + 10))
         node_2a = SkillNode(1, -4, "Node 2a", color)
         node_2b = SkillNode(1, -2, "Node 2b", color)
         node_3a = SkillNode(2, -4, "Node 3a", color)
