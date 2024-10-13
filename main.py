@@ -15,7 +15,7 @@ from menus.skill_tree import SkillTreeMenu
 from objects.assets import SpriteAssetManager, SoundAssetManager
 from objects.music import MusicPlayer
 from objects.builder import Builder
-from objects.upgrades.items import Boots
+from objects.skills.items import Boots
 pg.init()
 
 class Game:
@@ -38,6 +38,7 @@ class Game:
         self.sprites = SpriteAssetManager()  
         self.sounds = SoundAssetManager()
 
+        self.playing = False
         self.at_loadout_menu = False
         self.at_start_menu = False
         self.at_game_over = False
@@ -85,7 +86,6 @@ class Game:
         """
         Update sprites and camera.
         """
-
         # update timers and dt        
         self.dt = self.clock.tick(FPS) / 1000
         self.map_reload_timer += self.dt
@@ -160,18 +160,26 @@ class Game:
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 pg.quit()
-                sys.exit()    
-            elif event.type == pg.MOUSEBUTTONDOWN:
-                if self.at_start_menu:
+                sys.exit()  
+
+            elif self.at_start_menu:
+                if event.type == pg.MOUSEBUTTONDOWN:
                     self.start_menu.handle_click(pg.mouse.get_pos())
-                elif self.at_loadout_menu:
+            elif self.at_loadout_menu:
+                if event.type == pg.MOUSEBUTTONDOWN:
                     self.loadout_menu.handle_click(pg.mouse.get_pos()) 
-                elif self.at_game_over:
+            elif self.playing and not self.at_skilltree_menu:
+                # open the skilltree menu if I 
+                if event.type == pg.KEYDOWN and event.key == pg.K_i:
+                    self.skilltree_screen()
+            elif self.at_game_over:
+                if event.type == pg.MOUSEBUTTONDOWN:
                     self.game_over_menu.handle_click(pg.mouse.get_pos())
-                elif self.at_skilltree_menu:
+            elif self.at_skilltree_menu:
+                if event.type == pg.MOUSEBUTTONDOWN:
                     self.skilltree_menu.handle_click(pg.mouse.get_pos())
-                # else:
-                #     self.builder.add_building()
+                elif event.type == pg.KEYDOWN and event.key == pg.K_i:
+                    self.at_skilltree_menu = False
 
     def start_screen(self):
         """
@@ -201,6 +209,9 @@ class Game:
         self.run()
 
     def skilltree_screen(self):
+        """
+        Screen where the player can apply skill points they've earned.
+        """
         self.skilltree_menu = SkillTreeMenu(self)
         self.at_skilltree_menu = True
         while self.at_skilltree_menu:
@@ -236,7 +247,6 @@ while menu_loop:
     if DEBUG_MODE:
         loadout = {'body': {'category': 'body1', 'style': 0}, 'hair': {'category': 'bob ', 'style': 0}, 'face': {'category': 'eyes', 'style': 0}, 'shirt': {'category': 'basic', 'style': 0}, 'pants': {'category': 'pants', 'style': 0}, 'accessories': {'category': 'beard', 'style': 0}}
     else:
-        game.skilltree_screen() # TODO remove
         game.start_screen()
         loadout = game.loadout_screen()
     game.new(loadout)

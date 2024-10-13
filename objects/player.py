@@ -7,7 +7,8 @@ from objects.inventory import Backpack
 from objects.tree import Tree
 import json
 from objects.sprites import SpriteObject
-from objects.upgrades.items import Boots
+from objects.skills.items import Boots
+from objects.skills.skills import SkillTree
 
 class Player(SpriteObject):
     """
@@ -21,6 +22,8 @@ class Player(SpriteObject):
         self.backpack = Backpack()
         self.health = PLAYER_STARTING_HEALTH
         self.max_health = PLAYER_MAX_HEALTH
+        self.skill_points_available = 0
+        self.skill_tree = SkillTree()
 
         # set position variables
         self.angle = 0
@@ -163,8 +166,8 @@ class Player(SpriteObject):
         for obj in self.game.can_collect_list:
             if self.collision_rect.colliderect(obj.rect):
                 if type(obj)== Boots:
-                    self.move_distance += 1
-                    print(self.move_distance)
+                    self.skill_points_available += 1
+                    print(self.skill_points_available)
 
                 obj.kill()
 
