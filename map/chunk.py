@@ -5,20 +5,33 @@ from map.tile import *
 from objects.inventory import Camp
 from pygame import Vector2 as vec
 import pygame as pg
-import random
 import opensimplex
 
-opensimplex.seed(random.randint(0,100000))
-
 class Chunk:
-    def __init__(self, game, x, y):
+    def __init__(self, game, x, y, load_tiles=True):
         self.game = game
         
         self.tiles = []
         self.rect = Rect(x, y, x+CHUNK_SIZE*TILE_SIZE, y+CHUNK_SIZE*TILE_SIZE)
         self.id = f"{self.rect.topleft[0]},{self.rect.topleft[1]}"
 
-        self.render_tiles()
+        if load_tiles:
+            self.render_tiles()
+
+    @classmethod
+    def from_json(cls, game, data):
+        
+        x, y = data['position']
+
+        chunk = cls(game, x, y, load_tiles=False)
+        chunk.tiles = []
+
+        for tile_data in data['tiles']:
+            tile_type = globals()[tile_data['type']]
+            tile = tile_type.from_json(game=game, chunk=chunk, data=tile_data)
+            chunk.tiles.append(tile)
+
+        return chunk
 
     def render_tiles(self):
         # fill the chunk with Tiles
@@ -121,7 +134,7 @@ class SpawnChunk(Chunk):
                     chunk=self,
                     row = row,
                     col = col,
-                    has_decor=True if terrain_type == "basic" else False
+                    load_decor=True if terrain_type == "basic" else False
                 )
                 if terrain_type == "basic":
                     tile.load_objects()

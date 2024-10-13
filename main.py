@@ -16,7 +16,11 @@ from objects.music import MusicPlayer
 from objects.builder import Builder
 import uuid
 from utility import write_json
+import opensimplex
+import random
+import json
 pg.init()
+
 
 class Game:
     def __init__(self):
@@ -27,7 +31,9 @@ class Game:
         self.screen = pg.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         pg.display.set_caption(TITLE)
 
-        self.game_id = uuid.uuid4()
+        self.game_id = str(uuid.uuid4())
+        self.seed = random.randint(0,100000)
+        opensimplex.seed(self.seed)
 
         # initialize the timers and event scheduling variables
         self.clock = pg.time.Clock()
@@ -74,6 +80,20 @@ class Game:
         """
         Save the current Game data to disk.
         """
+        # game data
+        write_json(f"data/saves/{self.game_id}/game.json",
+            {
+                "game_id":self.game_id,
+                "seed":self.seed
+            }
+        )
+
+        # player data
+        write_json(f"data/saves/{self.game_id}/player.json",
+            {
+                "player":None,
+            }
+        )
 
         # chunk data
         for chunk_id, chunk in self.map.chunks.items():

@@ -2,6 +2,8 @@ from settings import *
 import threading
 from map.chunk import Chunk, SpawnChunk
 from pygame import Vector2 as vec
+from glob import glob
+import json
 
 class Map:
     def __init__(self, game):
@@ -24,8 +26,11 @@ class Map:
             with self.lock:
                 chunk_x, chunk_y = tuple(int(val) for val in chunk_id.split(","))
                 if chunk_id not in self.chunks and chunk_id not in self.currently_generating:
-                    generate_thread = threading.Thread(target=self.generate_chunk, args=(chunk_x, chunk_y))
-                    generate_thread.start()
+                    if f"{chunk_id}.json" in glob(f"data/saves/{self.game.game_id}/chunks/*"):
+                        pass
+                    else:
+                        generate_thread = threading.Thread(target=self.generate_chunk, args=(chunk_x, chunk_y))
+                        generate_thread.start()
 
     def generate_chunk(self, x, y, type=Chunk):
         self.currently_generating.add(f"{x},{y}")
@@ -33,6 +38,12 @@ class Map:
         with self.lock: # prevent race condition
             self.chunks[chunk.id] = chunk
             self.currently_generating.remove(chunk.id)
+
+    def load_chunk_from_file(self, chunk_id, path):
+        self.currently_generating.add(chunk_id)
+        with open(path) as f_in:
+            chunk_js = json.load(f_in)
+        self.chunks[chunk_id] = Chunk()
 
     def get_chunk_id(self, x, y):
         """
