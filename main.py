@@ -11,6 +11,7 @@ from ui.inventory import BackpackInventoryMenu, CampInventoryMenu
 from menus.start import StartMenu
 from menus.loadout import LoadoutMenu
 from menus.game_over import GameOverMenu
+from menus.skill_tree import SkillTreeMenu
 from objects.assets import SpriteAssetManager, SoundAssetManager
 from objects.music import MusicPlayer
 from objects.builder import Builder
@@ -40,6 +41,7 @@ class Game:
         self.at_loadout_menu = False
         self.at_start_menu = False
         self.at_game_over = False
+        self.at_skilltree_menu = False
 
     def new(self, loadout:dict):
         """
@@ -166,6 +168,8 @@ class Game:
                     self.loadout_menu.handle_click(pg.mouse.get_pos()) 
                 elif self.at_game_over:
                     self.game_over_menu.handle_click(pg.mouse.get_pos())
+                elif self.at_skilltree_menu:
+                    self.skilltree_menu.handle_click(pg.mouse.get_pos())
                 # else:
                 #     self.builder.add_building()
 
@@ -196,6 +200,14 @@ class Game:
         self.new(self.loadout_menu.get_loadout())
         self.run()
 
+    def skilltree_screen(self):
+        self.skilltree_menu = SkillTreeMenu(self)
+        self.at_skilltree_menu = True
+        while self.at_skilltree_menu:
+            self.events()
+            self.skilltree_menu.update(pg.mouse.get_pos())
+            self.skilltree_menu.draw()
+
     def run(self):
         """
         Main game loop.
@@ -224,6 +236,7 @@ while menu_loop:
     if DEBUG_MODE:
         loadout = {'body': {'category': 'body1', 'style': 0}, 'hair': {'category': 'bob ', 'style': 0}, 'face': {'category': 'eyes', 'style': 0}, 'shirt': {'category': 'basic', 'style': 0}, 'pants': {'category': 'pants', 'style': 0}, 'accessories': {'category': 'beard', 'style': 0}}
     else:
+        game.skilltree_screen() # TODO remove
         game.start_screen()
         loadout = game.loadout_screen()
     game.new(loadout)
