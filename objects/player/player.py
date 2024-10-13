@@ -22,7 +22,7 @@ class Player(SpriteObject):
         self.backpack = Backpack()
         self.health = PLAYER_STARTING_HEALTH
         self.max_health = PLAYER_MAX_HEALTH
-        self.skill_points_available = 0
+        self.skill_points_available = 10
         self.skill_tree = SkillTree(game)
 
         # set position variables
@@ -263,26 +263,7 @@ class Player(SpriteObject):
                 if obj.collision_rect.colliderect(rect):
                     if isinstance(obj, Tree):
                         trees_hit.add(obj)
-                        # tree_type = obj.tree_type
-                        # hit_a_tree = True
-
-                        # if obj not in already_damaged:
-                        #     obj.register_hit(PLAYER_ATTACK_DAMAGE)
-                        #     already_damaged.append(obj)
-                        # if obj.health <= 0:
-                        #     # obj.kill()
-                        #     felled_a_tree = True
-                        #     if "Flower" in tree_type:
-                        #         # self.backpack.row_capacity = min(self.backpack.row_capacity+1, 20)
-                        #         # self.game.backpack_inventory_menu.update_capacity()
-                        #         pass
-                        #     elif "Fruit" in tree_type:
-                        #         self.health = min(self.health + 10, self.max_health)
-                        #         self.game.health_bar.update()
-                        #     elif "Apple" in tree_type:
-                        #         self.health = min(self.health + 20, self.max_health)
-                        #         self.game.health_bar.update()
-                        #     self.backpack.add_wood(1)
+                        
         # register hits
         for tree in trees_hit:
             tree.register_hit(PLAYER_ATTACK_DAMAGE)

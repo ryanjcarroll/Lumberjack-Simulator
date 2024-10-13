@@ -1,6 +1,6 @@
 from pygame import Rect
 
-DEBUG_MODE = False
+DEBUG_MODE = True
 
 # colors (RGB)
 WHITE = (255, 255, 255)

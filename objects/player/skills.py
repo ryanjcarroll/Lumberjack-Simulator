@@ -3,33 +3,43 @@ from utility import closer_to_white
 import pygame as pg
 
 class SkillNode:
-    def __init__(self, row, col, description, color, func=None):
+    def __init__(self, row, col, description, color, points=1, func=None):
         self.description = description
 
         self.status = "not_active"  # inactive, next_up, active
         self.active_color = color
         self.color = DARK_GREY
 
+        self.current_points = 0
+        self.total_points = points
+
         self.row = row
         self.col = col
         self.is_hovered = False
-        self.button = None # set in the SkillTreeMenu init()
+
+        # UI elements for displaying in the SkillTreeMenu
+        self.button = None 
+        self.points_label_surface = None
+        self.points_label_rect = None
 
         # function to call once this skill is activated
         self.func = func
 
-        # possible child locations
+        # children of this node
         self.children = []
 
-    def set_active(self):
+    def add_point(self):
         self.status = "active"
+        self.current_points += 1
         if self.func:
-            self.func()        
-
-        for child in self.children:
-            if child.status == "not_active":
-                child.status = "next_up"
-                child.color = closer_to_white(child.active_color, 0.5)
+            self.func() 
+        
+        # stage the "next up" skills as needed
+        if self.current_points >= self.total_points:
+            for child in self.children:
+                if child.status == "not_active":
+                    child.status = "next_up"
+                    child.color = closer_to_white(child.active_color, 0.5)
 
 class SkillTree:
     """
@@ -53,11 +63,11 @@ class SkillTree:
 
         # Nodes of the left tree
         color = FOREST_GREEN
-        node_0 =  SkillNode(0, -3, "Increased Move Speed", color, func=lambda: setattr(self.game.player, 'move_distance', self.game.player.move_distance + 2))
-        node_1 =  SkillNode(1, -3, "More HP From Apple Trees", color, func=lambda: setattr(self.game.player, 'fruit_hp', self.game.player.fruit_hp + 10))
-        node_2a = SkillNode(1, -4, "Node 2a", color)
-        node_2b = SkillNode(1, -2, "Node 2b", color)
-        node_3a = SkillNode(2, -4, "Node 3a", color)
+        node_0 =  SkillNode(0, -3, "More HP From Apple Trees", color, points=2, func=lambda: setattr(self.game.player, 'fruit_hp', self.game.player.fruit_hp + 5))                      
+        node_1 =  SkillNode(1, -3, "Node 1", color)
+        node_2a = SkillNode(1, -4, "Faster Movespeed", color, points=3, func=lambda: setattr(self.game.player, 'move_distance', self.game.player.move_distance + 1)) 
+        node_2b = SkillNode(1, -2, "Node_2b", color) 
+        node_3a = SkillNode(2, -4, "Node_3a", color) 
         node_3b = SkillNode(2, -2, "Node 3b", color)
         node_4a = SkillNode(2, -3, "Node 4a", color)
         node_4b = SkillNode(3, -4, "Node 4b", color)
@@ -127,7 +137,7 @@ class SkillTree:
         node_18c.children = [node_19]
         node_19.children = [node_20]
 
-        self.root.set_active()
+        self.root.add_point()
 
         self.flattened = []
         self.flatten_tree(self.root)
