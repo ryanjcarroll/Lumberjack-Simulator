@@ -3,16 +3,17 @@ from settings import *
 from map.map import Map
 from map.camera import Camera
 import sys
-from objects.player import Player
+from objects.player.player import Player
 from objects.inventory import *
 from ui.compass import Compass
 from ui.bars import HealthBar
 from ui.inventory import BackpackInventoryMenu, CampInventoryMenu
+from ui.weapon import WeaponMenu
 from menus.start import StartMenu
 from menus.loadout import LoadoutMenu
 from menus.game_over import GameOverMenu
+from menus.skill_tree import SkillTreeMenu
 from objects.assets import SpriteAssetManager, SoundAssetManager
-from objects.music import MusicPlayer
 from objects.builder import Builder
 pg.init()
 
@@ -36,9 +37,11 @@ class Game:
         self.sprites = SpriteAssetManager()  
         self.sounds = SoundAssetManager()
 
+        self.playing = False
         self.at_loadout_menu = False
         self.at_start_menu = False
         self.at_game_over = False
+        self.at_skilltree_menu = False
 
     def new(self, loadout:dict):
         """
@@ -48,7 +51,8 @@ class Game:
         # IMPORTANT: Map must go after sprite lists because it creates sprites
         self.sprite_list = pg.sprite.Group() # all sprites to render go in this list
         self.character_list = pg.sprite.Group()
-        self.can_collide_list = pg.sprite.Group() # objects the player can collide with
+        self.can_collide_list = pg.sprite.Group() # objects the player can collide with, stopping movement
+        self.can_collect_list = pg.sprite.Group() # objects the player can collect by colliding with, but should not stop movement
         self.can_hit_list = pg.sprite.Group() # objects the player can hit with their axe
         self.buildings_list = pg.sprite.Group() # buildings
         self.map = Map(self)
@@ -64,12 +68,12 @@ class Game:
         self.backpack_inventory_menu = BackpackInventoryMenu(self)
         self.camp_inventory_menu = CampInventoryMenu(self)
         self.health_bar = HealthBar(self)
+        self.weapon_menu = WeaponMenu(self)
     
     def update(self):
         """
         Update sprites and camera.
         """
-
         # update timers and dt        
         self.dt = self.clock.tick(FPS) / 1000
         self.map_reload_timer += self.dt
@@ -131,6 +135,7 @@ class Game:
         self.camp_inventory_menu.draw(self.screen)
         self.compass.draw(self.screen) 
         self.health_bar.draw(self.screen)
+        self.weapon_menu.draw(self.screen)
 
         if self.at_game_over:
             self.player.game_over_update()
@@ -144,16 +149,28 @@ class Game:
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 pg.quit()
-                sys.exit()    
-            elif event.type == pg.MOUSEBUTTONDOWN:
-                if self.at_start_menu:
+                sys.exit()  
+
+            elif self.at_start_menu:
+                if event.type == pg.MOUSEBUTTONDOWN:
                     self.start_menu.handle_click(pg.mouse.get_pos())
-                elif self.at_loadout_menu:
+            elif self.at_loadout_menu:
+                if event.type == pg.MOUSEBUTTONDOWN:
                     self.loadout_menu.handle_click(pg.mouse.get_pos()) 
-                elif self.at_game_over:
+            elif self.playing and not self.at_skilltree_menu:
+                # open the skilltree menu if I 
+                if event.type == pg.KEYDOWN and event.key == pg.K_i:
+                    self.skilltree_screen()
+                elif event.type == pg.KEYDOWN and pg.K_0 <= event.key <= pg.K_9:
+                    self.weapon_menu.handle_keys(event)
+            elif self.at_game_over:
+                if event.type == pg.MOUSEBUTTONDOWN:
                     self.game_over_menu.handle_click(pg.mouse.get_pos())
-                # else:
-                #     self.builder.add_building()
+            elif self.at_skilltree_menu:
+                if event.type == pg.MOUSEBUTTONDOWN:
+                    self.skilltree_menu.handle_click(pg.mouse.get_pos())
+                elif event.type == pg.KEYDOWN and event.key == pg.K_i:
+                    self.at_skilltree_menu = False
 
     def start_screen(self):
         """
@@ -181,6 +198,17 @@ class Game:
         self.at_loadout_menu = False
         self.new(self.loadout_menu.get_loadout())
         self.run()
+
+    def skilltree_screen(self):
+        """
+        Screen where the player can apply skill points they've earned.
+        """
+        self.skilltree_menu = SkillTreeMenu(self)
+        self.at_skilltree_menu = True
+        while self.at_skilltree_menu:
+            self.events()
+            self.skilltree_menu.update(pg.mouse.get_pos())
+            self.skilltree_menu.draw()
 
     def run(self):
         """

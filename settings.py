@@ -12,9 +12,10 @@ GREEN = (0, 255, 0)
 FOREST_GREEN = (34, 139, 34)
 RED = (255, 0, 0)
 BLUE = (0,0,255)
+SKY_BLUE = (15,158,213)
 YELLOW = (255, 255, 0)
 GOLD = (255,215,0)
-ORANGE = (255,165,0)
+ORANGE = (233,113,50)
 
 # game settings
 WINDOW_WIDTH = 72 * 9
@@ -29,7 +30,14 @@ BIOME_NOISE_FACTOR = .0005
 # sprite settings
 SPRITESHEET_TILE_SIZE = 32
 SPRITESHEET_NUM_COLUMNS = 8
-ACTIONS_TO_LOAD = ["walk","axe","sleep"]
+ACTIONS_TO_LOAD = ["walk","sleep"]
+WEAPONS_TO_LOAD = [
+    "axe",
+    "sword",
+    # "pick",
+    # "stick",
+    # "hoe"
+]
 LAYER_ORDER = ["body","hair","face","shirt","pants","accessories"]
 
 # render layer settings (0 is drawn first)
@@ -39,7 +47,7 @@ SPRITE_LAYER = 2
 
 # player settings
 PLAYER_ATTACK_DAMAGE = 100 if DEBUG_MODE else 1
-PLAYER_MOVE_DISTANCE = 8 if DEBUG_MODE else 4
+PLAYER_MOVE_DISTANCE = 8 if DEBUG_MODE else 3
 PLAYER_ATTACK_DISTANCE = 24
 PLAYER_SPRITE_HEIGHT = 72
 PLAYER_SPRITE_WIDTH = 72
@@ -51,8 +59,8 @@ PLAYER_MAX_HEALTH = 100
 # inventory menu settings
 BACKPACK_TILE_SIZE = 28
 BACKPACK_MENU_PADDING = 10
-BACKPACK_ROW_CAPACITY = 10
-BACKPACK_NUM_ROWS = 2
+BACKPACK_ROW_CAPACITY = 5
+BACKPACK_NUM_ROWS = 4
 CAMP_MENU_PADDING = 10
 CAMP_MENU_WIDTH = 28 * 2
 CAMP_MENU_HEIGHT = 28

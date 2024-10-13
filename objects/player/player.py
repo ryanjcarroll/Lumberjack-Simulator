@@ -7,6 +7,8 @@ from objects.inventory import Backpack
 from objects.tree import Tree
 import json
 from objects.sprites import SpriteObject
+from objects.items.items import SkillPoint
+from objects.player.skills import SkillTree
 
 class Player(SpriteObject):
     """
@@ -20,6 +22,8 @@ class Player(SpriteObject):
         self.backpack = Backpack()
         self.health = PLAYER_STARTING_HEALTH
         self.max_health = PLAYER_MAX_HEALTH
+        self.skill_points_available = 10
+        self.skill_tree = SkillTree(game)
 
         # set position variables
         self.angle = 0
@@ -30,10 +34,12 @@ class Player(SpriteObject):
         self.collision_rect.center = self.pos
         self.last_movement = vec(0,0)
 
-        # set default values
+        # set default values (some of these can be changed by skills)
         self.move_distance = PLAYER_MOVE_DISTANCE
         self.attack_distance = PLAYER_ATTACK_DISTANCE
         self.axe_damage = PLAYER_ATTACK_DAMAGE
+        self.fruit_hp = 10
+        self.wood_per_tree = 1
 
         # initialize animation settings
         self.animation_timer = 0
@@ -61,7 +67,7 @@ class Player(SpriteObject):
         # Iterate over original dictionary
         for key, value in row_key.items():
             # Check if any substring is present in the key
-            if any(substring in key for substring in ACTIONS_TO_LOAD):
+            if any(substring in key for substring in ACTIONS_TO_LOAD + WEAPONS_TO_LOAD):
                 # Include the key-value pair in the filtered dictionary
                 frames_to_load[key] = value
 
@@ -158,6 +164,16 @@ class Player(SpriteObject):
                 self.game.sounds.play("unpack",0)
             self.collision_rect.center -= movement
 
+    def check_can_collect(self):        
+        for obj in self.game.can_collect_list:
+            if self.collision_rect.colliderect(obj.rect):
+                if type(obj)== SkillPoint:
+                    self.skill_points_available += 1
+                    print(self.skill_points_available)
+                    self.game.sounds.play("skillpoint",0)
+
+                obj.kill()
+
     def get_movement(self, keys) -> vec:
         """
         Given a set of keyboard inputs, set action and direction, and return movement vector. 
@@ -165,12 +181,12 @@ class Player(SpriteObject):
         movement = vec(0, 0)
 
         # if axe attack is ongoing, don't exceute any movements
-        if self.action == "axe":
+        if self.action in WEAPONS_TO_LOAD:
             return movement
 
         if keys[pg.K_SPACE]:
             self.current_frame_index = -1 # start the animation sequence for new inputs
-            self.action = "axe"
+            self.action = self.game.weapon_menu.get_weapon()
             return movement
         
         if keys[pg.K_a] or keys[pg.K_LEFT]:
@@ -188,8 +204,8 @@ class Player(SpriteObject):
             return movement
 
         # normalize diagonal walking movements
-        if movement.length_squared() > PLAYER_MOVE_DISTANCE:
-            movement = movement.normalize() * PLAYER_MOVE_DISTANCE
+        if movement.length_squared() > self.move_distance:
+            movement = movement.normalize() * self.move_distance
             self.last_movement = movement
             self.action = "walk"
         # if horizontal/vertical movement, set the action
@@ -229,7 +245,7 @@ class Player(SpriteObject):
 
         return attack_rects
         
-    def attack(self):
+    def axe_attack(self):
         """
         Called once an axe swing animation has finished.
         Determines whether anything was hit and deals damage.
@@ -238,8 +254,6 @@ class Player(SpriteObject):
         attack_rects = self.get_attack_rects()
 
         # Reduce the health of the collided tree(s)
-        already_damaged = []
-
         felled_a_tree = False
 
         trees_hit = set()
@@ -248,26 +262,7 @@ class Player(SpriteObject):
                 if obj.collision_rect.colliderect(rect):
                     if isinstance(obj, Tree):
                         trees_hit.add(obj)
-                        # tree_type = obj.tree_type
-                        # hit_a_tree = True
 
-                        # if obj not in already_damaged:
-                        #     obj.register_hit(PLAYER_ATTACK_DAMAGE)
-                        #     already_damaged.append(obj)
-                        # if obj.health <= 0:
-                        #     # obj.kill()
-                        #     felled_a_tree = True
-                        #     if "Flower" in tree_type:
-                        #         # self.backpack.row_capacity = min(self.backpack.row_capacity+1, 20)
-                        #         # self.game.backpack_inventory_menu.update_capacity()
-                        #         pass
-                        #     elif "Fruit" in tree_type:
-                        #         self.health = min(self.health + 10, self.max_health)
-                        #         self.game.health_bar.update()
-                        #     elif "Apple" in tree_type:
-                        #         self.health = min(self.health + 20, self.max_health)
-                        #         self.game.health_bar.update()
-                        #     self.backpack.add_wood(1)
         # register hits
         for tree in trees_hit:
             tree.register_hit(PLAYER_ATTACK_DAMAGE)
@@ -290,13 +285,20 @@ class Player(SpriteObject):
         self.animation_timer += dt
 
         # if not moving
-        if self.action == "axe":
+        if self.action in WEAPONS_TO_LOAD:
             if self.animation_timer >= self.animation_speed:
                 self.current_frame_index += 1
                 self.animation_timer = 0
                 # finish the attack operations when the animation reaches the final frame
                 if self.current_frame_index == len(self.frames[f"{self.action}_{self.direction}"]):
-                    self.attack()
+                    if self.action == "axe":
+                        self.axe_attack()
+                    elif self.action == "sword":
+                        pass
+                    elif self.action == "stick":
+                        pass
+                    elif self.action == "hoe":
+                        pass
                     self.action = "stand"
         elif self.action == "walk":
             # update walk animation frame if enough time has passed
@@ -319,11 +321,9 @@ class Player(SpriteObject):
         self.check_keys()
         self.set_animation_counters(self.game.dt)
 
-        if self.action == "walk":
-            # set the frame for walk animations
-            self.image = self.frames[f"walk_{self.direction}"][self.current_frame_index]
-        elif self.action == "axe":               
-            self.image = self.frames[f"axe_{self.direction}"][self.current_frame_index]
+        # set the frame for animations
+        if self.action in ["walk"] + WEAPONS_TO_LOAD:
+            self.image = self.frames[f"{self.action}_{self.direction}"][self.current_frame_index]
         elif self.action == "sleep":
             self.image = self.frames["sleep"][self.current_frame_index]
         else:
@@ -333,6 +333,8 @@ class Player(SpriteObject):
         self.rect = self.image.get_rect(center=self.rect.center)
         self.rect.center = self.pos + self.sprite_offset
         self.collision_rect.center = self.pos
+
+        self.check_can_collect()
 
         # if player health reaches 0 or lower, end the game
         if self.health <= 0:
