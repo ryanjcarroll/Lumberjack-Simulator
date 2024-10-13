@@ -1,6 +1,6 @@
 from pygame import Rect
 
-DEBUG_MODE = True
+DEBUG_MODE = False
 
 # colors (RGB)
 WHITE = (255, 255, 255)
@@ -30,7 +30,14 @@ BIOME_NOISE_FACTOR = .0005
 # sprite settings
 SPRITESHEET_TILE_SIZE = 32
 SPRITESHEET_NUM_COLUMNS = 8
-ACTIONS_TO_LOAD = ["walk","axe","sleep"]
+ACTIONS_TO_LOAD = ["walk","sleep"]
+WEAPONS_TO_LOAD = [
+    "axe",
+    "sword",
+    # "pick",
+    # "stick",
+    # "hoe"
+]
 LAYER_ORDER = ["body","hair","face","shirt","pants","accessories"]
 
 # render layer settings (0 is drawn first)
@@ -52,8 +59,8 @@ PLAYER_MAX_HEALTH = 100
 # inventory menu settings
 BACKPACK_TILE_SIZE = 28
 BACKPACK_MENU_PADDING = 10
-BACKPACK_ROW_CAPACITY = 10
-BACKPACK_NUM_ROWS = 2
+BACKPACK_ROW_CAPACITY = 5
+BACKPACK_NUM_ROWS = 4
 CAMP_MENU_PADDING = 10
 CAMP_MENU_WIDTH = 28 * 2
 CAMP_MENU_HEIGHT = 28

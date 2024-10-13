@@ -122,7 +122,7 @@ class Tree(SpriteObject):
                 self.draw_rect.y = self.rect[1]
 
     def die(self):
-        self.game.player.backpack.add_wood(1)
+        self.game.player.backpack.add_wood(self.game.player.wood_per_tree)
         
         if "Fruit" in self.tree_type:
             self.game.player.modify_health(self.game.player.fruit_hp)
