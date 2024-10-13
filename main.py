@@ -53,7 +53,7 @@ class Game:
         self.character_list = pg.sprite.Group()
         self.can_collide_list = pg.sprite.Group() # objects the player can collide with, stopping movement
         self.can_collect_list = pg.sprite.Group() # objects the player can collect by colliding with, but should not stop movement
-        self.can_hit_list = pg.sprite.Group() # objects the player can hit with their axe
+        self.can_axe_list = pg.sprite.Group() # objects the player can hit with their axe
         self.buildings_list = pg.sprite.Group() # buildings
         self.map = Map(self)
         self.map.new()

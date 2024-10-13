@@ -37,7 +37,7 @@ class SpriteObject(pg.sprite.Sprite):
             self.game.can_collide_list.add(self)
             self.collision_rect = self.rect
         if can_hit:
-            self.game.can_hit_list.add(self)
+            self.game.can_axe_list.add(self)
         if can_collect:
             self.game.can_collect_list.add(self)
         if is_building:

@@ -22,7 +22,7 @@ class Player(SpriteObject):
         self.backpack = Backpack()
         self.health = PLAYER_STARTING_HEALTH
         self.max_health = PLAYER_MAX_HEALTH
-        self.skill_points_available = 10
+        self.skill_points_available = 0
         self.skill_tree = SkillTree(game)
 
         # set position variables
@@ -258,7 +258,7 @@ class Player(SpriteObject):
 
         trees_hit = set()
         for rect in attack_rects:
-            for obj in self.game.can_hit_list:
+            for obj in self.game.can_axe_list:
                 if obj.collision_rect.colliderect(rect):
                     if isinstance(obj, Tree):
                         trees_hit.add(obj)
