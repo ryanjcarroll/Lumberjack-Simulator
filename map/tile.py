@@ -125,9 +125,16 @@ class Tile(ABC):
         if type(objects) == list:
             for d in objects:
                 object_type = globals()[d['type']]
+                args = [self.game, *d['topleft'], self]
+                
+                if "tree_type" in d:
+                    args.append(d["tree_type"])
+                if "flipped" in d:
+                    args.append(d["flipped"])
+                    
                 self.objects.append(
-                    object_type(self.game, *d['topleft'], self)
-                )   
+                    object_type(*args)
+                )
 
         # Create New Objects from Scratch
         else:

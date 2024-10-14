@@ -38,6 +38,7 @@ class Map:
         print(self.chunks.keys())
 
     def unload_chunk(self, chunk_id):
+        self.chunks[chunk_id].save()
         self.chunks[chunk_id].unload()
         del self.chunks[chunk_id]
 
