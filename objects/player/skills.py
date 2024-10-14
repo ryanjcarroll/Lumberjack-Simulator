@@ -66,7 +66,8 @@ class SkillTree:
         node_0 =  SkillNode(0, -3, "More HP From Apple Trees", color, points=2, func=lambda: setattr(self.game.player, 'fruit_hp', self.game.player.fruit_hp + 2.5))                      
         node_1 =  SkillNode(1, -3, "Arrow Toward Camp", color, func=lambda: setattr(self.game.compass, "active", True))
         node_2a = SkillNode(1, -4, "Faster Movespeed", color, points=3, func=lambda: setattr(self.game.player, 'move_distance', self.game.player.move_distance + 1)) 
-        node_2b = SkillNode(1, -2, "Deal More Damage to Dead Trees", color, points=2, func=lambda: setattr(self.game.player, "burned_tree_axe_damage", self.game.player.burned_tree_axe_damage + 1)) 
+        # TODO node_2b = SkillNode(1, -2, "Deal More Damage to Dead Trees", color, points=2, func=lambda: setattr(self.game.player, "burned_tree_axe_damage", self.game.player.burned_tree_axe_damage + 1)) 
+        node_2b = SkillNode(1, -2, "Node 2b", color)
         node_3a = SkillNode(2, -4, "Node 3a", color) 
         node_3b = SkillNode(2, -2, "Node 3b", color)
         node_4a = SkillNode(2, -3, "Node 4a", color)
@@ -149,4 +150,4 @@ class SkillTree:
                 self.flatten_tree(child)
 
     def change_weapon_stats(self, weapon_name, stat_name, delta):
-        self.game.player.weapon_stats[self.game.weapon_menu.get_weapon_index(weapon_name)][stat_name] += delta
+        self.game.player.weapon_stats[weapon_name][stat_name] += delta

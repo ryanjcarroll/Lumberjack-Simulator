@@ -35,9 +35,10 @@ class WeaponMenu:
 
     def handle_keys(self, event):
         # Check for number key presses to switch between weapons
-        if event.type == pg.KEYDOWN and pg.K_0 <= event.key <= pg.K_9:            
+        if event.type == pg.KEYDOWN and pg.K_1 <= event.key <= pg.K_9:            
             number_pressed = event.key - pg.K_0
-            self.selected_weapon = number_pressed - 1 # for zero-indexed list
+            if number_pressed <= len(self.weapons):
+                self.selected_weapon = number_pressed - 1 # for zero-indexed list
 
     def draw(self, screen):
         # Loop through and draw each slot

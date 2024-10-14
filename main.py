@@ -20,7 +20,7 @@ pg.init()
 class Game:
     def __init__(self):
         """
-        Initialize game object and settings.
+        Initializ e game object and settings.
         """
         pg.init()
         self.screen = pg.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))

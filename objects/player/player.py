@@ -38,13 +38,16 @@ class Player(SpriteObject):
 
         # set default values (some of these can be changed by skills)
         self.move_distance = PLAYER_MOVE_DISTANCE
-        self.weapon_stats = [
-            {
-                "attack_damage":PLAYER_ATTACK_DAMAGE,
-                "attack_distance":PLAYER_ATTACK_DISTANCE
-            } for weapon in WEAPONS_TO_LOAD
-        ]
-        self.burned_tree_axe_damage = PLAYER_ATTACK_DAMAGE
+        self.weapon_stats = {
+            "sword":{
+                "attack_damage":PLAYER_SWORD_ATTACK_DAMAGE,
+                "attack_distance":PLAYER_SWORD_ATTACK_DISTANCE
+            },
+            "axe":{
+                "attack_damage":PLAYER_AXE_ATTACK_DAMAGE,
+                "attack_distance":PLAYER_AXE_ATTACK_DISTANCE
+            }
+        }
         self.fruit_hp = 5
         self.wood_per_tree = 1
         self.dodge_chance = 0
@@ -236,27 +239,43 @@ class Player(SpriteObject):
 
         return movement
 
-    def get_active_weapon_stats(self):
-        weapon_stats = self.weapon_stats[self.game.weapon_menu.get_weapon_index()]
-        self.attack_distance, self.attack_damage = weapon_stats["attack_distance"], weapon_stats["attack_damage"]
+    def get_equipped_weapon_stats(self):
+        weapon_stats = self.weapon_stats[self.game.weapon_menu.get_weapon_name()]
+        return weapon_stats["attack_distance"], weapon_stats["attack_damage"]
 
     def get_attack_area(self):
         attack_circles = []
 
-        self.get_active_weapon_stats()
+        attack_distance, attack_damage = self.get_equipped_weapon_stats()
 
         # Create circles based on angles
         # for angle in [self.angle - 45, self.angle, self.angle + 45]:
         for angle in [self.angle]:
             # Calculate the center position of the attack circle
             attack_center = (
-                self.pos[0] + self.attack_distance * math.cos(math.radians(angle)),
-                self.pos[1] - self.attack_distance * math.sin(math.radians(angle))  # Y-axis inverted in Pygame
+                self.pos[0] + attack_distance * math.cos(math.radians(angle)),
+                self.pos[1] - attack_distance * math.sin(math.radians(angle))  # Y-axis inverted in Pygame
             )
             # Append the circle (center and radius) to the list
-            attack_circles.append((attack_center, self.attack_distance))
+            attack_circles.append((attack_center, attack_distance))
 
         return attack_circles
+    
+    def get_damage(self):
+        """
+        Get a value to apply for damage on the currently equipped weapon.
+        """
+        attack_distance, base_damage = self.get_equipped_weapon_stats()
+        # apply +/- 25% randomness to damage
+        multiplier = random.uniform(0.75, 1.25)
+        damage = int(base_damage * multiplier)
+
+        # apply crit for sword attacks
+        if self.action == "sword":
+            if random.random() < self.crit_chance:
+                damage *= 2
+
+        return damage
     
     def apply_weapon(self):
         """
@@ -265,47 +284,43 @@ class Player(SpriteObject):
         """
         # Check for collisions at the attack position and reduce enemy/tree HP accordingly
         attack_circles = self.get_attack_area()
+        damage = self.get_damage()
 
         # Reduce the health of the collided object(s)
         felled_a_tree = False
 
-        trees_hit = set()
-        enemies_hit = set()
-        for center, radius in attack_circles:
-            for obj in self.game.can_axe_list:
-                if isinstance(obj, Tree):
-                    # Check for collision with the circular area of effect
-                    if circle_collides(center, radius, obj.collision_rect):
-                        trees_hit.add(obj)
-            for obj in self.game.can_sword_list:
-                if isinstance(obj, Bat) or isinstance(obj, Slime):
-                    # Check for collision with the circular area of effect
-                    if circle_collides(center, radius, obj.rect):
-                        enemies_hit.add(obj)
+        axed = set()
+        sworded = set()
 
-        # register tree hits with axe
+        # check for axe-able objects in attack area
         if self.action == "axe":
-            for tree in trees_hit:
-                if "Burned" in tree.tree_type:
-                    tree.register_hit(self.burned_tree_axe_damage)
-                else:
-                    tree.register_hit(PLAYER_ATTACK_DAMAGE)
-            # determine if any trees were felled
-            for tree in trees_hit:
-                if tree.health <= 0:
-                    felled_a_tree = True
-                    break 
-            # play sound effects
-            if felled_a_tree:
-                self.game.sounds.play_random("fell_tree")   
-            elif len(trees_hit):
-                self.game.sounds.play_random("chop_tree")
+            for obj in self.game.can_axe_list:
+                if any([circle_collides(center, radius, obj.collision_rect) for center, radius in attack_circles]):
+                    axed.add(obj)
+        
+        # check for sword-able objects in attack area
+        elif self.action == "sword":
+            for obj in self.game.can_sword_list:
+                if any([circle_collides(center, radius, obj.collision_rect) for center, radius in attack_circles]):
+                    sworded.add(obj)
 
-        # register enemy hits
-        if self.action == "sword":
-            for enemy in enemies_hit:
-                damage = PLAYER_ATTACK_DAMAGE * 2 if random.random() < self.crit_chance else PLAYER_ATTACK_DAMAGE
-                enemy.register_hit(damage) # hitting enemies with axe does 1 damage        
+        hit_a_tree = False
+        felled_a_tree = False
+
+        # apply damage to hit objects
+        for obj in axed | sworded:
+            obj.register_hit(damage)
+
+            # play sound effects for trees
+            # do this here so we don't have overlapping sound effects for trees
+            if isinstance(obj, Tree):
+                hit_a_tree = True
+            if obj.health <=0:
+                felled_a_tree = True
+        if felled_a_tree:
+            self.game.sounds.play_random("fell_tree")   
+        elif hit_a_tree:
+            self.game.sounds.play_random("chop_tree")    
 
     def set_animation_counters(self, dt):
         """
@@ -378,7 +393,7 @@ class Player(SpriteObject):
         """
         Debugging method to show player attack collision areas.
         """
-        self.get_active_weapon_stats()
+        attack_distance, attack_damage = self.get_equipped_weapon_stats()
 
         # Draw grey collision areas for every angle except the active one
         for angle in [-180, -135, -90, -45, 0, 45, 90, 135]:
@@ -387,13 +402,13 @@ class Player(SpriteObject):
             
             # Calculate the position for the attack swing
             attack_pos = (
-                self.pos[0] + self.attack_distance * math.cos(math.radians(angle)),
-                self.pos[1] - self.attack_distance * math.sin(math.radians(angle))  # Negative sin because Y-axis is inverted in Pygame
+                self.pos[0] + attack_distance * math.cos(math.radians(angle)),
+                self.pos[1] - attack_distance * math.sin(math.radians(angle))  # Negative sin because Y-axis is inverted in Pygame
             )
 
             # Draw the attack area as a circle
-            pg.draw.circle(screen, LIGHT_GREY, camera.apply_circle(attack_pos, self.attack_distance)[0], 
-               camera.apply_circle(attack_pos, self.attack_distance)[1], 1)
+            pg.draw.circle(screen, LIGHT_GREY, camera.apply_circle(attack_pos, attack_distance)[0], 
+               camera.apply_circle(attack_pos, attack_distance)[1], 1)
 
         # Draw the actual attack area based on the current angle
         attack_circles = self.get_attack_area()

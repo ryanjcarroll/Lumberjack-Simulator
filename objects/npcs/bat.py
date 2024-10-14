@@ -18,9 +18,9 @@ class Bat(SpriteObject):
         # position and movement variables
         self.pos = vec(x,y)
         self.move_distance = 3
+
+        self.health = 30
         self.collision_rect = self.rect
-        
-        self.health = 4
 
         # animation variables
         self.animation_timer = 0
@@ -30,7 +30,7 @@ class Bat(SpriteObject):
         self.animation_speed = PLAYER_ANIMATION_SPEED
 
         # attack variables
-        self.attack_distance = PLAYER_ATTACK_DISTANCE // 2
+        self.attack_distance = 12
         self.attack_damage = 10
         self.attack_timer = 0
         self.attack_cooldown = 0 # number of seconds to wait before attacking
@@ -41,6 +41,7 @@ class Bat(SpriteObject):
         self.knockback_duration = 15  # Number of frames for knockback effect
 
         self.game.can_sword_list.add(self)
+        self.game.can_axe_list.add(self)
 
     def load_image(self):
         self.load_animations()
@@ -248,3 +249,4 @@ class Bat(SpriteObject):
             self.image = self.frames[f"walk_{self.direction}"][0]
         
         self.rect = self.image.get_rect(center=self.pos)
+        self.collision_rect = self.rect
