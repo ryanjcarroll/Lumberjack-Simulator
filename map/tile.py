@@ -12,7 +12,7 @@ from objects.npcs.bat import Bat
 from objects.npcs.slime import Slime
 
 class Tile(ABC):
-    def __init__(self, game, chunk, row, col, load_decor=False, load_objects=False):
+    def __init__(self, game, chunk, row, col, has_decor):
         self.game = game
         self.chunk = chunk
         self.objects = []
@@ -31,13 +31,8 @@ class Tile(ABC):
         self.image = self.load_texture()
         self.rect = self.image.get_rect()
         self.rect.topleft = vec(self.x,self.y)  
-        if load_decor:
+        if has_decor:
             self.load_decor()
-
-    @classmethod
-    def from_json(cls, game, chunk, data):
-        row, col = data['position']
-        return cls(game=game, chunk=chunk, row=row, col=col)
 
     @abstractmethod
     def get_spritesheet_path(self) -> str:
@@ -322,13 +317,13 @@ class Tile(ABC):
 
     def to_json(self):
         return {
-            "type":type(self).__name__,
-            "position":[self.row, self.col],
-            "objects":[obj.to_json() for obj in self.objects]
+            "type":type(self),
+            "topleft":self.rect.topleft,
+            "objects":[obj.to_json for obj in self.objects]
         }
 
 class ForestTile(Tile):
-    def __init__(self, game, chunk, row, col, load_decor=True):
+    def __init__(self, game, chunk, row, col, has_decor=True):
         self.tree_density = 0.6
         self.tree_type = Tree
         self.decor_weights = {
@@ -339,13 +334,13 @@ class ForestTile(Tile):
             "pebble"    : 5,
         }
 
-        super().__init__(game, chunk, row, col, load_decor)
+        super().__init__(game, chunk, row, col, has_decor)
 
     def get_spritesheet_path(self) -> str:
         return "assets/textures/forest_tileset.png"
 
 class IceForestTile(Tile):
-    def __init__(self, game, chunk, row, col, load_decor=True):
+    def __init__(self, game, chunk, row, col, has_decor=True):
         self.tree_density = 0.5
         self.tree_type = IceTree
         self.decor_weights = {
@@ -355,7 +350,7 @@ class IceForestTile(Tile):
             "stone":5
         }
 
-        super().__init__(game, chunk, row, col, load_decor)
+        super().__init__(game, chunk, row, col, has_decor)
 
     def get_spritesheet_path(self) -> str:
         return "assets/textures/ice_forest_tileset.png"
@@ -366,7 +361,7 @@ class IceForestTile(Tile):
             super().load_decor()
     
 class AutumnForestTile(Tile):
-    def __init__(self, game, chunk, row, col, load_decor=True):
+    def __init__(self, game, chunk, row, col, has_decor=True):
         self.tree_density = 0.7
         self.tree_type = AutumnTree
         self.decor_weights = {
@@ -376,7 +371,7 @@ class AutumnForestTile(Tile):
             "butterfly":5
         }
 
-        super().__init__(game, chunk, row, col, load_decor)
+        super().__init__(game, chunk, row, col, has_decor)
 
     def get_spritesheet_path(self) -> str:
         return "assets/textures/autumn_forest_tileset.png"
@@ -388,12 +383,12 @@ class AutumnForestTile(Tile):
     
  
 class MangroveForestTile(Tile):
-    def __init__(self, game, chunk, row, col, load_decor=True):
+    def __init__(self, game, chunk, row, col, has_decor=True):
         self.tree_density = 0.8
         self.tree_type = MangroveTree
         self.decor_weights = {}
 
-        super().__init__(game, chunk, row, col, load_decor)
+        super().__init__(game, chunk, row, col, has_decor)
 
     def get_spritesheet_path(self) -> str:
         return "assets/textures/mangrove_forest_tileset.png"
@@ -403,9 +398,9 @@ class MangroveForestTile(Tile):
         pass
 
 class WaterTile(Tile):
-    def __init__(self, game, chunk, row, col, load_decor=True):
+    def __init__(self, game, chunk, row, col, has_decor=True):
         self.decor_weights = {}
-        super().__init__(game, chunk, row, col, load_decor)
+        super().__init__(game, chunk, row, col, has_decor)
 
     # unused
     def get_spritesheet_path(self) -> str:
