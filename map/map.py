@@ -78,5 +78,4 @@ class Map:
                     topleft_chunk + vec(x*CHUNK_SIZE*TILE_SIZE, y*CHUNK_SIZE*TILE_SIZE)
                 )
 
-        # print(len(chunks), chunks)
         return set([f"{int(v.x)},{int(v.y)}" for v in chunks])

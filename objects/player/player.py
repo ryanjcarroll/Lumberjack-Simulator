@@ -24,7 +24,7 @@ class Player(SpriteObject):
         self.backpack = Backpack()
         self.health = PLAYER_STARTING_HEALTH
         self.max_health = PLAYER_MAX_HEALTH
-        self.skill_points_available = 10
+        self.skill_points_available = 0
         self.skill_tree = SkillTree(game)
 
         # set position variables
@@ -180,9 +180,7 @@ class Player(SpriteObject):
             if self.collision_rect.colliderect(obj.rect):
                 if type(obj)== SkillPoint:
                     self.skill_points_available += 1
-                    print(self.skill_points_available)
                     self.game.sounds.play("skillpoint",0)
-
                 obj.kill()
 
     def get_movement(self, keys) -> vec:
@@ -286,41 +284,32 @@ class Player(SpriteObject):
         attack_circles = self.get_attack_area()
         damage = self.get_damage()
 
-        # Reduce the health of the collided object(s)
-        felled_a_tree = False
-
-        axed = set()
-        sworded = set()
-
         # check for axe-able objects in attack area
         if self.action == "axe":
+            hit_a_tree = False
+            felled_a_tree = False
+            
             for obj in self.game.can_axe_list:
                 if any([circle_collides(center, radius, obj.collision_rect) for center, radius in attack_circles]):
-                    axed.add(obj)
+                    obj.register_hit(damage)
+
+                    if isinstance(obj, Tree):
+                        hit_a_tree = True
+                    if obj.health <=0:
+                        felled_a_tree = True
+
+            # play sound effects for trees
+            # do this here so we don't have overlapping sound effects for trees
+            if felled_a_tree:
+                self.game.sounds.play_random("fell_tree")   
+            elif hit_a_tree:
+                self.game.sounds.play_random("chop_tree")
         
         # check for sword-able objects in attack area
         elif self.action == "sword":
             for obj in self.game.can_sword_list:
                 if any([circle_collides(center, radius, obj.collision_rect) for center, radius in attack_circles]):
-                    sworded.add(obj)
-
-        hit_a_tree = False
-        felled_a_tree = False
-
-        # apply damage to hit objects
-        for obj in axed | sworded:
-            obj.register_hit(damage)
-
-            # play sound effects for trees
-            # do this here so we don't have overlapping sound effects for trees
-            if isinstance(obj, Tree):
-                hit_a_tree = True
-            if obj.health <=0:
-                felled_a_tree = True
-        if felled_a_tree:
-            self.game.sounds.play_random("fell_tree")   
-        elif hit_a_tree:
-            self.game.sounds.play_random("chop_tree")    
+                    obj.register_hit(damage)
 
     def set_animation_counters(self, dt):
         """
@@ -386,7 +375,7 @@ class Player(SpriteObject):
             self.game.playing = False
 
     def draw(self, screen, camera):
-        self.draw_hitboxes(screen, camera)
+        # self.draw_hitboxes(screen, camera)
         screen.blit(self.image, camera.apply(self.rect))
     
     def draw_hitboxes(self, screen, camera):
