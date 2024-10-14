@@ -23,7 +23,6 @@ import random
 import json
 pg.init()
 
-
 class Game:
     def __init__(self):
         """
@@ -33,7 +32,6 @@ class Game:
         self.screen = pg.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         pg.display.set_caption(TITLE)
 
-        # intitialize the asset managers
         self.sprites = SpriteAssetManager()  
         self.sounds = SoundAssetManager()
 
@@ -163,7 +161,7 @@ class Game:
         If a condition is passed, only draw objects if the tile meets that condition.
         """
         tiles = []
-        for chunk_id in self.map.get_visible_chunks(self.player, tile_buffer=0):
+        for chunk_id in self.map.get_visible_chunks(self.player):
             with self.map.lock:
                 if chunk_id in self.map.chunks:
                     chunk = self.map.chunks[chunk_id]

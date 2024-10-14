@@ -1,9 +1,12 @@
 from settings import *
 from map.tile import *
 from objects.inventory import Camp
+import random
 import opensimplex
 import os
 import json
+
+opensimplex.seed(random.randint(0,100000))
 
 class Chunk:
     def __init__(self, game, x, y):
@@ -26,21 +29,6 @@ class Chunk:
         # Build New Chunk
         else:
             self.render_tiles()
-
-    @classmethod
-    def from_json(cls, game, data):
-        
-        x, y = data['position']
-
-        chunk = cls(game, x, y, load_tiles=False)
-        chunk.tiles = []
-
-        for tile_data in data['tiles']:
-            tile_type = globals()[tile_data['type']]
-            tile = tile_type.from_json(game=game, chunk=chunk, data=tile_data)
-            chunk.tiles.append(tile)
-
-        return chunk
 
     def render_tiles(self):
         # fill the chunk with Tiles
@@ -78,7 +66,7 @@ class Chunk:
 
     def to_json(self):
         return {
-            "type":type(self).__name__,
+            "type":type(self),
             "id":self.id,
             "position":[self.rect.topleft[0],self.rect.topleft[1]],
             "tiles":[
@@ -143,7 +131,7 @@ class SpawnChunk(Chunk):
                     chunk=self,
                     row = row,
                     col = col,
-                    load_decor=True if terrain_type == "basic" else False
+                    has_decor=True if terrain_type == "basic" else False
                 )
                 if terrain_type == "basic":
                     tile.load_objects()

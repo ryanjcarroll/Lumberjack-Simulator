@@ -42,6 +42,7 @@ class SpriteObject(pg.sprite.Sprite):
         if can_collect:
             self.game.can_collect_list.add(self)
         
+
     def load_image(self) -> pg.image:
         # overwrite this method to implement custom image loading in a class
         pass
