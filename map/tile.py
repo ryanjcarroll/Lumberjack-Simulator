@@ -93,6 +93,32 @@ class Tile(ABC):
 
         return darkened_image
 
+    def can_spawn(self, spawn_attempts=3, max_offset=TILE_SIZE//2, buffer=TILE_SIZE//2):
+        """
+        Attempt to find a pos to spawn an object.
+
+        spawn_attempts - number of positions to check
+        max_offset - how far from the tile topleft to search
+        buffer - how far from other collidable objects to allow
+        """
+        neighbors = self.get_neighbors()
+        neighbor_objs = [obj for n_tile in neighbors for obj in n_tile.objects]
+        for i in range(spawn_attempts):
+            try_pos = vec(
+                self.rect.topleft[0] + random.randrange(0,max_offset), 
+                self.rect.topleft[1] + random.randrange(0,max_offset)
+            )
+            spawn = True
+            for obj in [obj for obj in neighbor_objs if obj in self.game.can_collide_list]:
+                if try_pos.distance_to(obj.pos) <= buffer:
+                    spawn = False
+                    break
+
+            if spawn:
+                return try_pos
+            else:
+                return False
+
     def load_objects(self):
         """
         Uses the following params to calibrate:
@@ -112,74 +138,25 @@ class Tile(ABC):
         else:  
             r = random.random()
             # Spawn Trees
-            if r < self.tree_density: # spawn only on a percentage of tiles         
-                neighbors = self.get_neighbors()
-                neighbor_objs = [obj for n_tile in neighbors for obj in n_tile.objects]
-                for i in range(spawn_attempts):
-                    try_pos = vec(
-                        self.rect.topleft[0] + random.randrange(0,max_offset), 
-                        self.rect.topleft[1] + random.randrange(0,max_offset)
-                    )
-                    spawn = True
-                    for obj in [obj for obj in neighbor_objs if obj in self.game.can_collide_list]:
-                        if try_pos.distance_to(obj.pos) <= buffer:
-                            spawn = False
-                            break
-
-                    if spawn:
-                        self.objects.append(self.tree_type(self.game, *try_pos))
-                        break
+            if r < self.tree_density: # spawn only on a percentage of tiles  
+                spawn_loc = self.can_spawn()
+                if spawn_loc:
+                    self.objects.append(self.tree_type(self.game, *spawn_loc))
             # Spawn Bats
             elif r > 0.99:
-                neighbors = self.get_neighbors()
-                neighbor_objs = [obj for n_tile in neighbors for obj in n_tile.objects]
-                for i in range(spawn_attempts):
-                    try_pos = vec(
-                        self.rect.topleft[0] + random.randrange(0,max_offset), 
-                        self.rect.topleft[1] + random.randrange(0,max_offset)
-                    )
-                    spawn = True
-                    for obj in [obj for obj in neighbor_objs if obj in self.game.can_collide_list]:
-                        if try_pos.distance_to(obj.pos) <= buffer:
-                            spawn = False
-                            break
-                    if spawn:
-                        self.objects.append(Bat(self.game, *try_pos))                
-                        break
+                spawn_loc = self.can_spawn()
+                if spawn_loc:
+                    self.objects.append(Bat(self.game, *spawn_loc))                
             # Spawn Slimes
             elif r > 0.98:
-                neighbors = self.get_neighbors()
-                neighbor_objs = [obj for n_tile in neighbors for obj in n_tile.objects]
-                for i in range(spawn_attempts):
-                    try_pos = vec(
-                        self.rect.topleft[0] + random.randrange(0,max_offset), 
-                        self.rect.topleft[1] + random.randrange(0,max_offset)
-                    )
-                    spawn = True
-                    for obj in [obj for obj in neighbor_objs if obj in self.game.can_collide_list]:
-                        if try_pos.distance_to(obj.pos) <= buffer:
-                            spawn = False
-                            break
-                    if spawn:
-                        self.objects.append(Slime(self.game, *try_pos))                
-                        break
+                spawn_loc = self.can_spawn()
+                if spawn_loc:
+                    self.objects.append(Slime(self.game, *spawn_loc))                
             # Spawn Skill Points
             elif r > 0.97: # spawn an SkillPoint item on a small percentage of tiles which don't have a tree
-                neighbors = self.get_neighbors()
-                neighbor_objs = [obj for n_tile in neighbors for obj in n_tile.objects]
-                for i in range(spawn_attempts):
-                    try_pos = vec(
-                        self.rect.topleft[0] + random.randrange(0,max_offset), 
-                        self.rect.topleft[1] + random.randrange(0,max_offset)
-                    )
-                    spawn = True
-                    for obj in [obj for obj in neighbor_objs if obj in self.game.can_collide_list]:
-                        if try_pos.distance_to(obj.pos) <= buffer:
-                            spawn = False
-                            break
-                    if spawn:
-                        self.objects.append(SkillPoint(self.game, *try_pos))                
-                        break
+                spawn_loc = self.can_spawn()
+                if spawn_loc:
+                    self.objects.append(SkillPoint(self.game, *spawn_loc))                
                 
     def load_decor(self):
         decor_weights = self.decor_weights
