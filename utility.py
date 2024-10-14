@@ -93,3 +93,18 @@ def closer_to_white(color, factor=0.5):
     new_b = int(b + b_dist)
 
     return (new_r, new_g, new_b)
+
+def circle_collides(circle_center, circle_radius, rect):
+    """
+    Check if a circle (defined by its center and radius) collides with a rectangle.
+    """
+    # Find the closest point to the circle within the rectangle
+    closest_x = max(rect.left, min(circle_center[0], rect.right))
+    closest_y = max(rect.top, min(circle_center[1], rect.bottom))
+
+    # Calculate the distance between the circle's center and this closest point
+    distance_x = circle_center[0] - closest_x
+    distance_y = circle_center[1] - closest_y
+
+    # If the distance is less than the circle's radius, there is a collision
+    return (distance_x ** 2 + distance_y ** 2) < (circle_radius ** 2)

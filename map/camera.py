@@ -16,6 +16,14 @@ class Camera:
             rect.width,
             rect.height
         )
+    
+    def apply_circle(self, pos, radius):
+        """
+        Adjust a circle's center position using relative coordinates within the camera frame.
+        """
+        adjusted_x = pos[0] - self.rect.topleft[0]
+        adjusted_y = pos[1] - self.rect.topleft[1]
+        return (adjusted_x, adjusted_y), radius  # Return the adjusted position and radius
 
     def update(self, target):
         """

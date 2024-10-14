@@ -14,6 +14,7 @@ from menus.loadout import LoadoutMenu
 from menus.game_over import GameOverMenu
 from menus.skill_tree import SkillTreeMenu
 from objects.assets import SpriteAssetManager, SoundAssetManager
+from objects.npcs.bat import Bat
 pg.init()
 
 class Game:
@@ -31,7 +32,7 @@ class Game:
         self.dt = 0
         self.map_reload_timer = 0
         self.health_tick_timer = 0
-
+ 
         # sprite asset manager
         self.sprites = SpriteAssetManager()  
         self.sounds = SoundAssetManager()
@@ -53,6 +54,7 @@ class Game:
         self.can_collide_list = pg.sprite.Group() # objects the player can collide with, stopping movement
         self.can_collect_list = pg.sprite.Group() # objects the player can collect by colliding with, but should not stop movement
         self.can_axe_list = pg.sprite.Group() # objects the player can hit with their axe
+        self.can_sword_list = pg.sprite.Group() # objects the player can hit with their sword
         self.map = Map(self)
         self.map.new()
         self.compass = Compass(self)
@@ -61,6 +63,8 @@ class Game:
         self.player = Player(self, (CHUNK_SIZE*TILE_SIZE)//2, (CHUNK_SIZE*TILE_SIZE)//2, loadout)
         self.camera = Camera(WINDOW_WIDTH, WINDOW_HEIGHT)
         self.backpack = Backpack()
+
+        Bat(self, (CHUNK_SIZE*TILE_SIZE)//2, (CHUNK_SIZE*TILE_SIZE)//2)
 
         self.backpack_inventory_menu = BackpackInventoryMenu(self)
         self.camp_inventory_menu = CampInventoryMenu(self)

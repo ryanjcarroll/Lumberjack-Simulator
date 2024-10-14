@@ -5,6 +5,7 @@ import math
 from utility import *
 from objects.inventory import Backpack
 from objects.tree import Tree
+from objects.npcs.bat import Bat
 import json
 from objects.sprites import SpriteObject
 from objects.items.items import SkillPoint
@@ -228,55 +229,65 @@ class Player(SpriteObject):
 
         return movement
            
-    def get_attack_rects(self):
-        attack_rects = []
-        for angle in [self.angle-45, self.angle, self.angle+45]:
-            # Calculate the position and radius of the attack swing
-            attack_pos = (
-                self.pos[0] + self.attack_distance * math.cos(math.radians(angle)),
-                self.pos[1] - self.attack_distance * math.sin(math.radians(angle))  # Negative sin because Y-axis is inverted in Pygame
-            )
-            # Calculate the top-left corner of the square area
-            top_left_corner = (
-                attack_pos[0] - self.attack_distance / 2,
-                attack_pos[1] - self.attack_distance / 2
-            )
-            attack_rects.append(pg.Rect(top_left_corner, (self.attack_distance, self.attack_distance)))
+    def get_attack_area(self):
+        attack_circles = []
 
-        return attack_rects
-        
-    def axe_attack(self):
+        # Create circles based on angles
+        for angle in [self.angle - 45, self.angle, self.angle + 45]:
+            # Calculate the center position of the attack circle
+            attack_center = (
+                self.pos[0] + self.attack_distance * math.cos(math.radians(angle)),
+                self.pos[1] - self.attack_distance * math.sin(math.radians(angle))  # Y-axis inverted in Pygame
+            )
+            # Append the circle (center and radius) to the list
+            attack_circles.append((attack_center, self.attack_distance))
+
+        return attack_circles
+    
+    def apply_weapon(self):
         """
         Called once an axe swing animation has finished.
         Determines whether anything was hit and deals damage.
         """
-        # Check for tree collisions at the attack position and reduce tree HP accordingly
-        attack_rects = self.get_attack_rects()
+        # Check for collisions at the attack position and reduce enemy/tree HP accordingly
+        attack_circles = self.get_attack_area()
 
-        # Reduce the health of the collided tree(s)
+        # Reduce the health of the collided object(s)
         felled_a_tree = False
 
         trees_hit = set()
-        for rect in attack_rects:
+        enemies_hit = set()
+        for center, radius in attack_circles:
             for obj in self.game.can_axe_list:
-                if obj.collision_rect.colliderect(rect):
-                    if isinstance(obj, Tree):
+                if isinstance(obj, Tree):
+                    # Check for collision with the circular area of effect
+                    if circle_collides(center, radius, obj.collision_rect):
                         trees_hit.add(obj)
+                elif isinstance(obj, Bat):
+                    # Check for collision with the circular area of effect
+                    if circle_collides(center, radius, obj.rect):
+                        enemies_hit.add(obj)
 
-        # register hits
-        for tree in trees_hit:
-            tree.register_hit(PLAYER_ATTACK_DAMAGE)
-        # determine if any trees were felled
-        for tree in trees_hit:
-            if tree.health <= 0:
-                felled_a_tree = True
-                break 
+        # register tree hits with axe
+        if self.action == "axe":
+            for tree in trees_hit:
+                tree.register_hit(PLAYER_ATTACK_DAMAGE)
+            # determine if any trees were felled
+            for tree in trees_hit:
+                if tree.health <= 0:
+                    felled_a_tree = True
+                    break 
+            # play sound effects
+            if felled_a_tree:
+                self.game.sounds.play_random("fell_tree")   
+            elif len(trees_hit):
+                self.game.sounds.play_random("chop_tree")
 
-        # play sound effects
-        if felled_a_tree:
-            self.game.sounds.play_random("fell_tree")   
-        elif len(trees_hit):
-            self.game.sounds.play_random("chop_tree")
+        # register enemy hits
+        if self.action == "sword":
+            for enemy in enemies_hit:
+                enemy.register_hit(PLAYER_ATTACK_DAMAGE) # hitting enemies with axe does 1 damage        
+                print(enemy.health)
 
     def set_animation_counters(self, dt):
         """
@@ -291,14 +302,8 @@ class Player(SpriteObject):
                 self.animation_timer = 0
                 # finish the attack operations when the animation reaches the final frame
                 if self.current_frame_index == len(self.frames[f"{self.action}_{self.direction}"]):
-                    if self.action == "axe":
-                        self.axe_attack()
-                    elif self.action == "sword":
-                        pass
-                    elif self.action == "stick":
-                        pass
-                    elif self.action == "hoe":
-                        pass
+                    if self.action in WEAPONS_TO_LOAD:
+                        self.apply_weapon()
                     self.action = "stand"
         elif self.action == "walk":
             # update walk animation frame if enough time has passed
@@ -341,35 +346,34 @@ class Player(SpriteObject):
             self.game.playing = False
 
     def draw(self, screen, camera):
-        # self.draw_collision_rects(screen, camera)
+        # self.draw_hitboxes(screen, camera)
         screen.blit(self.image, camera.apply(self.rect))
     
-    def draw_collision_rects(self, screen, camera):
+    def draw_hitboxes(self, screen, camera):
         """
-        Debugging method to show player attack collision_rectes
+        Debugging method to show player attack collision areas.
         """
-        # Draw grey collision_rects in every angle except the active one
+        # Draw grey collision areas for every angle except the active one
         for angle in [-180, -135, -90, -45, 0, 45, 90, 135]:
             if angle == self.angle:
                 continue
-            # Calculate the position and radius of the attack swing
+            
+            # Calculate the position for the attack swing
             attack_pos = (
                 self.pos[0] + self.attack_distance * math.cos(math.radians(angle)),
                 self.pos[1] - self.attack_distance * math.sin(math.radians(angle))  # Negative sin because Y-axis is inverted in Pygame
             )
-            # Calculate the top-left corner of the square area
-            top_left_corner = (
-                attack_pos[0] - self.attack_distance / 2,
-                attack_pos[1] - self.attack_distance / 2
-            )
-            attack_rect = pg.Rect(top_left_corner, (self.attack_distance, self.attack_distance))
-            pg.draw.rect(screen, LIGHT_GREY, camera.apply(attack_rect))
-        
-        attack_collision_rects = self.get_attack_rects()
-        for collision_rect in attack_collision_rects:
-            pg.draw.rect(screen, RED, camera.apply(collision_rect))
 
-        pg.draw.rect(screen, GREEN, camera.apply(self.collision_rect))
+            # Draw the attack area as a circle
+            pg.draw.circle(screen, LIGHT_GREY, camera.apply_circle(attack_pos, self.attack_distance)[0], 
+               camera.apply_circle(attack_pos, self.attack_distance)[1], 1)
+
+        # Draw the actual attack area based on the current angle
+        attack_circles = self.get_attack_area()
+        for center, radius in attack_circles:
+            pg.draw.circle(screen, RED, *camera.apply_circle(center, radius), 1)  # Draw outline circle
+
+        pg.draw.rect(screen, GREEN, camera.apply(self.collision_rect))  # Draw the player's collision rect
 
     def game_over_update(self):
         self.action = "sleep"
