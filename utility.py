@@ -63,7 +63,6 @@ def combine_images(images):
     
     return combined_surface
 
-
 # Interpolate values using smoothstep function
 def perlin_noise(x,y):
     
@@ -88,3 +87,34 @@ def perlin_noise(x,y):
 
     # Interpolate along y-axis
     return interpolate(x1, x2, y - math.floor(y))
+
+def closer_to_white(color, factor=0.5):
+    # Ensure the color is in the range of 0-255
+    r, g, b = color
+
+    # Calculate the amount to move towards white (255)
+    r_dist = (255 - r) * factor
+    g_dist = (255 - g) * factor
+    b_dist = (255 - b) * factor
+
+    # New RGB values
+    new_r = int(r + r_dist)
+    new_g = int(g + g_dist)
+    new_b = int(b + b_dist)
+
+    return (new_r, new_g, new_b)
+
+def circle_collides(circle_center, circle_radius, rect):
+    """
+    Check if a circle (defined by its center and radius) collides with a rectangle.
+    """
+    # Find the closest point to the circle within the rectangle
+    closest_x = max(rect.left, min(circle_center[0], rect.right))
+    closest_y = max(rect.top, min(circle_center[1], rect.bottom))
+
+    # Calculate the distance between the circle's center and this closest point
+    distance_x = circle_center[0] - closest_x
+    distance_y = circle_center[1] - closest_y
+
+    # If the distance is less than the circle's radius, there is a collision
+    return (distance_x ** 2 + distance_y ** 2) < (circle_radius ** 2)

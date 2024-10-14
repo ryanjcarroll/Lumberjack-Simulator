@@ -6,7 +6,7 @@ class SpriteObject(pg.sprite.Sprite):
     """
     Sprite objects to be loaded within the game.
     """
-    def __init__(self, game, x, y, layer, image=None, can_collide=False, can_hit=False, is_building=False):
+    def __init__(self, game, x, y, layer, image=None, can_collide=False, can_hit=False, can_collect=False):
         super().__init__()
 
         # initiation variables
@@ -37,9 +37,9 @@ class SpriteObject(pg.sprite.Sprite):
             self.game.can_collide_list.add(self)
             self.collision_rect = self.rect
         if can_hit:
-            self.game.can_hit_list.add(self)
-        if is_building:
-            self.game.buildings_list.add(self)
+            self.game.can_axe_list.add(self)
+        if can_collect:
+            self.game.can_collect_list.add(self)
         
     def load_image(self) -> pg.image:
         # overwrite this method to implement custom image loading in a class

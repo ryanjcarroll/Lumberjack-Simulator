@@ -7,6 +7,7 @@ class Compass:
     def __init__(self, game):
 
         self.game = game
+        self.active = False # can be activated via the SkillPoint tree
 
         self.width = COMPASS_WIDTH
         self.height = COMPASS_HEIGHT
@@ -18,16 +19,17 @@ class Compass:
         self.rect = self.image.get_rect(topleft=self.pos)
 
     def draw(self, screen):
-        direction = (self.game.camp.pos - self.game.player.pos)
-        if math.sqrt(direction.length_squared()) >= WINDOW_WIDTH//4:
-            # Calculate angle between vector and positive x-axis
-            angle = direction.angle_to(vec(1, 0))
+        if self.active:
+            direction = (self.game.camp.pos - self.game.player.pos)
+            if math.sqrt(direction.length_squared()) >= WINDOW_WIDTH//4:
+                # Calculate angle between vector and positive x-axis
+                angle = direction.angle_to(vec(1, 0))
 
-            # Rotate arrow image
-            rotated_arrow = pg.transform.rotate(self.image, angle)
-            rotated_rect = rotated_arrow.get_rect(center=self.rect.center)
+                # Rotate arrow image
+                rotated_arrow = pg.transform.rotate(self.image, angle)
+                rotated_rect = rotated_arrow.get_rect(center=self.rect.center)
 
-            # Draw rotated arrow on screen
-            screen.blit(rotated_arrow, rotated_rect)
+                # Draw rotated arrow on screen
+                screen.blit(rotated_arrow, rotated_rect)
 
         

@@ -93,10 +93,10 @@ class LoadoutMenu:
 
     def get_random_selections(self):
         selections = {}
-        for attribute in self.attributes:
+        for attribute in self.attributes:            
             category = random.randint(0, len(self.assets[attribute])-1)
             style = random.randint(0, len(self.assets[attribute][category]['styles'])-1)
-            selections[attribute]= (category, style)
+            selections[attribute] = (category, style)
         return selections
 
     def get_loadout(self):

@@ -15,8 +15,6 @@ class Tree(SpriteObject):
 
         # settings for taking damage from axes
         self.health = TREE_HEALTH
-        if "Burned" in self.tree_type:
-            self.health = 1
         self.collision_rect = pg.Rect(
             0,
             0,
@@ -122,12 +120,12 @@ class Tree(SpriteObject):
                 self.draw_rect.y = self.rect[1]
 
     def die(self):
-        self.game.player.backpack.add_wood(1)
+        self.game.player.backpack.add_wood(self.game.player.wood_per_tree)
         
         if "Fruit" in self.tree_type:
-            self.game.player.modify_health(10)
+            self.game.player.modify_health(self.game.player.fruit_hp)
         elif "Apple" in self.tree_type:
-            self.game.player.modify_health(10)
+            self.game.player.modify_health(self.game.player.fruit_hp)
 
         self.kill()
 

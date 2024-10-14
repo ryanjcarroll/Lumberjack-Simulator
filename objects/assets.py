@@ -76,6 +76,34 @@ class SoundAssetManager:
                 self.load("sounds/music/683268__migfus20__relaxing-chiptune-music.mp3"),
                 self.load("sounds/music/714924__muyo5438__a-positive-and-inspiring-ambient.mp3"),
                 self.load("sounds/music/723287__migfus20__relaxing-jazz-music-loop.mp3")
+            ],
+            "skillpoint":[
+                self.load("sounds/misc/186719__andromadax24__chime_01.wav")
+            ],
+            "bat_wake":[
+                self.load("sounds/bat/wake/batsound-001.wav"),
+                self.load("sounds/bat/wake/batsound-002.wav"),
+                self.load("sounds/bat/wake/batsound-003.wav"),
+                self.load("sounds/bat/wake/batsound-004.wav"),
+                self.load("sounds/bat/wake/batsound-005.wav"),
+                self.load("sounds/bat/wake/batsound-006.wav"),
+                self.load("sounds/bat/wake/batsound-007.wav")
+            ],
+            "bat_damage":[
+                self.load("sounds/bat/damage/385046__mortisblack__damage.ogg")
+            ],
+            "bat_die":[
+                self.load("sounds/bat/die/712917__greyfeather__retro-mouse-sound.wav")
+            ],
+            "player_damage":[
+                self.load("sounds/player/damage/404108__deathscyp__damage-2.wav")
+            ],
+            "player_dodge":[
+                self.load("sounds/player/dodge/585256__lesaucisson__swoosh-2.mp3")
+            ],
+            "slime":[
+                self.load("sounds/slime/340794__kuchenanderung1__slime-squish.wav"),
+                self.load("sounds/slime/353250__zuzek06__slimejump.wav")
             ]
         }
 
