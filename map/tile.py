@@ -10,12 +10,14 @@ import opensimplex
 from objects.items.items import SkillPoint
 from objects.npcs.bat import Bat
 from objects.npcs.slime import Slime
+from objects.inventory import Camp
 
 class Tile(ABC):
-    def __init__(self, game, chunk, row, col, load_decor=False, load_objects=False):
+    def __init__(self, game, chunk, row, col, load_decor=False):
         self.game = game
         self.chunk = chunk
         self.objects = []
+        self.decor = []
 
         self.is_road = False
 
@@ -33,11 +35,6 @@ class Tile(ABC):
         self.rect.topleft = vec(self.x,self.y)  
         if load_decor:
             self.load_decor()
-
-    @classmethod
-    def from_json(cls, game, chunk, data):
-        row, col = data['position']
-        return cls(game=game, chunk=chunk, row=row, col=col)
 
     @abstractmethod
     def get_spritesheet_path(self) -> str:
@@ -119,44 +116,47 @@ class Tile(ABC):
             else:
                 return False
 
-    def load_objects(self):
+    def load_objects(self, objects=None):
         """
         Uses the following params to calibrate:
-
-        self.tree_density
-        self.tree_type
         """
-        # spawn trees everywhere except the 3x3 square around the spawn location
-        spawn_attempts = 3
-        buffer = TILE_SIZE//2
-        max_offset = TILE_SIZE//2
+        # Load from Save Data
+        if type(objects) == list:
+            for d in objects:
+                object_type = globals()[d['type']]
+                self.objects.append(
+                    object_type(self.game, *d['topleft'], self)
+                )   
 
-        if TILE_SIZE*((CHUNK_SIZE//2)-1) <= self.x <= TILE_SIZE*((CHUNK_SIZE//2)+1)\
-            and TILE_SIZE*((CHUNK_SIZE//2)-1) <= self.y <= TILE_SIZE*((CHUNK_SIZE//2)+1) :
-            # spawn nothing in the Camp area
-            pass
-        else:  
-            r = random.random()
-            # Spawn Trees
-            if r < self.tree_density: # spawn only on a percentage of tiles  
-                spawn_loc = self.can_spawn()
-                if spawn_loc:
-                    self.objects.append(self.tree_type(self.game, *spawn_loc))
-            # Spawn Bats
-            elif r > 0.99:
-                spawn_loc = self.can_spawn()
-                if spawn_loc:
-                    self.objects.append(Bat(self.game, *spawn_loc))                
-            # Spawn Slimes
-            elif r > 0.98:
-                spawn_loc = self.can_spawn()
-                if spawn_loc:
-                    self.objects.append(Slime(self.game, *spawn_loc))                
-            # Spawn Skill Points
-            elif r > 0.97: # spawn an SkillPoint item on a small percentage of tiles which don't have a tree
-                spawn_loc = self.can_spawn()
-                if spawn_loc:
-                    self.objects.append(SkillPoint(self.game, *spawn_loc))                
+        # Create New Objects from Scratch
+        else:
+            # spawn things everywhere except the 3x3 square around the spawn location
+            if TILE_SIZE*((CHUNK_SIZE//2)-1) <= self.x <= TILE_SIZE*((CHUNK_SIZE//2)+1)\
+                and TILE_SIZE*((CHUNK_SIZE//2)-1) <= self.y <= TILE_SIZE*((CHUNK_SIZE//2)+1) :
+                # spawn nothing in the Camp area
+                pass
+            else:  
+                r = random.random()
+                # Spawn Trees
+                if r < self.tree_density: # spawn only on a percentage of tiles  
+                    spawn_loc = self.can_spawn()
+                    if spawn_loc:
+                        self.objects.append(self.tree_type(self.game, *spawn_loc, self))
+                # Spawn Bats
+                elif r > 0.99:
+                    spawn_loc = self.can_spawn()
+                    if spawn_loc:
+                        self.objects.append(Bat(self.game, *spawn_loc, self))                
+                # Spawn Slimes
+                elif r > 0.98:
+                    spawn_loc = self.can_spawn()
+                    if spawn_loc:
+                        self.objects.append(Slime(self.game, *spawn_loc, self))                
+                # Spawn Skill Points
+                elif r > 0.97: # spawn an SkillPoint item on a small percentage of tiles which don't have a tree
+                    spawn_loc = self.can_spawn()
+                    if spawn_loc:
+                        self.objects.append(SkillPoint(self.game, *spawn_loc, self))                
                 
     def load_decor(self):
         decor_weights = self.decor_weights
@@ -170,11 +170,12 @@ class Tile(ABC):
         decor_y = self.rect.center[1] + random.random() * TILE_SIZE//2
         # decor_x = random.randint(self.rect.left, self.rect.right)
         # decor_y = random.randint(self.rect.top, self.rect.bottom)
-        self.objects.append(
+        self.decor.append(
             SpriteObject(
                 game=self.game,
                 x = decor_x,
                 y = decor_y,
+                tile = self,
                 layer = DECOR_LAYER,
                 image = self.game.sprites.load(random.choice(glob(f"assets/decor/{item_type}/*.png"))),
         ))
@@ -403,6 +404,7 @@ class WaterTile(Tile):
             game=self.game,
             x=self.x,
             y=self.y,
+            tile=self,
             image=self.game.sprites.load("assets/textures/transparent.png"),
             layer=BASE_LAYER,
             can_collide=True

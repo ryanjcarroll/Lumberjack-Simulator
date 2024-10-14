@@ -6,13 +6,14 @@ class SpriteObject(pg.sprite.Sprite):
     """
     Sprite objects to be loaded within the game.
     """
-    def __init__(self, game, x, y, layer, image=None, can_collide=False, can_hit=False, can_collect=False):
+    def __init__(self, game, x, y, tile, layer, image=None, can_collide=False, can_hit=False, can_collect=False):
         super().__init__()
 
         # initiation variables
         self.x = x
         self.y = y
         self.game = game
+        self.tile = tile # necessary to remove from Tile.objects after death
 
         if image:
             self.image = image
@@ -56,11 +57,19 @@ class SpriteObject(pg.sprite.Sprite):
         if self.collision_rect:
             pg.draw.rect(screen, RED, camera.apply(self.collision_rect))
 
+    def kill(self):
+        # remove from tile.objects when killed
+        if self.tile and self in self.tile.objects:
+            self.tile.objects.remove(self)
+
+        # default behavior of sprite.kill()
+        super().kill()
+
     def to_json(self):
         return {
             "type":type(self).__name__,
             "topleft":(self.x, self.y),
-            "layer":self.layer,
+            # "layer":self.layer,
             # "image":self.image,
             # "can_collide":self.can_collide,
             # "can_hit":self.can_hit,

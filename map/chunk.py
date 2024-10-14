@@ -2,16 +2,29 @@ from settings import *
 from map.tile import *
 from objects.inventory import Camp
 import opensimplex
+import os
+import json
 
 class Chunk:
-    def __init__(self, game, x, y, load_tiles=True):
+    def __init__(self, game, x, y):
         self.game = game
         
         self.tiles = []
         self.rect = Rect(x, y, x+CHUNK_SIZE*TILE_SIZE, y+CHUNK_SIZE*TILE_SIZE)
         self.id = f"{self.rect.topleft[0]},{self.rect.topleft[1]}"
 
-        if load_tiles:
+        # Load from Save File
+        if os.path.exists(f"data/saves/{self.game.game_id}/chunks/{self.id}.json"):
+            with open(f"data/saves/{self.game.game_id}/chunks/{self.id}.json","r") as f:
+                chunk_data = json.load(f)
+                
+                for tiledata in chunk_data['tiles']:
+                    tile_type = globals()[tiledata['type']]
+                    tile = tile_type(self.game, self, *tiledata["position"])
+                    tile.load_objects(tiledata['objects'])
+                    self.tiles.append(tile)
+        # Build New Chunk
+        else:
             self.render_tiles()
 
     @classmethod
@@ -80,7 +93,7 @@ class SpawnChunk(Chunk):
         for tile in self.tiles:
             # spawn the camp
             if CHUNK_SIZE//2 == tile.row and CHUNK_SIZE//2 + 1== tile.col:
-                self.game.camp = Camp(self.game, *tile.rect.topleft)
+                self.game.camp = Camp(self.game, *tile.rect.topleft, tile)
                 tile.objects.append(self.game.camp)
 
     def get_tile_type(self, row, col) -> type:

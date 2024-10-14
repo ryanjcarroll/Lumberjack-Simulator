@@ -132,9 +132,9 @@ class Game:
             }
         )
 
-        # # chunk data
-        # for chunk_id, chunk in self.map.chunks.items():
-        #     write_json(f"data/saves/{self.game_id}/chunks/{chunk_id}.json", chunk.to_json())
+        # chunk data
+        for chunk_id, chunk in self.map.chunks.items():
+            write_json(f"data/saves/{self.game_id}/chunks/{chunk_id}.json", chunk.to_json())
     
     def update(self):
         """

@@ -11,6 +11,7 @@ import json
 from objects.sprites import SpriteObject
 from objects.items.items import SkillPoint
 from objects.player.skills import SkillTree
+from map.tile import Tile
 
 class Player(SpriteObject):
     """
@@ -18,7 +19,13 @@ class Player(SpriteObject):
     """
     def __init__(self, game, x:int, y:int, loadout:dict):
         self.loadout = loadout
-        super().__init__(game, x, y, layer=SPRITE_LAYER, image=None)
+
+        # set Player's home tile at the center of the SpawnChunk
+        for tile in game.map.chunks["0,0"].tiles:
+            if CHUNK_SIZE//2 == tile.row and CHUNK_SIZE//2 + 1== tile.col:
+                break
+
+        super().__init__(game, x, y, tile, layer=SPRITE_LAYER, image=None)
 
         # set player attributes
         self.backpack = Backpack()
@@ -145,8 +152,6 @@ class Player(SpriteObject):
                 if self.collision_rect.colliderect(obj.collision_rect):
                     flag = True
             except TypeError as e:
-                print(self.collision_rect)
-                print(obj.collision_rect, type(obj))
                 raise(e)
         if flag:
             movement -= movement_x_only
