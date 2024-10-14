@@ -92,8 +92,14 @@ class SoundAssetManager:
             "bat_damage":[
                 self.load("sounds/bat/damage/385046__mortisblack__damage.ogg")
             ],
+            "bat_die":[
+                self.load("sounds/bat/die/712917__greyfeather__retro-mouse-sound.wav")
+            ],
             "player_damage":[
                 self.load("sounds/player/damage/404108__deathscyp__damage-2.wav")
+            ],
+            "player_dodge":[
+                self.load("sounds/player/dodge/585256__lesaucisson__swoosh-2.mp3")
             ]
         }
 

@@ -41,6 +41,7 @@ class Player(SpriteObject):
         self.axe_damage = PLAYER_ATTACK_DAMAGE
         self.fruit_hp = 10
         self.wood_per_tree = 1
+        self.dodge_chance = 0
 
         # initialize animation settings
         self.animation_timer = 0
@@ -287,7 +288,6 @@ class Player(SpriteObject):
         if self.action == "sword":
             for enemy in enemies_hit:
                 enemy.register_hit(PLAYER_ATTACK_DAMAGE) # hitting enemies with axe does 1 damage        
-                print(enemy.health)
 
     def set_animation_counters(self, dt):
         """
@@ -320,8 +320,11 @@ class Player(SpriteObject):
         self.game.health_bar.update()
 
     def register_hit(self, n):
-        self.modify_health(-n)
-        self.game.sounds.play_random("player_damage")
+        if random.random() > self.dodge_chance:
+            self.modify_health(-n)
+            self.game.sounds.play_random("player_damage")
+        else:
+            self.game.sounds.play_random("player_dodge")
 
     def update(self):
         """

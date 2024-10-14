@@ -28,15 +28,15 @@ class SkillTreeMenu:
         self.points_rect = self.points_surface.get_rect(topright=(WINDOW_WIDTH - 20, self.title_rect.bottom + 10))  # Right-justified
         
         # Draw tree labels
-        tree_1_label = "Tree 1"
+        tree_1_label = "Survival"
         self.tree_1_label_surface = self.subtitle_font.render(tree_1_label, True, (0, 0, 0))
         self.tree_1_label_rect = self.tree_1_label_surface.get_rect(center=(3*WINDOW_WIDTH // 19, self.points_rect.bottom + 30))
 
-        tree_2_label = "Tree 2"
+        tree_2_label = "Combat"
         self.tree_2_label_surface = self.subtitle_font.render(tree_2_label, True, (0, 0, 0))
         self.tree_2_label_rect = self.tree_2_label_surface.get_rect(center=(WINDOW_WIDTH // 2, self.points_rect.bottom + 30))
 
-        tree_3_label = "Tree 3"
+        tree_3_label = "Nature"
         self.tree_3_label_surface = self.subtitle_font.render(tree_3_label, True, (0, 0, 0))
         self.tree_3_label_rect = self.tree_3_label_surface.get_rect(center=(15*WINDOW_WIDTH // 19, self.points_rect.bottom + 30))
 

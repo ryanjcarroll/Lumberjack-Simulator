@@ -86,7 +86,7 @@ class Game:
             self.map.update()
             self.map_reload_timer = 0
         if self.health_tick_timer >= 15:
-            self.player.modify_health(-5)
+            # self.player.modify_health(-5) # removed since bats are now added
             self.health_tick_timer = 0
 
     def draw_layer_if(self, layer, condition=lambda x:True):

@@ -198,12 +198,6 @@ class Bat(SpriteObject):
             # apply self knockback
             self.apply_knockback()
 
-            # apply a slight player knockback
-            knockback_x = (self.pos.x - player_x) * 0.5  # Knockback towards the opposite direction
-            knockback_y = (self.pos.y - player_y) * 0.5
-            self.game.player.pos = vec(self.game.player.pos.x - knockback_x, self.game.player.pos.y - knockback_y)
-
-
     def register_hit(self, damage):
         """
         Take damage and/or start the death animation.
@@ -212,10 +206,10 @@ class Bat(SpriteObject):
         if self.health <= 0:
             self.current_frame_index = 0
             self.action = "die"
+            self.game.sounds.play_random("bat_die")
         else:
             self.apply_knockback()
-
-        self.game.sounds.play_random("bat_damage")
+            self.game.sounds.play_random("bat_damage")
 
     def apply_knockback(self):
         """
