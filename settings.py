@@ -1,6 +1,6 @@
 from pygame import Rect
 
-SKIP_MENU = True
+SKIP_MENU = False
 GOD_MODE = False
 
 # colors (RGB)
