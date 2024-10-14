@@ -2,6 +2,8 @@ from settings import *
 import threading
 from map.chunk import Chunk, SpawnChunk
 from pygame import Vector2 as vec
+from glob import glob
+import json
 
 class Map:
     def __init__(self, game):
@@ -35,6 +37,12 @@ class Map:
             self.chunks[chunk.id] = chunk
             self.currently_loading.remove(chunk.id)
 
+    # def load_chunk_from_file(self, chunk_id, path):
+    #     self.currently_loading.add(chunk_id)
+    #     with open(path) as f_in:
+    #         chunk_js = json.load(f_in)
+    #     self.chunks[chunk_id] = Chunk()
+
     def get_chunk_id(self, x, y):
         """
         Given a coordinate position, return the top left corner coordinates.
@@ -50,13 +58,13 @@ class Map:
         chunk_y = int((y // (CHUNK_SIZE * TILE_SIZE)) * (CHUNK_SIZE * TILE_SIZE))
         return chunk_x, chunk_y
 
-    def get_visible_chunks(self, player):
+    def get_visible_chunks(self, player, tile_buffer=0):
         """
         Get a list of chunks that are on screen, given the player position.
         """
         # visible chunks are defined as anything within 2 tiles of the viewport
         # to test chunk-loading, you can set this value to a negative number
-        buffer = TILE_SIZE*2
+        buffer = TILE_SIZE*tile_buffer
 
         # calculate the coords for opposite corners of the viewport (with an additional buffer area)
         screen_topleft = self.get_chunk_coords(player.pos.x - WINDOW_WIDTH//2 - buffer, player.pos.y - WINDOW_HEIGHT//2 - buffer)
