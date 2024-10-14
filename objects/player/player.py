@@ -6,6 +6,7 @@ from utility import *
 from objects.inventory import Backpack
 from objects.tree import Tree
 from objects.npcs.bat import Bat
+from objects.npcs.slime import Slime
 import json
 from objects.sprites import SpriteObject
 from objects.items.items import SkillPoint
@@ -39,9 +40,11 @@ class Player(SpriteObject):
         self.move_distance = PLAYER_MOVE_DISTANCE
         self.attack_distance = PLAYER_ATTACK_DISTANCE
         self.axe_damage = PLAYER_ATTACK_DAMAGE
-        self.fruit_hp = 10
+        self.burned_tree_axe_damage = PLAYER_ATTACK_DAMAGE
+        self.fruit_hp = 5
         self.wood_per_tree = 1
         self.dodge_chance = 0
+        self.crit_chance = 0
 
         # initialize animation settings
         self.animation_timer = 0
@@ -264,7 +267,8 @@ class Player(SpriteObject):
                     # Check for collision with the circular area of effect
                     if circle_collides(center, radius, obj.collision_rect):
                         trees_hit.add(obj)
-                elif isinstance(obj, Bat):
+            for obj in self.game.can_sword_list:
+                if isinstance(obj, Bat) or isinstance(obj, Slime):
                     # Check for collision with the circular area of effect
                     if circle_collides(center, radius, obj.rect):
                         enemies_hit.add(obj)
@@ -272,7 +276,10 @@ class Player(SpriteObject):
         # register tree hits with axe
         if self.action == "axe":
             for tree in trees_hit:
-                tree.register_hit(PLAYER_ATTACK_DAMAGE)
+                if "Burned" in tree.tree_type:
+                    tree.register_hit(self.burned_tree_axe_damage)
+                else:
+                    tree.register_hit(PLAYER_ATTACK_DAMAGE)
             # determine if any trees were felled
             for tree in trees_hit:
                 if tree.health <= 0:
@@ -287,7 +294,8 @@ class Player(SpriteObject):
         # register enemy hits
         if self.action == "sword":
             for enemy in enemies_hit:
-                enemy.register_hit(PLAYER_ATTACK_DAMAGE) # hitting enemies with axe does 1 damage        
+                damage = PLAYER_ATTACK_DAMAGE * 2 if random.random() < self.crit_chance else PLAYER_ATTACK_DAMAGE
+                enemy.register_hit(damage) # hitting enemies with axe does 1 damage        
 
     def set_animation_counters(self, dt):
         """

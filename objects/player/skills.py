@@ -63,10 +63,10 @@ class SkillTree:
 
         # Nodes of the left tree
         color = FOREST_GREEN
-        node_0 =  SkillNode(0, -3, "More HP From Apple Trees", color, points=2, func=lambda: setattr(self.game.player, 'fruit_hp', self.game.player.fruit_hp + 5))                      
-        node_1 =  SkillNode(1, -3, "Node 1", color)
+        node_0 =  SkillNode(0, -3, "More HP From Apple Trees", color, points=2, func=lambda: setattr(self.game.player, 'fruit_hp', self.game.player.fruit_hp + 2.5))                      
+        node_1 =  SkillNode(1, -3, "Arrow Toward Camp", color, func=lambda: setattr(self.game.compass, "active", True))
         node_2a = SkillNode(1, -4, "Faster Movespeed", color, points=3, func=lambda: setattr(self.game.player, 'move_distance', self.game.player.move_distance + 1)) 
-        node_2b = SkillNode(1, -2, "Node 2b", color) 
+        node_2b = SkillNode(1, -2, "Deal More Damage to Dead Trees", color, points=2, func=lambda: setattr(self.game.player, "burned_tree_axe_damage", self.game.player.burned_tree_axe_damage + 1)) 
         node_3a = SkillNode(2, -4, "Node 3a", color) 
         node_3b = SkillNode(2, -2, "Node 3b", color)
         node_4a = SkillNode(2, -3, "Node 4a", color)
@@ -77,7 +77,7 @@ class SkillTree:
         # Nodes of the center tree
         color = ORANGE
         node_7 =   SkillNode(0, 0, "+5% Dodge Chance", color, points=3, func=lambda: setattr(self.game.player, "dodge_chance", self.game.player.dodge_chance + .05))
-        node_8 =   SkillNode(1, 0, "Node 8", color)
+        node_8 =   SkillNode(1, 0, "+10% Crit Chance", color, points=3, func=lambda: setattr(self.game.player, "crit_chance",  self.game.player.crit_chance + .10))
         node_9a =  SkillNode(1, -1, "Node 9a", color)
         node_9b =  SkillNode(1, 1, "Node 9b", color)
         node_10a = SkillNode(2, -1, "Node 10a", color)

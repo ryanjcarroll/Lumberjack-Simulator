@@ -9,6 +9,7 @@ from objects.tree import *
 import opensimplex
 from objects.items.items import SkillPoint
 from objects.npcs.bat import Bat
+from objects.npcs.slime import Slime
 
 class Tile(ABC):
     def __init__(self, game, chunk, row, col, has_decor):
@@ -137,12 +138,11 @@ class Tile(ABC):
                         if try_pos.distance_to(obj.pos) <= buffer:
                             spawn = False
                             break
-
                     if spawn:
                         self.objects.append(Bat(self.game, *try_pos))                
                         break
-            # Spawn Skill Points
-            elif r > 0.98: # spawn an SkillPoint item on a small percentage of tiles which don't have a tree
+            # Spawn Slimes
+            elif r > 0.98:
                 neighbors = self.get_neighbors()
                 neighbor_objs = [obj for n_tile in neighbors for obj in n_tile.objects]
                 for i in range(spawn_attempts):
@@ -155,7 +155,23 @@ class Tile(ABC):
                         if try_pos.distance_to(obj.pos) <= buffer:
                             spawn = False
                             break
-
+                    if spawn:
+                        self.objects.append(Slime(self.game, *try_pos))                
+                        break
+            # Spawn Skill Points
+            elif r > 0.97: # spawn an SkillPoint item on a small percentage of tiles which don't have a tree
+                neighbors = self.get_neighbors()
+                neighbor_objs = [obj for n_tile in neighbors for obj in n_tile.objects]
+                for i in range(spawn_attempts):
+                    try_pos = vec(
+                        self.rect.topleft[0] + random.randrange(0,max_offset), 
+                        self.rect.topleft[1] + random.randrange(0,max_offset)
+                    )
+                    spawn = True
+                    for obj in [obj for obj in neighbor_objs if obj in self.game.can_collide_list]:
+                        if try_pos.distance_to(obj.pos) <= buffer:
+                            spawn = False
+                            break
                     if spawn:
                         self.objects.append(SkillPoint(self.game, *try_pos))                
                         break

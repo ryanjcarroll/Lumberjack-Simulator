@@ -36,7 +36,7 @@ class SkillTreeMenu:
         self.tree_2_label_surface = self.subtitle_font.render(tree_2_label, True, (0, 0, 0))
         self.tree_2_label_rect = self.tree_2_label_surface.get_rect(center=(WINDOW_WIDTH // 2, self.points_rect.bottom + 30))
 
-        tree_3_label = "Nature"
+        tree_3_label = "Other"
         self.tree_3_label_surface = self.subtitle_font.render(tree_3_label, True, (0, 0, 0))
         self.tree_3_label_rect = self.tree_3_label_surface.get_rect(center=(15*WINDOW_WIDTH // 19, self.points_rect.bottom + 30))
 

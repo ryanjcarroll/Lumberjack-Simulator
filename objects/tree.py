@@ -15,8 +15,6 @@ class Tree(SpriteObject):
 
         # settings for taking damage from axes
         self.health = TREE_HEALTH
-        if "Burned" in self.tree_type:
-            self.health = 1
         self.collision_rect = pg.Rect(
             0,
             0,

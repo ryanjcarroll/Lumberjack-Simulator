@@ -1,14 +1,14 @@
+from settings import *
+from pygame import Vector2 as vec
 import json
-from objects.sprites import SpriteObject
 import pygame as pg
 import math
+from objects.sprites import SpriteObject
 import random
-from pygame import Vector2 as vec
-from settings import *
 
-class Bat(SpriteObject):
+class Slime(SpriteObject):
     def __init__(self, game, x, y):
-        self.color = "purple"
+        self.color = "rainbow"
         self.width = 36
         self.height = 36
         self.frames = {}
@@ -17,7 +17,7 @@ class Bat(SpriteObject):
 
         # position and movement variables
         self.pos = vec(x,y)
-        self.move_distance = 3
+        self.move_distance = 2
         self.collision_rect = self.rect
         
         self.health = 4
@@ -38,7 +38,7 @@ class Bat(SpriteObject):
         # knockback variables
         self.knockback_direction = None
         self.knockback_timer = 0  # Duration for knockback
-        self.knockback_duration = 15  # Number of frames for knockback effect
+        self.knockback_duration = 50  # Number of frames for knockback effect
 
         self.game.can_sword_list.add(self)
 
@@ -48,7 +48,7 @@ class Bat(SpriteObject):
 
     def load_animations(self):       
         # load the spritesheet key to determine which rows go with which animations               
-        with open("assets/npcs/bat/spritesheet_key.json") as f_in:
+        with open("assets/npcs/slime/spritesheet_key.json") as f_in:
             row_key = json.load(f_in)
         
         for action, info in row_key.items():
@@ -59,7 +59,7 @@ class Bat(SpriteObject):
                 self.frames[action].append(
                     pg.transform.scale(
                         self.game.sprites.load_from_tilesheet(
-                            path=f"assets/npcs/bat/bat_{self.color}.png",
+                            path=f"assets/npcs/slime/slime_{self.color}.png",
                             row_index=info['row'],
                             col_index=col,
                             tile_size=16
@@ -67,7 +67,7 @@ class Bat(SpriteObject):
                         (self.width, self.height)
                     )
                 )
-
+    
     def set_animation_counters(self, dt):
         """
         Increment the animation counters if enough time has passed since the last update.
@@ -81,7 +81,7 @@ class Bat(SpriteObject):
                 self.animation_timer = 0
         elif self.action == "sleep":
             if self.animation_timer >= self.animation_speed:
-                self.current_frame_index = 0
+                self.current_frame_index = (self.current_frame_index + 1) % len(self.frames["sleep"])
                 self.animation_timer = 0
         elif self.action == "die":
             if self.animation_timer >= self.animation_speed:
@@ -96,98 +96,63 @@ class Bat(SpriteObject):
     def move(self):
         # Get the player's current position
         player_pos = vec(self.game.player.pos)
-        bat_pos = vec(self.pos)
+        slime_pos = vec(self.pos)
 
         # Post-knockback movement
         if self.knockback_timer > 0:
             if self.knockback_direction:
-                # Apply knockback distance
-                knockback_vec = vec(self.knockback_direction) * self.move_distance
-                bat_pos += knockback_vec
-                self.pos = vec(bat_pos.x, bat_pos.y)  # Update bat position
+                # Apply knockback distance (slower for slimes)
+                knockback_vec = vec(self.knockback_direction) * (self.move_distance * 0.5)
+                slime_pos += knockback_vec
+                self.pos = vec(slime_pos.x, slime_pos.y)  # Update slime position
             
             self.knockback_timer -= 1
-
-            # Set direction for animation purposes
-            if abs(self.knockback_direction[0]) > abs(self.knockback_direction[1]):
-                self.direction = "right" if self.knockback_direction[0] > 0 else "left"
-            else:
-                self.direction = "down" if self.knockback_direction[1] > 0 else "up"
 
             # Stop knockback if the timer has expired
             if self.knockback_timer <= 0:
                 self.knockback_direction = None
 
-        # Normal movement
+        # Normal movement (bouncing)
         else:
             # Calculate vector to the player
-            to_player = player_pos - bat_pos
+            to_player = player_pos - slime_pos
             distance_to_player = to_player.length()
 
-            # Set an aggression radius (how far the bat can detect the player)
-            aggression_radius = 300  # Bat starts moving towards player if within this range
+            # Set an aggression radius (how far the slime can detect the player)
+            aggression_radius = 300  # Slime starts moving towards player if within this range
 
             # Attack if near enough
             if distance_to_player < self.attack_distance:
-                # self.attack_timer += self.game.dt
-                # if self.attack_timer >= self.attack_cooldown:
                 self.attack_player(distance_to_player, player_pos.x, player_pos.y)
-                    # self.attack_timer = 0
 
             # Aggro if near enough
             elif distance_to_player < aggression_radius:
-                # if transitioning from sleep to walk, play wakeup sound
-                if self.action == "sleep":
-                    self.game.sounds.play_random("bat_wake")
-
-                # self.attack_timer = 0  # Reset the attack timer anytime the bat is no longer in attack range
                 self.action = "walk"
 
                 # Normalize the direction towards the player
                 to_player = to_player.normalize()
 
-                # Separation vector: Push away from nearby Bats
-                separation_vec = vec(0, 0)
-                clump_radius = 50  # Define how close other bats can get before they push away
-
-                for enemy in self.game.can_sword_list:
-                    if enemy != self:
-                        enemy_pos = vec(enemy.pos)
-                        to_enemy = bat_pos - enemy_pos
-                        distance_to_enemy = to_enemy.length()
-
-                        if distance_to_enemy < clump_radius:
-                            # Push away from the other bat
-                            separation_vec += to_enemy.normalize()
-
-                # Add randomness to the movement (sway) to make it less linear
-                sway = vec(random.uniform(-0.5, 0.5), random.uniform(-0.5, 0.5))
+                # Add randomness to the movement (sluggish sway for slimes)
+                sway = vec(random.uniform(-0.2, 0.2), random.uniform(-0.2, 0.2))
                 to_player += sway
 
-                # Add the separation vector to the movement direction
-                if separation_vec.length() > 0:
-                    to_player += separation_vec.normalize() * 0.5  # Weight the separation force
+                # Sinusoidal movement to create bounce effect
+                bounce_speed = abs(math.sin(pg.time.get_ticks() * 0.005))  # Oscillating speed
+                move_vec = to_player * self.move_distance * bounce_speed * 0.8  # Slime is slower
 
-                # Re-normalize direction after sway and separation
-                to_player = to_player.normalize()
-
-                # Implement acceleration: gradually increase speed the further the bat is from the player
-                speed_multiplier = min(distance_to_player / aggression_radius, 1.5)  # Max speed multiplier is 1.5
-                move_vec = to_player * self.move_distance * speed_multiplier
-
-                # Update bat's position
-                bat_pos += move_vec
-                self.pos = vec(bat_pos.x, bat_pos.y)
+                # Update slime's position
+                slime_pos += move_vec
+                self.pos = vec(slime_pos.x, slime_pos.y)
 
                 # Set direction for animation purposes
-                if abs(player_pos.x - bat_pos.x) > abs(player_pos.y - bat_pos.y):
-                    self.direction = "right" if player_pos.x > bat_pos.x else "left"
+                if abs(player_pos.x - slime_pos.x) > abs(player_pos.y - slime_pos.y):
+                    self.direction = "right" if player_pos.x > slime_pos.x else "left"
                 else:
-                    self.direction = "down" if player_pos.y > bat_pos.y else "up"
+                    self.direction = "down" if player_pos.y > slime_pos.y else "up"
 
             # Optional idle or patrol behavior if player is out of range
             else:
-                self.action = "sleep"  # Example: bat could sleep or wander
+                self.action = "sleep"  # Example: slime could stay put or wobble slightly
 
     def attack_player(self, distance, player_x, player_y):
         if distance < self.attack_distance:
@@ -205,22 +170,21 @@ class Bat(SpriteObject):
         if self.health <= 0:
             self.current_frame_index = 0
             self.action = "die"
-            self.game.sounds.play_random("bat_die")
         else:
             self.apply_knockback()
-            self.game.sounds.play_random("bat_damage")
+        self.game.sounds.play_random("slime")
 
     def apply_knockback(self):
         """
-        Push the bat away from the player slightly after a hit.
+        Push the slime away from the player slightly after a hit.
         """
         player_pos = self.game.player.pos
-        bat_x, bat_y = self.pos
+        slime_x, slime_y = self.pos
         player_x, player_y = player_pos
 
-        # Calculate the direction from player to bat (for knockback, reverse the vector)
-        diff_x = bat_x - player_x
-        diff_y = bat_y - player_y
+        # Calculate the direction from player to slime (for knockback, reverse the vector)
+        diff_x = slime_x - player_x
+        diff_y = slime_y - player_y
         distance = math.sqrt(diff_x ** 2 + diff_y ** 2)
 
         # Normalize the direction

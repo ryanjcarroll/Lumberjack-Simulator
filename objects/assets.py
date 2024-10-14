@@ -100,6 +100,10 @@ class SoundAssetManager:
             ],
             "player_dodge":[
                 self.load("sounds/player/dodge/585256__lesaucisson__swoosh-2.mp3")
+            ],
+            "slime":[
+                self.load("sounds/slime/340794__kuchenanderung1__slime-squish.wav"),
+                self.load("sounds/slime/353250__zuzek06__slimejump.wav")
             ]
         }
 
