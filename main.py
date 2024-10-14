@@ -15,7 +15,13 @@ from menus.game_over import GameOverMenu
 from menus.skill_tree import SkillTreeMenu
 from objects.assets import SpriteAssetManager, SoundAssetManager
 from objects.npcs.bat import Bat
+import uuid
+from utility import write_json
+import opensimplex
+import random
+import json
 pg.init()
+
 
 class Game:
     def __init__(self):
@@ -26,6 +32,9 @@ class Game:
         self.screen = pg.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         pg.display.set_caption(TITLE)
 
+        self.game_id = str(uuid.uuid4())
+        self.seed = random.randint(0,100000)
+        opensimplex.seed(self.seed)
 
         # initialize the timers and event scheduling variables
         self.clock = pg.time.Clock()
@@ -67,6 +76,31 @@ class Game:
         self.camp_inventory_menu = CampInventoryMenu(self)
         self.health_bar = HealthBar(self)
         self.weapon_menu = WeaponMenu(self)
+
+        self.save()
+
+    def save(self):
+        """
+        Save the current Game data to disk.
+        """
+        # game data
+        write_json(f"data/saves/{self.game_id}/game.json",
+            {
+                "game_id":self.game_id,
+                "seed":self.seed
+            }
+        )
+
+        # player data
+        write_json(f"data/saves/{self.game_id}/player.json",
+            {
+                "player":None,
+            }
+        )
+
+        # chunk data
+        for chunk_id, chunk in self.map.chunks.items():
+            write_json(f"data/saves/{self.game_id}/chunks/{chunk_id}.json", chunk.to_json())
     
     def update(self):
         """
@@ -95,7 +129,7 @@ class Game:
         If a condition is passed, only draw objects if the tile meets that condition.
         """
         tiles = []
-        for chunk_id in self.map.get_visible_chunks(self.player):
+        for chunk_id in self.map.get_visible_chunks(self.player, tile_buffer=0):
             with self.map.lock:
                 if chunk_id in self.map.chunks:
                     chunk = self.map.chunks[chunk_id]

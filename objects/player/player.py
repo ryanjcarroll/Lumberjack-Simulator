@@ -173,6 +173,7 @@ class Player(SpriteObject):
             if self.collision_rect.colliderect(self.game.camp.rect):
                 self.backpack.unpack(self.game.camp)
                 self.game.sounds.play("unpack",0)
+                self.game.save()
             self.collision_rect.center -= movement
 
     def check_can_collect(self):        
@@ -411,3 +412,9 @@ class Player(SpriteObject):
         self.current_frame_index = 0
         self.update()
         self.game.game_over_menu.draw(self.game.screen)
+
+    def to_json(self):
+        return {
+            "type":type(self).__name__,
+
+        }

@@ -41,7 +41,6 @@ class SpriteObject(pg.sprite.Sprite):
         if can_collect:
             self.game.can_collect_list.add(self)
         
-
     def load_image(self) -> pg.image:
         # overwrite this method to implement custom image loading in a class
         pass
@@ -59,7 +58,11 @@ class SpriteObject(pg.sprite.Sprite):
 
     def to_json(self):
         return {
+            "type":type(self).__name__,
             "topleft":(self.x, self.y),
-            "img_path":self.img_path,
-            "resize":self.img_resize,
+            "layer":self.layer,
+            # "image":self.image,
+            # "can_collide":self.can_collide,
+            # "can_hit":self.can_hit,
+            # "is_building":self.is_building
         }
