@@ -18,12 +18,13 @@ class Backpack:
         self.wood = 0
 
 class Camp(SpriteObject):
-    def __init__(self, game, x ,y):
+    def __init__(self, game, x, y, tile):
         self.game = game        
         super().__init__(
             game=game,
             x=x,
             y=y,
+            tile=tile,
             layer=SPRITE_LAYER,
             can_collide=True
         )

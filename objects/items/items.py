@@ -3,21 +3,22 @@ from settings import *
 from objects.sprites import SpriteObject
 
 class Item(SpriteObject):
-    def __init__(self, game, x, y):
+    def __init__(self, game, x, y, tile):
 
         super().__init__(
             game, 
             x, 
             y, 
+            tile,
             layer=SPRITE_LAYER, 
             image=None,
             can_collect=True
         )
 
 class SkillPoint(Item):
-    def __init__(self, game, x, y):
+    def __init__(self, game, x, y, tile):
 
-        super().__init__(game, x, y)
+        super().__init__(game, x, y, tile)
 
     def load_image(self):
         return pg.transform.scale(

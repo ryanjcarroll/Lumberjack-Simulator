@@ -5,15 +5,15 @@ from pygame import Vector2 as vec
 
 class Map:
     def __init__(self, game):
-        # store chunks in a dictionary
-        self.chunks = {}
-        self.currently_generating = set()
         self.game = game
+        
+        self.chunks = {} # store chunks in a dictionary
+        self.currently_loading = set() # track chunk_ids that are currently loading so we don't try to double-load them
         self.lock = threading.Lock() # to prevent two threads (or thread and main) from trying to modify self.chunks at the same time
 
     def new(self):
         # generate the starting chunk with the top left corner at (0,0)
-        self.generate_chunk(0,0, type=SpawnChunk)
+        self.load_chunk(0,0, type=SpawnChunk)
 
     def update(self):
         """
@@ -23,16 +23,17 @@ class Map:
         for chunk_id in self.get_visible_chunks(self.game.player):
             with self.lock:
                 chunk_x, chunk_y = tuple(int(val) for val in chunk_id.split(","))
-                if chunk_id not in self.chunks and chunk_id not in self.currently_generating:
-                    generate_thread = threading.Thread(target=self.generate_chunk, args=(chunk_x, chunk_y))
+                # load (from save) or build (from new) the chunk if not currently in memory
+                if chunk_id not in self.chunks and chunk_id not in self.currently_loading:
+                    generate_thread = threading.Thread(target=self.load_chunk, args=(chunk_x, chunk_y))
                     generate_thread.start()
 
-    def generate_chunk(self, x, y, type=Chunk):
-        self.currently_generating.add(f"{x},{y}")
-        chunk = type(self.game, x,y)
+    def load_chunk(self, x, y, type=Chunk):
+        self.currently_loading.add(f"{x},{y}")
+        chunk = type(self.game, x, y)
         with self.lock: # prevent race condition
             self.chunks[chunk.id] = chunk
-            self.currently_generating.remove(chunk.id)
+            self.currently_loading.remove(chunk.id)
 
     def get_chunk_id(self, x, y):
         """

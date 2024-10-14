@@ -7,13 +7,13 @@ from objects.sprites import SpriteObject
 import random
 
 class Slime(SpriteObject):
-    def __init__(self, game, x, y):
+    def __init__(self, game, x, y, tile):
         self.color = "rainbow"
         self.width = 36
         self.height = 36
         self.frames = {}
 
-        super().__init__(game, x, y, layer=SPRITE_LAYER, image=None)
+        super().__init__(game, x, y, tile, layer=SPRITE_LAYER, image=None)
 
         # position and movement variables
         self.pos = vec(x,y)

@@ -15,38 +15,45 @@ from menus.game_over import GameOverMenu
 from menus.skill_tree import SkillTreeMenu
 from objects.assets import SpriteAssetManager, SoundAssetManager
 from objects.npcs.bat import Bat
+import uuid
+import os
+from utility import write_json
+import opensimplex
+import random
+import json
 pg.init()
 
 class Game:
     def __init__(self):
         """
-        Initializ e game object and settings.
+        Initialize window and menu settings.
         """
         pg.init()
         self.screen = pg.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         pg.display.set_caption(TITLE)
 
-
-        # initialize the timers and event scheduling variables
-        self.clock = pg.time.Clock()
-        self.dt = 0
-        self.map_reload_timer = 0
-        self.health_tick_timer = 0
- 
-        # sprite asset manager
         self.sprites = SpriteAssetManager()  
         self.sounds = SoundAssetManager()
 
+        self.game_id = None
         self.playing = False
         self.at_loadout_menu = False
         self.at_start_menu = False
         self.at_game_over = False
         self.at_skilltree_menu = False
 
-    def new(self, loadout:dict):
+    def start_game(self):
         """
-        Create a new game by initializing sprite lists and loading game objects based on the mapfile.
+        Initialize game objects and settings.
+        If a game with this ID exists in the save data, load it.
+        If not, create a new game from scratch.
         """
+        # initialize the timers and event scheduling variables
+        self.clock = pg.time.Clock()
+        self.dt = 0
+        self.map_reload_timer = 0
+        self.health_tick_timer = 0
+
         # initialize sprite lists and the map 
         # IMPORTANT: Map must go after sprite lists because it creates sprites
         self.sprite_list = pg.sprite.Group() # all sprites to render go in this list
@@ -54,19 +61,78 @@ class Game:
         self.can_collect_list = pg.sprite.Group() # objects the player can collect by colliding with, but should not stop movement
         self.can_axe_list = pg.sprite.Group() # objects the player can hit with their axe
         self.can_sword_list = pg.sprite.Group() # objects the player can hit with their sword
-        self.map = Map(self)
-        self.map.new()
-        self.compass = Compass(self)
-
-        # initialize necessary game objects and variables
-        self.player = Player(self, (CHUNK_SIZE*TILE_SIZE)//2, (CHUNK_SIZE*TILE_SIZE)//2, loadout)
+        
+        # initialize input-agnostic game objects
         self.camera = Camera(WINDOW_WIDTH, WINDOW_HEIGHT)
         self.backpack = Backpack()
 
+        # Load from Save
+        if self.game_id:
+            if os.path.exists(f"data/saves/{self.game_id}"):
+
+                with open(f"data/saves/{self.game_id}/game.json", "r") as f:
+                    game_data = json.load(f)
+                    self.seed = game_data.get("seed")
+                    opensimplex.seed(self.seed)
+
+                # build map
+                self.map = Map(self)
+                self.map.new()
+
+                # initialize necessary game objects and variables
+                with open(f"data/saves/{self.game_id}/player.json", "r") as f:
+                    player_data = json.load(f)
+                    saved_loadout = player_data.get("loadout")
+                    self.player = Player(self, (CHUNK_SIZE*TILE_SIZE)//2, (CHUNK_SIZE*TILE_SIZE)//2, saved_loadout)
+
+        # Start New Game
+        else:
+            # set game variables
+            self.game_id = str(uuid.uuid4())
+            self.seed = random.randint(0,100000)
+            opensimplex.seed(self.seed)
+
+            loadout = self.loadout_screen()
+
+            # build map
+            self.map = Map(self)
+            self.map.new()
+
+            # initialize Player and Player-dependent game objects after loadout is selected
+            self.player = Player(self, (CHUNK_SIZE*TILE_SIZE)//2, (CHUNK_SIZE*TILE_SIZE)//2, loadout)
+        
         self.backpack_inventory_menu = BackpackInventoryMenu(self)
         self.camp_inventory_menu = CampInventoryMenu(self)
         self.health_bar = HealthBar(self)
         self.weapon_menu = WeaponMenu(self)
+        self.compass = Compass(self)
+
+        # move on from the start menu
+        self.at_start_menu = False
+        self.playing = True
+
+    def save(self):
+        """
+        Save the current Game data to disk.
+        """
+        # game data
+        write_json(f"data/saves/{self.game_id}/game.json",
+            {
+                "game_id":self.game_id,
+                "seed":self.seed
+            }
+        )
+
+        # player data
+        write_json(f"data/saves/{self.game_id}/player.json",
+            {
+                "loadout":self.player.loadout,
+            }
+        )
+
+        # chunk data
+        for chunk_id, chunk in self.map.chunks.items():
+            write_json(f"data/saves/{self.game_id}/chunks/{chunk_id}.json", chunk.to_json())
     
     def update(self):
         """
@@ -180,7 +246,7 @@ class Game:
             self.events()
             self.start_menu.update()
             self.start_menu.draw()
-        self.at_start_menu = False
+        self.start_game()
 
     def loadout_screen(self):
         """
@@ -192,10 +258,7 @@ class Game:
             self.events()
             self.loadout_menu.update(pg.mouse.get_pos())
             self.loadout_menu.draw()
-        # afterwards, start the gameplay loop
-        self.at_loadout_menu = False
-        self.new(self.loadout_menu.get_loadout())
-        self.run()
+        return self.loadout_menu.get_loadout()
 
     def skilltree_screen(self):
         """
@@ -233,10 +296,5 @@ game = Game()
 menu_loop = True
 # loop multiple games in a row if necessary
 while menu_loop:
-    if SKIP_MENU:
-        loadout = {'body': {'category': 'body1', 'style': 0}, 'hair': {'category': 'bob ', 'style': 0}, 'face': {'category': 'eyes', 'style': 0}, 'shirt': {'category': 'basic', 'style': 0}, 'pants': {'category': 'pants', 'style': 0}, 'accessories': {'category': 'beard', 'style': 0}}
-    else:
-        game.start_screen()
-        loadout = game.loadout_screen()
-    game.new(loadout)
+    game.start_screen()
     game.run()

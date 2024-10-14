@@ -7,11 +7,11 @@ import random
 from objects.sprites import SpriteObject
 
 class Tree(SpriteObject):
-    def __init__(self, game, x, y):
+    def __init__(self, game, x, y, tile):
 
         self.tree_spawn_weights = self.get_spawn_weights()
 
-        super().__init__(game, x, y, layer=SPRITE_LAYER, image=None, can_collide=True, can_hit=True)
+        super().__init__(game, x, y, tile=tile, layer=SPRITE_LAYER, image=None, can_collide=True, can_hit=True)
 
         # settings for taking damage from axes
         self.health = TREE_HEALTH
@@ -148,8 +148,8 @@ class Tree(SpriteObject):
             self.shaking = True
 
 class IceTree(Tree):
-    def __init__(self, game, x, y):
-        super().__init__(game, x, y)
+    def __init__(self, game, x, y, tile):
+        super().__init__(game, x, y, tile)
 
     def get_spawn_weights(self) -> dict:
         return {
@@ -165,8 +165,8 @@ class IceTree(Tree):
         }
 
 class AutumnTree(Tree):
-    def __init__(self, game, x, y):
-        super().__init__(game, x, y)
+    def __init__(self, game, x, y, tile):
+        super().__init__(game, x, y, tile)
 
     def get_spawn_weights(self) -> dict:
         return {
@@ -185,8 +185,8 @@ class AutumnTree(Tree):
         }
       
 class MangroveTree(Tree):
-    def __init__(self, game, x, y):
-        super().__init__(game, x, y)
+    def __init__(self, game, x, y, tile):
+        super().__init__(game, x, y, tile)
 
     def get_spawn_weights(self) -> dict:     
         return {
