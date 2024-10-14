@@ -4,6 +4,7 @@ from objects.inventory import Camp
 import opensimplex
 import os
 import json
+from utility import write_json
 
 class Chunk:
     def __init__(self, game, x, y):
@@ -21,26 +22,11 @@ class Chunk:
                 for tiledata in chunk_data['tiles']:
                     tile_type = globals()[tiledata['type']]
                     tile = tile_type(self.game, self, *tiledata["position"])
-                    tile.load_objects(tiledata['objects'])
+                    tile.load_objects(objects=tiledata['objects'])
                     self.tiles.append(tile)
         # Build New Chunk
         else:
             self.render_tiles()
-
-    @classmethod
-    def from_json(cls, game, data):
-        
-        x, y = data['position']
-
-        chunk = cls(game, x, y, load_tiles=False)
-        chunk.tiles = []
-
-        for tile_data in data['tiles']:
-            tile_type = globals()[tile_data['type']]
-            tile = tile_type.from_json(game=game, chunk=chunk, data=tile_data)
-            chunk.tiles.append(tile)
-
-        return chunk
 
     def render_tiles(self):
         # fill the chunk with Tiles
@@ -74,7 +60,12 @@ class Chunk:
         return tile_type
 
     def save(self):
-        pass
+        write_json(f"data/saves/{self.game.game_id}/chunks/{self.id}.json", self.to_json())
+
+    def unload(self):
+        for tile in self.tiles:
+            tile.unload()
+        self.tiles = []
 
     def to_json(self):
         return {

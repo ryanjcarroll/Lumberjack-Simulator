@@ -78,6 +78,11 @@ class StartMenu:
             if folder_path:  # If the user didn't cancel the dialog
                 self.game.game_id = os.path.basename(folder_path) # Load the game from id
         
-            self.continue_text = self.font.render(f"Loading...", True, BLACK)
-            self.continue_text_x = self.continue_button.centerx - self.continue_text.get_width() // 2
-            self.continue_text_y = self.continue_button.centery - self.continue_text.get_height() // 2    
+                self.continue_text = self.font.render(f"Loading...", True, BLACK)
+                self.continue_text_x = self.continue_button.centerx - self.continue_text.get_width() // 2
+                self.continue_text_y = self.continue_button.centery - self.continue_text.get_height() // 2
+
+            else:
+                self.continue_text = self.font.render(f"Continue", True, BLACK)
+                self.continue_text_x = self.continue_button.centerx - self.continue_text.get_width() // 2  # Center the text horizontally within the rectangle
+                self.continue_text_y = self.continue_button.centery - self.continue_text.get_height() // 2  # Center the text vertically within the rectangle

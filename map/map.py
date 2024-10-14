@@ -22,7 +22,8 @@ class Map:
         Check if new chunks need to be generated based on the player's position.
         """
         # Generate new chunks as soon as they come into view
-        for chunk_id in self.get_visible_chunks(self.game.player):
+        visible_chunks = self.get_visible_chunks()
+        for chunk_id in visible_chunks:
             with self.lock:
                 chunk_x, chunk_y = tuple(int(val) for val in chunk_id.split(","))
                 # load (from save) or build (from new) the chunk if not currently in memory
@@ -30,18 +31,22 @@ class Map:
                     generate_thread = threading.Thread(target=self.load_chunk, args=(chunk_x, chunk_y))
                     generate_thread.start()
 
+        chunks_to_unload = [chunk_id for chunk_id in self.chunks if chunk_id not in visible_chunks]
+        for chunk_to_unload in chunks_to_unload:
+            self.unload_chunk(chunk_to_unload)
+
+        print(self.chunks.keys())
+
+    def unload_chunk(self, chunk_id):
+        self.chunks[chunk_id].unload()
+        del self.chunks[chunk_id]
+
     def load_chunk(self, x, y, type=Chunk):
         self.currently_loading.add(f"{x},{y}")
         chunk = type(self.game, x, y)
         with self.lock: # prevent race condition
             self.chunks[chunk.id] = chunk
             self.currently_loading.remove(chunk.id)
-
-    # def load_chunk_from_file(self, chunk_id, path):
-    #     self.currently_loading.add(chunk_id)
-    #     with open(path) as f_in:
-    #         chunk_js = json.load(f_in)
-    #     self.chunks[chunk_id] = Chunk()
 
     def get_chunk_id(self, x, y):
         """
@@ -58,17 +63,18 @@ class Map:
         chunk_y = int((y // (CHUNK_SIZE * TILE_SIZE)) * (CHUNK_SIZE * TILE_SIZE))
         return chunk_x, chunk_y
 
-    def get_visible_chunks(self, player, tile_buffer=0):
+    def get_visible_chunks(self):
         """
         Get a list of chunks that are on screen, given the player position.
+
+        buffer given in pixels
         """
         # visible chunks are defined as anything within 2 tiles of the viewport
         # to test chunk-loading, you can set this value to a negative number
-        buffer = TILE_SIZE*tile_buffer
 
         # calculate the coords for opposite corners of the viewport (with an additional buffer area)
-        screen_topleft = self.get_chunk_coords(player.pos.x - WINDOW_WIDTH//2 - buffer, player.pos.y - WINDOW_HEIGHT//2 - buffer)
-        screen_botright = self.get_chunk_coords(player.pos.x + WINDOW_WIDTH//2 + buffer, player.pos.y + WINDOW_HEIGHT//2 + buffer)
+        screen_topleft = self.get_chunk_coords(self.game.player.pos.x - WINDOW_WIDTH//2, self.game.player.pos.y - WINDOW_HEIGHT//2)
+        screen_botright = self.get_chunk_coords(self.game.player.pos.x + WINDOW_WIDTH//2, self.game.player.pos.y + WINDOW_HEIGHT//2)
 
         # calculate the chunk coords for those same corners
         topleft_chunk = vec(self.get_chunk_coords(*screen_topleft))

@@ -11,6 +11,7 @@ from objects.items.items import SkillPoint
 from objects.npcs.bat import Bat
 from objects.npcs.slime import Slime
 from objects.inventory import Camp
+from objects.player.player import Player
 
 class Tile(ABC):
     def __init__(self, game, chunk, row, col, load_decor=False):
@@ -298,6 +299,16 @@ class Tile(ABC):
         #     if obj.alive() and obj.render_layer == layer:
         #         obj.draw(screen, camera)
 
+    def unload(self):
+        for object in self.objects:
+            if isinstance(object, Player) or isinstance(object, Camp):
+                continue
+            else:
+                object.kill()
+
+        for decor in self.decor:
+            decor.kill()
+
     def to_json(self):
         return {
             "type":type(self).__name__,
@@ -399,7 +410,8 @@ class WaterTile(Tile):
         # dont load decor on water tiles
         pass
 
-    def load_objects(self):
+    def load_objects(self, objects=None):
+        # load water
         self.objects.append(SpriteObject(
             game=self.game,
             x=self.x,

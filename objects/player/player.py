@@ -11,7 +11,6 @@ import json
 from objects.sprites import SpriteObject
 from objects.items.items import SkillPoint
 from objects.player.skills import SkillTree
-from map.tile import Tile
 
 class Player(SpriteObject):
     """

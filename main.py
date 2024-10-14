@@ -134,8 +134,8 @@ class Game:
 
         # chunk data
         for chunk_id, chunk in self.map.chunks.items():
-            write_json(f"data/saves/{self.game_id}/chunks/{chunk_id}.json", chunk.to_json())
-    
+            chunk.save()
+            
     def update(self):
         """
         Update sprites and camera.
@@ -183,7 +183,7 @@ class Game:
         self.screen.fill(BG_COLOR)
 
         # draw tiles if they are visible on screen
-        for chunk_id in self.map.get_visible_chunks(self.player):
+        for chunk_id in self.map.get_visible_chunks():
             if chunk_id in self.map.chunks: 
                 for tile in self.map.chunks[chunk_id].tiles:
                     if self.camera.is_visible(tile):
