@@ -14,6 +14,7 @@ from menus.loadout import LoadoutMenu
 from menus.game_over import GameOverMenu
 from menus.skill_tree import SkillTreeMenu
 from objects.assets import SpriteAssetManager, SoundAssetManager
+from objects.npcs.bat import Bat
 pg.init()
 
 class Game:
@@ -31,7 +32,7 @@ class Game:
         self.dt = 0
         self.map_reload_timer = 0
         self.health_tick_timer = 0
-
+ 
         # sprite asset manager
         self.sprites = SpriteAssetManager()  
         self.sounds = SoundAssetManager()
@@ -49,10 +50,10 @@ class Game:
         # initialize sprite lists and the map 
         # IMPORTANT: Map must go after sprite lists because it creates sprites
         self.sprite_list = pg.sprite.Group() # all sprites to render go in this list
-        self.character_list = pg.sprite.Group()
         self.can_collide_list = pg.sprite.Group() # objects the player can collide with, stopping movement
         self.can_collect_list = pg.sprite.Group() # objects the player can collect by colliding with, but should not stop movement
         self.can_axe_list = pg.sprite.Group() # objects the player can hit with their axe
+        self.can_sword_list = pg.sprite.Group() # objects the player can hit with their sword
         self.map = Map(self)
         self.map.new()
         self.compass = Compass(self)
@@ -232,7 +233,7 @@ game = Game()
 menu_loop = True
 # loop multiple games in a row if necessary
 while menu_loop:
-    if DEBUG_MODE:
+    if SKIP_MENU:
         loadout = {'body': {'category': 'body1', 'style': 0}, 'hair': {'category': 'bob ', 'style': 0}, 'face': {'category': 'eyes', 'style': 0}, 'shirt': {'category': 'basic', 'style': 0}, 'pants': {'category': 'pants', 'style': 0}, 'accessories': {'category': 'beard', 'style': 0}}
     else:
         game.start_screen()

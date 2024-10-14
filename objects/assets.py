@@ -79,6 +79,21 @@ class SoundAssetManager:
             ],
             "skillpoint":[
                 self.load("sounds/misc/186719__andromadax24__chime_01.wav")
+            ],
+            "bat_wake":[
+                self.load("sounds/bat/wake/batsound-001.wav"),
+                self.load("sounds/bat/wake/batsound-002.wav"),
+                self.load("sounds/bat/wake/batsound-003.wav"),
+                self.load("sounds/bat/wake/batsound-004.wav"),
+                self.load("sounds/bat/wake/batsound-005.wav"),
+                self.load("sounds/bat/wake/batsound-006.wav"),
+                self.load("sounds/bat/wake/batsound-007.wav")
+            ],
+            "bat_damage":[
+                self.load("sounds/bat/damage/385046__mortisblack__damage.ogg")
+            ],
+            "player_damage":[
+                self.load("sounds/player/damage/404108__deathscyp__damage-2.wav")
             ]
         }
 
