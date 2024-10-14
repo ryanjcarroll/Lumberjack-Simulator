@@ -50,7 +50,6 @@ class Player(SpriteObject):
         self.animation_speed = PLAYER_ANIMATION_SPEED
         
         self.rect = self.image.get_rect(center=self.pos + self.sprite_offset)
-        self.game.character_list.add(self)
 
     def load_image(self):
         self.load_animations(self.loadout)
@@ -233,7 +232,8 @@ class Player(SpriteObject):
         attack_circles = []
 
         # Create circles based on angles
-        for angle in [self.angle - 45, self.angle, self.angle + 45]:
+        # for angle in [self.angle - 45, self.angle, self.angle + 45]:
+        for angle in [self.angle]:
             # Calculate the center position of the attack circle
             attack_center = (
                 self.pos[0] + self.attack_distance * math.cos(math.radians(angle)),
@@ -318,6 +318,10 @@ class Player(SpriteObject):
     def modify_health(self, n):
         self.health = min(self.health + n, self.max_health)
         self.game.health_bar.update()
+
+    def register_hit(self, n):
+        self.modify_health(-n)
+        self.game.sounds.play_random("player_damage")
 
     def update(self):
         """

@@ -50,7 +50,6 @@ class Game:
         # initialize sprite lists and the map 
         # IMPORTANT: Map must go after sprite lists because it creates sprites
         self.sprite_list = pg.sprite.Group() # all sprites to render go in this list
-        self.character_list = pg.sprite.Group()
         self.can_collide_list = pg.sprite.Group() # objects the player can collide with, stopping movement
         self.can_collect_list = pg.sprite.Group() # objects the player can collect by colliding with, but should not stop movement
         self.can_axe_list = pg.sprite.Group() # objects the player can hit with their axe
@@ -63,8 +62,6 @@ class Game:
         self.player = Player(self, (CHUNK_SIZE*TILE_SIZE)//2, (CHUNK_SIZE*TILE_SIZE)//2, loadout)
         self.camera = Camera(WINDOW_WIDTH, WINDOW_HEIGHT)
         self.backpack = Backpack()
-
-        Bat(self, (CHUNK_SIZE*TILE_SIZE)//2, (CHUNK_SIZE*TILE_SIZE)//2)
 
         self.backpack_inventory_menu = BackpackInventoryMenu(self)
         self.camp_inventory_menu = CampInventoryMenu(self)
@@ -236,7 +233,7 @@ game = Game()
 menu_loop = True
 # loop multiple games in a row if necessary
 while menu_loop:
-    if DEBUG_MODE:
+    if SKIP_MENU:
         loadout = {'body': {'category': 'body1', 'style': 0}, 'hair': {'category': 'bob ', 'style': 0}, 'face': {'category': 'eyes', 'style': 0}, 'shirt': {'category': 'basic', 'style': 0}, 'pants': {'category': 'pants', 'style': 0}, 'accessories': {'category': 'beard', 'style': 0}}
     else:
         game.start_screen()

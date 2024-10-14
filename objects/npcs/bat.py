@@ -3,6 +3,7 @@ from objects.sprites import SpriteObject
 import pygame as pg
 import math
 import random
+from pygame import Vector2 as vec
 from settings import *
 
 class Bat(SpriteObject):
@@ -14,9 +15,8 @@ class Bat(SpriteObject):
 
         super().__init__(game, x, y, layer=SPRITE_LAYER, image=None)
 
-
         # position and movement variables
-        self.pos = (x,y)
+        self.pos = vec(x,y)
         self.move_distance = 3
         self.collision_rect = self.rect
         
@@ -25,9 +25,15 @@ class Bat(SpriteObject):
         # animation variables
         self.animation_timer = 0
         self.current_frame_index = -1
-        self.action = "walk"
+        self.action = "sleep"
         self.direction = "down"
         self.animation_speed = PLAYER_ANIMATION_SPEED
+
+        # attack variables
+        self.attack_distance = PLAYER_ATTACK_DISTANCE // 2
+        self.attack_damage = 10
+        self.attack_timer = 0
+        self.attack_cooldown = 0 # number of seconds to wait before attacking
 
         # knockback variables
         self.knockback_direction = None
@@ -90,71 +96,113 @@ class Bat(SpriteObject):
 
     def move(self):
         # Get the player's current position
-        player_pos = self.game.player.pos
-        bat_x, bat_y = self.pos
-        player_x, player_y = player_pos
+        player_pos = vec(self.game.player.pos)
+        bat_pos = vec(self.pos)
 
         # Post-knockback movement
         if self.knockback_timer > 0:
             if self.knockback_direction:
                 # Apply knockback distance
-                move_distance = self.move_distance
-                self.pos = (
-                    bat_x + self.knockback_direction[0] * move_distance,
-                    bat_y + self.knockback_direction[1] * move_distance
-                )
+                knockback_vec = vec(self.knockback_direction) * self.move_distance
+                bat_pos += knockback_vec
+                self.pos = vec(bat_pos.x, bat_pos.y)  # Update bat position
+            
             self.knockback_timer -= 1
+
+            # Set direction for animation purposes
+            if abs(self.knockback_direction[0]) > abs(self.knockback_direction[1]):
+                self.direction = "right" if self.knockback_direction[0] > 0 else "left"
+            else:
+                self.direction = "down" if self.knockback_direction[1] > 0 else "up"
 
             # Stop knockback if the timer has expired
             if self.knockback_timer <= 0:
                 self.knockback_direction = None
-        
+
         # Normal movement
         else:
-            # Calculate distance to player
-            diff_x = player_x - bat_x
-            diff_y = player_y - bat_y
-            distance = math.sqrt(diff_x ** 2 + diff_y ** 2)
+            # Calculate vector to the player
+            to_player = player_pos - bat_pos
+            distance_to_player = to_player.length()
 
             # Set an aggression radius (how far the bat can detect the player)
             aggression_radius = 300  # Bat starts moving towards player if within this range
-            stop_radius = 50         # Bat slows down/stops when it's very close to player
 
-            if distance < aggression_radius:
-                if distance > stop_radius:
-                    self.action = "walk"
-                    # Normalize the direction towards the player
-                    dir_x = diff_x / distance
-                    dir_y = diff_y / distance
+            # Attack if near enough
+            if distance_to_player < self.attack_distance:
+                # self.attack_timer += self.game.dt
+                # if self.attack_timer >= self.attack_cooldown:
+                self.attack_player(distance_to_player, player_pos.x, player_pos.y)
+                    # self.attack_timer = 0
 
-                    # Add some randomness to the movement to make it less linear
-                    sway = random.uniform(-0.5, 0.5)
-                    dir_x += sway * 0.1  # Random swaying to the left or right
-                    dir_y += sway * 0.1
+            # Aggro if near enough
+            elif distance_to_player < aggression_radius:
+                # if transitioning from sleep to walk, play wakeup sound
+                if self.action == "sleep":
+                    self.game.sounds.play_random("bat_wake")
 
-                    # Normalize direction again after sway
-                    norm = math.sqrt(dir_x ** 2 + dir_y ** 2)
-                    dir_x /= norm
-                    dir_y /= norm
+                # self.attack_timer = 0  # Reset the attack timer anytime the bat is no longer in attack range
+                self.action = "walk"
 
-                    # Implement acceleration: gradually increase speed the further the bat is from the player
-                    speed_multiplier = min(distance / aggression_radius, 1.5)  # Max speed multiplier is 1.5
-                    move_distance = self.move_distance * speed_multiplier
+                # Normalize the direction towards the player
+                to_player = to_player.normalize()
 
-                    # Update bat's position
-                    self.pos = (bat_x + dir_x * move_distance, bat_y + dir_y * move_distance)
+                # Separation vector: Push away from nearby Bats
+                separation_vec = vec(0, 0)
+                clump_radius = 50  # Define how close other bats can get before they push away
 
-                    # Set direction for animation purposes
-                    if abs(diff_x) > abs(diff_y):
-                        self.direction = "right" if diff_x > 0 else "left"
-                    else:
-                        self.direction = "down" if diff_y > 0 else "up"
+                for enemy in self.game.can_sword_list:
+                    if enemy != self:
+                        enemy_pos = vec(enemy.pos)
+                        to_enemy = bat_pos - enemy_pos
+                        distance_to_enemy = to_enemy.length()
+
+                        if distance_to_enemy < clump_radius:
+                            # Push away from the other bat
+                            separation_vec += to_enemy.normalize()
+
+                # Add randomness to the movement (sway) to make it less linear
+                sway = vec(random.uniform(-0.5, 0.5), random.uniform(-0.5, 0.5))
+                to_player += sway
+
+                # Add the separation vector to the movement direction
+                if separation_vec.length() > 0:
+                    to_player += separation_vec.normalize() * 0.5  # Weight the separation force
+
+                # Re-normalize direction after sway and separation
+                to_player = to_player.normalize()
+
+                # Implement acceleration: gradually increase speed the further the bat is from the player
+                speed_multiplier = min(distance_to_player / aggression_radius, 1.5)  # Max speed multiplier is 1.5
+                move_vec = to_player * self.move_distance * speed_multiplier
+
+                # Update bat's position
+                bat_pos += move_vec
+                self.pos = vec(bat_pos.x, bat_pos.y)
+
+                # Set direction for animation purposes
+                if abs(player_pos.x - bat_pos.x) > abs(player_pos.y - bat_pos.y):
+                    self.direction = "right" if player_pos.x > bat_pos.x else "left"
                 else:
-                    # If the bat is very close to the player, it slows down
-                    self.pos = (bat_x, bat_y)  # Stops or hovers near player
+                    self.direction = "down" if player_pos.y > bat_pos.y else "up"
+
+            # Optional idle or patrol behavior if player is out of range
             else:
-                # Idle or patrol behavior if player is out of range (could add further logic here)
                 self.action = "sleep"  # Example: bat could sleep or wander
+
+    def attack_player(self, distance, player_x, player_y):
+        if distance < self.attack_distance:
+            # Damage the player
+            self.game.player.register_hit(self.attack_damage)
+            
+            # apply self knockback
+            self.apply_knockback()
+
+            # apply a slight player knockback
+            knockback_x = (self.pos.x - player_x) * 0.5  # Knockback towards the opposite direction
+            knockback_y = (self.pos.y - player_y) * 0.5
+            self.game.player.pos = vec(self.game.player.pos.x - knockback_x, self.game.player.pos.y - knockback_y)
+
 
     def register_hit(self, damage):
         """
@@ -166,6 +214,8 @@ class Bat(SpriteObject):
             self.action = "die"
         else:
             self.apply_knockback()
+
+        self.game.sounds.play_random("bat_damage")
 
     def apply_knockback(self):
         """
