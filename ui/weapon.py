@@ -19,8 +19,19 @@ class WeaponMenu:
         # Set up fonts
         self.font = pg.font.Font(None, 36)
 
-    def get_weapon(self):
-        return self.weapons[self.selected_weapon]
+    def get_weapon_name(self):
+        return self.weapons[self.get_weapon_index()]
+    
+    def get_weapon_index(self, name:str=None):
+        """
+        If no name is passed, return index of the currently equipped weapon.
+        """
+        if not name:
+            return self.selected_weapon
+        else:
+            for i, weapon in enumerate(self.weapons):
+                if weapon == name:
+                    return i
 
     def handle_keys(self, event):
         # Check for number key presses to switch between weapons

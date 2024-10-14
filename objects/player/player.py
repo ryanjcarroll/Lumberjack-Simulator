@@ -24,7 +24,7 @@ class Player(SpriteObject):
         self.backpack = Backpack()
         self.health = PLAYER_STARTING_HEALTH
         self.max_health = PLAYER_MAX_HEALTH
-        self.skill_points_available = 0
+        self.skill_points_available = 10
         self.skill_tree = SkillTree(game)
 
         # set position variables
@@ -38,8 +38,12 @@ class Player(SpriteObject):
 
         # set default values (some of these can be changed by skills)
         self.move_distance = PLAYER_MOVE_DISTANCE
-        self.attack_distance = PLAYER_ATTACK_DISTANCE
-        self.axe_damage = PLAYER_ATTACK_DAMAGE
+        self.weapon_stats = [
+            {
+                "attack_damage":PLAYER_ATTACK_DAMAGE,
+                "attack_distance":PLAYER_ATTACK_DISTANCE
+            } for weapon in WEAPONS_TO_LOAD
+        ]
         self.burned_tree_axe_damage = PLAYER_ATTACK_DAMAGE
         self.fruit_hp = 5
         self.wood_per_tree = 1
@@ -190,7 +194,7 @@ class Player(SpriteObject):
 
         if keys[pg.K_SPACE]:
             self.current_frame_index = -1 # start the animation sequence for new inputs
-            self.action = self.game.weapon_menu.get_weapon()
+            self.action = self.game.weapon_menu.get_weapon_name()
             return movement
         
         if keys[pg.K_a] or keys[pg.K_LEFT]:
@@ -231,9 +235,15 @@ class Player(SpriteObject):
         self.angle = math.degrees(math.atan2(-self.last_movement.y, self.last_movement.x))
 
         return movement
-           
+
+    def get_active_weapon_stats(self):
+        weapon_stats = self.weapon_stats[self.game.weapon_menu.get_weapon_index()]
+        self.attack_distance, self.attack_damage = weapon_stats["attack_distance"], weapon_stats["attack_damage"]
+
     def get_attack_area(self):
         attack_circles = []
+
+        self.get_active_weapon_stats()
 
         # Create circles based on angles
         # for angle in [self.angle - 45, self.angle, self.angle + 45]:
@@ -361,13 +371,15 @@ class Player(SpriteObject):
             self.game.playing = False
 
     def draw(self, screen, camera):
-        # self.draw_hitboxes(screen, camera)
+        self.draw_hitboxes(screen, camera)
         screen.blit(self.image, camera.apply(self.rect))
     
     def draw_hitboxes(self, screen, camera):
         """
         Debugging method to show player attack collision areas.
         """
+        self.get_active_weapon_stats()
+
         # Draw grey collision areas for every angle except the active one
         for angle in [-180, -135, -90, -45, 0, 45, 90, 135]:
             if angle == self.angle:

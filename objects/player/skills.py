@@ -78,7 +78,7 @@ class SkillTree:
         color = ORANGE
         node_7 =   SkillNode(0, 0, "+5% Dodge Chance", color, points=3, func=lambda: setattr(self.game.player, "dodge_chance", self.game.player.dodge_chance + .05))
         node_8 =   SkillNode(1, 0, "+10% Crit Chance", color, points=3, func=lambda: setattr(self.game.player, "crit_chance",  self.game.player.crit_chance + .10))
-        node_9a =  SkillNode(1, -1, "Node 9a", color)
+        node_9a =  SkillNode(1, -1, "Increase Sword Range", color, points=3, func=lambda: self.change_weapon_stats("sword","attack_distance",2))
         node_9b =  SkillNode(1, 1, "Node 9b", color)
         node_10a = SkillNode(2, -1, "Node 10a", color)
         node_10b = SkillNode(2, 1, "Node 10b", color)
@@ -147,3 +147,6 @@ class SkillTree:
         for child in node.children:  # Recursively add all children
             if child not in self.flattened:
                 self.flatten_tree(child)
+
+    def change_weapon_stats(self, weapon_name, stat_name, delta):
+        self.game.player.weapon_stats[self.game.weapon_menu.get_weapon_index(weapon_name)][stat_name] += delta

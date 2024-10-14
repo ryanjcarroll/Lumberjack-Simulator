@@ -38,7 +38,7 @@ class Slime(SpriteObject):
         # knockback variables
         self.knockback_direction = None
         self.knockback_timer = 0  # Duration for knockback
-        self.knockback_duration = 50  # Number of frames for knockback effect
+        self.knockback_duration = 18  # Number of frames for knockback effect
 
         self.game.can_sword_list.add(self)
 
@@ -102,7 +102,7 @@ class Slime(SpriteObject):
         if self.knockback_timer > 0:
             if self.knockback_direction:
                 # Apply knockback distance (slower for slimes)
-                knockback_vec = vec(self.knockback_direction) * (self.move_distance * 0.5)
+                knockback_vec = vec(self.knockback_direction) * (self.move_distance * 2)
                 slime_pos += knockback_vec
                 self.pos = vec(slime_pos.x, slime_pos.y)  # Update slime position
             
@@ -176,7 +176,7 @@ class Slime(SpriteObject):
 
     def apply_knockback(self):
         """
-        Push the slime away from the player slightly after a hit.
+        Push the slime away from the player slightly after a hit, with a sinusoidal bounce.
         """
         player_pos = self.game.player.pos
         slime_x, slime_y = self.pos
@@ -191,6 +191,9 @@ class Slime(SpriteObject):
         if distance != 0:
             self.knockback_direction = (diff_x / distance, diff_y / distance)
             self.knockback_timer = self.knockback_duration  # Set the knockback timer
+
+            # Add an initial bounce speed to start the sinusoidal effect on knockback
+            self.bounce_timer = 0  # Track time for sinusoidal bounce during knockback
 
     def update(self):
         """
