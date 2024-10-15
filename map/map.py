@@ -99,24 +99,3 @@ class Map:
                 )
 
         return set([f"{int(v.x)},{int(v.y)}" for v in chunks])
-    
-    # def draw_debug(self):
-    #     """
-    #     Draw debug visuals such as the + symbol at topleft and botright of the screen.
-    #     """
-    #     _, screen_topleft, screen_botright = self.game.map.get_visible_chunks()
-
-    #     # Convert the topleft and botright screen positions into integers
-    #     topleft = (int(screen_topleft[0]), int(screen_topleft[1]))
-    #     botright = (int(screen_botright[0]), int(screen_botright[1]))
-
-    #     # Set the size for the lines that will form the + symbol
-    #     size = 10
-
-    #     # Draw a red + symbol at the top-left of the visible area
-    #     pg.draw.line(self.game.screen, (255, 0, 0), (topleft[0] - size, topleft[1]), (topleft[0] + size, topleft[1]), 2)
-    #     pg.draw.line(self.game.screen, (255, 0, 0), (topleft[0], topleft[1] - size), (topleft[0], topleft[1] + size), 2)
-
-    #     # Draw a red + symbol at the bottom-right of the visible area
-    #     pg.draw.line(self.game.screen, (255, 0, 0), (botright[0] - size, botright[1]), (botright[0] + size, botright[1]), 2)
-    #     pg.draw.line(self.game.screen, (255, 0, 0), (botright[0], botright[1] - size), (botright[0], botright[1] + size), 2)

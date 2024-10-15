@@ -4,7 +4,8 @@ from glob import glob
 from utility import point_inside_triangle, combine_images
 import os
 import random
-import json
+from menus.button import Button
+
 
 """
 This class is relatively complex but boils down to two objects - self.assets and self.buttons.
@@ -173,58 +174,56 @@ class LoadoutMenu:
                                                                 (v_arrow_x + v_arrow_size // 2, v_arrow_bottom_y + v_arrow_size)]
             
             # Build the Start button
-            # Define start button rectangle
-            start_button_width = 200
-            start_button_height = 50
-            start_button_x = (WINDOW_WIDTH - start_button_width) // 2
-            start_button_y = WINDOW_HEIGHT - start_button_height - 16  # 100 pixels from the bottom
-            self.start_button = pg.Rect(start_button_x, start_button_y, start_button_width, start_button_height)
+            self.start_button = Button(
+                screen=self.game.screen,
+                rect=(
+                    (WINDOW_WIDTH - 200) // 2, 
+                    (WINDOW_HEIGHT - 50) - 16,  # N pixels from the bottom
+                    200, 
+                    50
+                ),
+                color=(255, 0, 0),
+                hover_color=(0, 255, 0),
+                text="Start",
+                on_click=lambda: setattr(self.game, 'at_loadout_menu', False)
+            )
 
-            self.font = pg.font.Font(None, 36)
-            self.start_text = self.font.render(f"Start", True, BLACK)
-            self.start_text_x = self.start_button.centerx - self.start_text.get_width() // 2  # Center the text horizontally within the rectangle
-            self.start_text_y = self.start_button.centery - self.start_text.get_height() // 2  # Center the text vertically within the rectangle
-
-    
-    def handle_click(self, mouse_pos):  
+    def handle_event(self, event):  
  
-        # take appropriate actions when buttons are clicked
-        for attribute, d in self.buttons.items():
-            (category, style) = self.selections[attribute]
+        self.start_button.handle_event(event)
 
-            # click left arrow (decrement category category)
-            if point_inside_triangle(mouse_pos, d["left_arrow_points"]):
-                # we count of styles in the new category to make sure we don't overflow when coming from one with more styles
-                new_category = (category-1) % len(self.assets[attribute])
-                num_styles = len(self.assets[attribute][new_category]['styles']) 
-                new_style = style if num_styles > style else 0
-                self.selections[attribute] = (new_category, new_style)
-            # click right arrow (increment category category)
-            elif point_inside_triangle(mouse_pos, d["right_arrow_points"]):
-                # we count of styles in the new category to make sure we don't overflow when coming from one with more styles
-                new_category = (category+1) % len(self.assets[attribute])
-                num_styles = len(self.assets[attribute][new_category]['styles'])
-                new_style = style if num_styles > style else 0
-                self.selections[attribute] = (new_category, new_style)
-            # click up arrow (increment style)
-            elif point_inside_triangle(mouse_pos, d["up_arrow_points"]) and self.buttons[attribute]["v_arrows_active"]:
-                style = (style+1) % len(self.assets[attribute][category]['styles'])
-                self.selections[attribute] = (category, style)
-            # click down arrow (decrement style)
-            elif point_inside_triangle(mouse_pos, d["down_arrow_points"]) and self.buttons[attribute]["v_arrows_active"]:
-                style = (style-1) % len(self.assets[attribute][category]['styles'])
-                self.selections[attribute] = (category, style)
-            else:
-                continue
-            self.update_image()
+        if event.type == pg.MOUSEBUTTONDOWN:
+            mouse_pos = pg.mouse.get_pos()
 
-        # handle start button click
-        if self.start_button.collidepoint(mouse_pos):
-            self.game.at_loadout_menu = False  # progress to the next phase
-            self.start_text = self.font.render(f"Loading...", True, BLACK)
-            self.start_text_x = self.start_button.centerx - self.start_text.get_width() // 2  # Center the text horizontally within the rectangle
-            self.start_text_y = self.start_button.centery - self.start_text.get_height() // 2  # Center the text vertically within the rectangle
-            self.draw() # draw again to update with Loading text during buffer time
+            # take appropriate actions when buttons are clicked
+            for attribute, d in self.buttons.items():
+                (category, style) = self.selections[attribute]
+
+                # click left arrow (decrement category category)
+                if point_inside_triangle(mouse_pos, d["left_arrow_points"]):
+                    # we count of styles in the new category to make sure we don't overflow when coming from one with more styles
+                    new_category = (category-1) % len(self.assets[attribute])
+                    num_styles = len(self.assets[attribute][new_category]['styles']) 
+                    new_style = style if num_styles > style else 0
+                    self.selections[attribute] = (new_category, new_style)
+                # click right arrow (increment category category)
+                elif point_inside_triangle(mouse_pos, d["right_arrow_points"]):
+                    # we count of styles in the new category to make sure we don't overflow when coming from one with more styles
+                    new_category = (category+1) % len(self.assets[attribute])
+                    num_styles = len(self.assets[attribute][new_category]['styles'])
+                    new_style = style if num_styles > style else 0
+                    self.selections[attribute] = (new_category, new_style)
+                # click up arrow (increment style)
+                elif point_inside_triangle(mouse_pos, d["up_arrow_points"]) and self.buttons[attribute]["v_arrows_active"]:
+                    style = (style+1) % len(self.assets[attribute][category]['styles'])
+                    self.selections[attribute] = (category, style)
+                # click down arrow (decrement style)
+                elif point_inside_triangle(mouse_pos, d["down_arrow_points"]) and self.buttons[attribute]["v_arrows_active"]:
+                    style = (style-1) % len(self.assets[attribute][category]['styles'])
+                    self.selections[attribute] = (category, style)
+                else:
+                    continue
+                self.update_image()
 
     def update_image(self):
         images = []
@@ -289,7 +288,6 @@ class LoadoutMenu:
             pg.draw.polygon(self.game.screen, d["down_arrow_color"], d["down_arrow_points"])
 
         # draw start button
-        pg.draw.rect(self.game.screen, RED, self.start_button)
-        self.game.screen.blit(self.start_text, (self.start_text_x, self.start_text_y))
+        self.start_button.draw()
         
         pg.display.flip()

@@ -60,24 +60,30 @@ class SkillTreeMenu:
             node.points_label_surface = points_label_surface
             node.points_label_rect = points_label_rect
 
-    def handle_click(self, mouse_pos):
-        for id, node in self.skill_tree.nodes.items():
-            if node.button.collidepoint(mouse_pos):
-                if node.status!="not_active" and self.game.player.skill_points_available > 0 and node.current_points < node.total_points:
-                    self.game.player.skill_points_available -= 1
-                    node.add_point()
+    def handle_event(self, event):
+        # handle clicks inside the skilltree menu
+        if event.type == pg.MOUSEBUTTONDOWN:
+            mouse_pos = pg.mouse.get_pos()
+            for id, node in self.skill_tree.nodes.items():
+                if node.button.collidepoint(mouse_pos):
+                    if node.status!="not_active" and self.game.player.skill_points_available > 0 and node.current_points < node.total_points:
+                        self.game.player.skill_points_available -= 1
+                        node.add_point()
 
-                    # regenerate the points available textbox
-                    self.points_text = f"Points Available: {self.game.player.skill_points_available}"
-                    self.points_surface = self.subtitle_font.render(self.points_text, True, (0, 0, 0))  # Black text
-                    self.points_rect = self.points_surface.get_rect(topright=(WINDOW_WIDTH - 20, self.title_rect.bottom + 10))  # Right-justified
+                        # regenerate the points available textbox
+                        self.points_text = f"Points Available: {self.game.player.skill_points_available}"
+                        self.points_surface = self.subtitle_font.render(self.points_text, True, (0, 0, 0))  # Black text
+                        self.points_rect = self.points_surface.get_rect(topright=(WINDOW_WIDTH - 20, self.title_rect.bottom + 10))  # Right-justified
 
-                    # regenerate the "0/3" points label
-                    points_label = f"{node.current_points}/{node.total_points}"
-                    points_label_surface = self.points_font.render(points_label, True, (255,255,255))
-                    points_label_rect = points_label_surface.get_rect(bottomright=node.button.bottomright)
-                    node.points_label_surface = points_label_surface
-                    node.points_label_rect = points_label_rect
+                        # regenerate the "0/3" points label
+                        points_label = f"{node.current_points}/{node.total_points}"
+                        points_label_surface = self.points_font.render(points_label, True, (255,255,255))
+                        points_label_rect = points_label_surface.get_rect(bottomright=node.button.bottomright)
+                        node.points_label_surface = points_label_surface
+                        node.points_label_rect = points_label_rect
+        # close the skilltree menu
+        elif event.type == pg.KEYDOWN and event.key == pg.K_i:
+            self.game.at_skilltree_menu = False
 
     def draw_description_box(self, node):
         # Define the size and position of the description box

@@ -35,6 +35,12 @@ class Game:
         self.sprites = SpriteAssetManager()  
         self.sounds = SoundAssetManager()
 
+        self.reset_game_variables()
+
+    def reset_game_variables(self):
+        """
+        Called before a new game is started or after game_over.
+        """
         self.game_id = None
         self.playing = False
         self.at_loadout_menu = False
@@ -228,25 +234,21 @@ class Game:
                 sys.exit()  
 
             elif self.at_start_menu:
-                if event.type == pg.MOUSEBUTTONDOWN:
-                    self.start_menu.handle_click(pg.mouse.get_pos())
+                self.start_menu.handle_event(event)
             elif self.at_loadout_menu:
-                if event.type == pg.MOUSEBUTTONDOWN:
-                    self.loadout_menu.handle_click(pg.mouse.get_pos()) 
+                self.loadout_menu.handle_event(event) 
             elif self.playing and not self.at_skilltree_menu:
-                # open the skilltree menu if I 
+                # open the skilltree menu if 'i'
                 if event.type == pg.KEYDOWN and event.key == pg.K_i:
                     self.skilltree_screen()
+                # cycle weapons
                 elif event.type == pg.KEYDOWN and pg.K_0 <= event.key <= pg.K_9:
                     self.weapon_menu.handle_keys(event)
-            elif self.at_game_over:
-                if event.type == pg.MOUSEBUTTONDOWN:
-                    self.game_over_menu.handle_click(pg.mouse.get_pos())
+                # other event inputs are handled in the Player class #TODO re-work them to be here
             elif self.at_skilltree_menu:
-                if event.type == pg.MOUSEBUTTONDOWN:
-                    self.skilltree_menu.handle_click(pg.mouse.get_pos())
-                elif event.type == pg.KEYDOWN and event.key == pg.K_i:
-                    self.at_skilltree_menu = False
+                self.skilltree_menu.handle_event(event)
+            elif self.at_game_over:
+                self.game_over_menu.handle_event(event)
 
     def start_screen(self):
         """
@@ -256,7 +258,7 @@ class Game:
         self.at_start_menu = True
         while self.at_start_menu:
             self.events()
-            self.start_menu.update()
+            # self.start_menu.update()
             self.start_menu.draw()
         self.start_game()
 
@@ -300,7 +302,7 @@ class Game:
         while self.at_game_over:
             self.events()
             self.draw()
-        self.at_game_over = False
+        self.reset_game_variables()
         self.start_screen()
 
 # initialize a game object and start running
