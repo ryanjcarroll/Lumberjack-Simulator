@@ -4,9 +4,8 @@ from pygame import Vector2 as vec
 import math
 from utility import *
 from objects.inventory import Backpack
-from objects.tree import Tree
-from objects.npcs.bat import Bat
-from objects.npcs.slime import Slime
+from objects.resources.tree import Tree
+from objects.resources.rock import Rock
 import json
 from objects.sprites import SpriteObject
 from objects.items.items import SkillPoint
@@ -52,6 +51,10 @@ class Player(SpriteObject):
             "axe":{
                 "attack_damage":PLAYER_AXE_ATTACK_DAMAGE,
                 "attack_distance":PLAYER_AXE_ATTACK_DISTANCE
+            },
+            "pick":{
+                "attack_damage":PLAYER_PICK_ATTACK_DAMAGE,
+                "attack_distance":PLAYER_PICK_ATTACK_DISTANCE
             }
         }
         self.fruit_hp = 5
@@ -298,10 +301,12 @@ class Player(SpriteObject):
                 if any([circle_collides(center, radius, obj.collision_rect) for center, radius in attack_circles]):
                     obj.register_hit(damage)
 
-                    if isinstance(obj, Tree):
-                        hit_a_tree = True
-                    if obj.health <=0:
-                        felled_a_tree = True
+                    if not hit_a_tree:
+                        if isinstance(obj, Tree):
+                            hit_a_tree = True
+                    if not felled_a_tree:
+                        if obj.health <=0:
+                            felled_a_tree = True
 
             # play sound effects for trees
             # do this here so we don't have overlapping sound effects for trees
@@ -315,6 +320,27 @@ class Player(SpriteObject):
             for obj in self.game.can_sword_list:
                 if any([circle_collides(center, radius, obj.collision_rect) for center, radius in attack_circles]):
                     obj.register_hit(damage)
+
+        # check for pick-able objects in attack area
+        elif self.action == "pick":
+            hit_a_rock = False
+            felled_a_rock = False
+
+            for obj in self.game.can_pick_list:
+                if any([circle_collides(center, radius, obj.collision_rect) for center, radius in attack_circles]):
+                    obj.register_hit(damage)
+
+                    if not hit_a_rock:
+                        if isinstance(obj, Rock):
+                            hit_a_rock = True
+                    if not felled_a_rock:
+                        if obj.health <=0:
+                            felled_a_rock = True
+            
+            if felled_a_rock:
+                self.game.sounds.play_random("fell_rock")   
+            elif hit_a_rock:
+                self.game.sounds.play_random("chop_rock")
 
     def set_animation_counters(self, dt):
         """

@@ -110,23 +110,23 @@ class SpawnChunk(Chunk):
         for row in range(CHUNK_SIZE):
             for col in range(CHUNK_SIZE):
                 if CHUNK_SIZE//2 - 1 == row and CHUNK_SIZE//2 - 1 == col:
-                    terrain_type = "stone_topleft" 
+                    terrain_type = "rock_topleft" 
                 elif CHUNK_SIZE//2 - 1 == row and CHUNK_SIZE//2 == col:
-                    terrain_type = "stone_top" 
+                    terrain_type = "rock_top" 
                 elif CHUNK_SIZE//2 - 1 == row and CHUNK_SIZE//2 + 1== col:
-                    terrain_type = "stone_topright" 
+                    terrain_type = "rock_topright" 
                 elif CHUNK_SIZE//2 == row and CHUNK_SIZE//2 - 1 == col:
-                    terrain_type = "stone_left" 
+                    terrain_type = "rock_left" 
                 elif CHUNK_SIZE//2 == row and CHUNK_SIZE//2 == col:
-                    terrain_type = "stone_center" 
+                    terrain_type = "rock_center" 
                 elif CHUNK_SIZE//2 == row and CHUNK_SIZE//2 + 1== col:
-                    terrain_type = "stone_right" 
+                    terrain_type = "rock_right" 
                 elif CHUNK_SIZE//2 + 1 == row and CHUNK_SIZE//2 - 1 == col:
-                    terrain_type = "stone_bottomleft" 
+                    terrain_type = "rock_bottomleft" 
                 elif CHUNK_SIZE//2 + 1 == row and CHUNK_SIZE//2 == col:
-                    terrain_type = "stone_bottom" 
+                    terrain_type = "rock_bottom" 
                 elif CHUNK_SIZE//2 + 1 == row and CHUNK_SIZE//2 + 1== col:
-                    terrain_type = "stone_bottomright" 
+                    terrain_type = "rock_bottomright" 
                 else:
                     terrain_type = "basic"
                 tile = self.get_tile_type(row, col)(

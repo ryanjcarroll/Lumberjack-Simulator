@@ -1,6 +1,5 @@
 from pygame import Rect
 
-SKIP_MENU = False
 GOD_MODE = False
 
 # colors (RGB)
@@ -35,7 +34,7 @@ ACTIONS_TO_LOAD = ["walk","sleep"]
 WEAPONS_TO_LOAD = [
     "axe",
     "sword",
-    # "pick",
+    "pick",
     # "stick",
     # "hoe"
 ]
@@ -49,8 +48,10 @@ SPRITE_LAYER = 2
 # player settings
 PLAYER_SWORD_ATTACK_DAMAGE = 100 if GOD_MODE else 10
 PLAYER_AXE_ATTACK_DAMAGE = 100 if GOD_MODE else 5
+PLAYER_PICK_ATTACK_DAMAGE = 100 if GOD_MODE else 5
 PLAYER_SWORD_ATTACK_DISTANCE = 24
 PLAYER_AXE_ATTACK_DISTANCE = 24
+PLAYER_PICK_ATTACK_DISTANCE = 18
 PLAYER_MOVE_DISTANCE = 8 if GOD_MODE else 3
 PLAYER_SPRITE_HEIGHT = 72
 PLAYER_SPRITE_WIDTH = 72
@@ -75,5 +76,6 @@ COMPASS_PADDING = 10
 RBAR_WIDTH = 36
 RBAR_PADDING = 10
 
-# tree settings
+# resource settings
 TREE_HEALTH = 15
+ROCK_HEALTH = 15

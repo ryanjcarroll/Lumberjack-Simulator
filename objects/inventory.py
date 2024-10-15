@@ -26,7 +26,6 @@ class Camp(SpriteObject):
             y=y,
             tile=tile,
             layer=SPRITE_LAYER,
-            can_collide=True
         )
     
         self.wood = 0
@@ -39,6 +38,7 @@ class Camp(SpriteObject):
             self.height // 2
         )
         self.collision_rect.center = self.rect.center
+        self.game.can_collide_list.add(self)
     
     def load_image(self):
         return pg.transform.scale(

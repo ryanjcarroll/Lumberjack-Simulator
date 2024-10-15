@@ -6,7 +6,7 @@ class SpriteObject(pg.sprite.Sprite):
     """
     Sprite objects to be loaded within the game.
     """
-    def __init__(self, game, x, y, tile, layer, image=None, can_collide=False, can_hit=False, can_collect=False):
+    def __init__(self, game, x, y, tile, layer, image=None):
         super().__init__()
 
         # initiation variables
@@ -29,18 +29,12 @@ class SpriteObject(pg.sprite.Sprite):
         self.height = self.rect.height
         self.pos = vec(self.x + self.width/2, self.y + self.height/2) 
         self.rect.center = self.pos
+        self.collision_rect = self.rect
 
         # this needs to happen last otherwise there can be a race condition
         # where the SpriteObject is in a game group but isn't fully loaded yet
         self.layer = layer
         self.game.sprite_list.add(self)
-        if can_collide:
-            self.game.can_collide_list.add(self)
-            self.collision_rect = self.rect
-        if can_hit:
-            self.game.can_axe_list.add(self)
-        if can_collect:
-            self.game.can_collect_list.add(self)
         
     def load_image(self) -> pg.image:
         # overwrite this method to implement custom image loading in a class
@@ -69,9 +63,5 @@ class SpriteObject(pg.sprite.Sprite):
         return {
             "type":type(self).__name__,
             "topleft":(self.x, self.y),
-            # "layer":self.layer,
-            # "image":self.image,
-            # "can_collide":self.can_collide,
-            # "can_hit":self.can_hit,
-            # "is_building":self.is_building
+            "layer":self.layer,
         }
