@@ -14,7 +14,6 @@ from menus.loadout import LoadoutMenu
 from menus.game_over import GameOverMenu
 from menus.skill_tree import SkillTreeMenu
 from objects.assets import SpriteAssetManager, SoundAssetManager
-from objects.npcs.bat import Bat
 import uuid
 import os
 from utility import write_json
@@ -22,7 +21,6 @@ import opensimplex
 import random
 import json
 pg.init()
-
 
 class Game:
     def __init__(self):
@@ -87,6 +85,12 @@ class Game:
                     saved_loadout = player_data.get("loadout")
                     self.player = Player(self, (CHUNK_SIZE*TILE_SIZE)//2, (CHUNK_SIZE*TILE_SIZE)//2, saved_loadout)
 
+                    self.player.health = player_data['health']
+                    self.player.skill_points_available = player_data['skill_points_available']
+                    self.player.health = player_data['health']
+                    self.backpack.add_wood(player_data['wood_in_backpack'])
+                    self.camp.add_wood(player_data['wood_at_camp'])
+
         # Start New Game
         else:
             # set game variables
@@ -129,6 +133,10 @@ class Game:
         write_json(f"data/saves/{self.game_id}/player.json",
             {
                 "loadout":self.player.loadout,
+                "health":self.player.health,
+                "skill_points_available":self.player.skill_points_available,
+                "wood_in_backpack":self.backpack.wood,
+                "wood_at_camp":self.camp.wood
             }
         )
 

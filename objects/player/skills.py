@@ -43,111 +43,124 @@ class SkillNode:
 
 class SkillTree:
     """
-    		-	-	-	-	-	-  root	-	-	-	-	-	-		
-            v						v						v		
-            0						7						14		
-            V						V						V		
-    2a	<	1	>	2b		9a	<	8	>	9b		16a	<	15	>	16b
-    V				V		V				V		V				V
-    3a	>	4a	<	3b		10a	>	11a	<	10b		17a	>	18a	<	17b
-    V		V		V		V		V		V		V		V		V
-    4b	>	5	<	4c		11b	>	12	<	11c		18b	>	19	<	18c
-            V						V						V		
-            6						13						20		
+		-	-	-	-	-	-	root	-	-	-	-	-	-		
+		v						v						v		
+		0						0						0		
+		v						v						v		
+1	<	2	>	3		1	<	2	>	3		1	<	2	>	3
+v				v		v				v		v				v
+4	>	5	<	6		4	>	5	<	6		4	>	5	<	6
+v		v		v		v		v		v		v		v		v
+7	>	8	<	9		7	>	8	<	9		7	>	8	<	9
+		v						v						v		
+		10						10						10		
+
     """
     def __init__(self, game):
 
         self.game = game
         
         self.root = SkillNode(-1,0,"root", None)
+        self.nodes = {}
 
         # Nodes of the left tree
         color = FOREST_GREEN
-        node_0 =  SkillNode(0, -3, "More HP From Apple Trees", color, points=2, func=lambda: setattr(self.game.player, 'fruit_hp', self.game.player.fruit_hp + 2.5))                      
-        node_1 =  SkillNode(1, -3, "Arrow Toward Camp", color, func=lambda: setattr(self.game.compass, "active", True))
-        node_2a = SkillNode(1, -4, "Faster Movespeed", color, points=3, func=lambda: setattr(self.game.player, 'move_distance', self.game.player.move_distance + 1)) 
-        # TODO node_2b = SkillNode(1, -2, "Deal More Damage to Dead Trees", color, points=2, func=lambda: setattr(self.game.player, "burned_tree_axe_damage", self.game.player.burned_tree_axe_damage + 1)) 
-        node_2b = SkillNode(1, -2, "Node 2b", color)
-        node_3a = SkillNode(2, -4, "Node 3a", color) 
-        node_3b = SkillNode(2, -2, "Node 3b", color)
-        node_4a = SkillNode(2, -3, "Node 4a", color)
-        node_4b = SkillNode(3, -4, "Node 4b", color)
-        node_4c = SkillNode(3, -2, "Node 4c", color)
-        node_5 =  SkillNode(3, -3, "Node 5", color)
-        node_6 =  SkillNode(4, -3, "Node 6", color)
+        self.nodes["0_left"] = SkillNode(0, -3, "More HP From Apple Trees", color, points=2,
+                                        func=lambda: setattr(self.game.player, 'fruit_hp', self.game.player.fruit_hp + 2.5))
+        self.nodes["1_left"] = SkillNode(1, -4, "Arrow Toward Camp", color,
+                                        func=lambda: setattr(self.game.compass, "active", True))
+        self.nodes["2_left"] = SkillNode(1, -3, "Faster Movespeed", color, points=3,
+                                        func=lambda: setattr(self.game.player, 'move_distance', self.game.player.move_distance + 1))
+        self.nodes["3_left"] = SkillNode(1, -2, "Node 3", color)
+        self.nodes["4_left"] = SkillNode(2, -4, "Node 4", color)
+        self.nodes["5_left"] = SkillNode(2, -3, "Node 5", color)
+        self.nodes["6_left"] = SkillNode(2, -2, "Node 6", color)
+        self.nodes["7_left"] = SkillNode(3, -4, "Node 7", color)
+        self.nodes["8_left"] = SkillNode(3, -3, "Node 8", color)
+        self.nodes["9_left"] = SkillNode(3, -2, "Node 9", color)
+        self.nodes["10_left"] = SkillNode(4, -3, "Node 10", color)
+
         # Nodes of the center tree
         color = ORANGE
-        node_7 =   SkillNode(0, 0, "+5% Dodge Chance", color, points=3, func=lambda: setattr(self.game.player, "dodge_chance", self.game.player.dodge_chance + .05))
-        node_8 =   SkillNode(1, 0, "+10% Crit Chance", color, points=3, func=lambda: setattr(self.game.player, "crit_chance",  self.game.player.crit_chance + .10))
-        node_9a =  SkillNode(1, -1, "Increase Sword Range", color, points=3, func=lambda: self.change_weapon_stats("sword","attack_distance",2))
-        node_9b =  SkillNode(1, 1, "Node 9b", color)
-        node_10a = SkillNode(2, -1, "Node 10a", color)
-        node_10b = SkillNode(2, 1, "Node 10b", color)
-        node_11a = SkillNode(2, 0, "Node 11a", color)
-        node_11b = SkillNode(3, -1, "Node 11b", color)
-        node_11c = SkillNode(3, 1, "Node 11c", color)
-        node_12 =  SkillNode(3, 0, "Node 12", color)
-        node_13 =  SkillNode(4, 0, "Node 13", color)
+        self.nodes["0_center"] = SkillNode(0, 0, "+5% Dodge Chance", color, points=3,
+                                            func=lambda: setattr(self.game.player, "dodge_chance", self.game.player.dodge_chance + .05))
+        self.nodes["1_center"] = SkillNode(1, -1, "+10% Crit Chance", color, points=3,
+                                            func=lambda: setattr(self.game.player, "crit_chance", self.game.player.crit_chance + .10))
+
+        self.nodes["2_center"] = SkillNode(1, 0, "Increase Sword Range", color, points=3,
+                                            func=lambda: self.change_weapon_stats("sword", "attack_distance", 2))
+        self.nodes["3_center"] = SkillNode(1, 1, "Node 3", color)
+        self.nodes["4_center"] = SkillNode(2, -1, "Node 4", color)
+        self.nodes["5_center"] = SkillNode(2, 0, "Node 5", color)
+        self.nodes["6_center"] = SkillNode(2, 1, "Node 6", color)
+        self.nodes["7_center"] = SkillNode(3, -1, "Node 7", color)
+        self.nodes["8_center"] = SkillNode(3, 0, "Node 8", color)
+        self.nodes["9_center"] = SkillNode(3, 1, "Node 9", color)
+        self.nodes["10_center"] = SkillNode(4, 0, "Node 10", color)
+
         # Nodes of the right tree
         color = SKY_BLUE
-        node_14 =  SkillNode(0, 3, "Node 14", color)
-        node_15 =  SkillNode(1, 3, "Node 15", color)
-        node_16a = SkillNode(1, 2, "Node 16a", color)
-        node_16b = SkillNode(1, 4, "Node 16b", color)
-        node_17a = SkillNode(2, 2, "Node 17a", color)
-        node_17b = SkillNode(2, 4, "Node 17b", color)
-        node_18a = SkillNode(2, 3, "Node 18a", color)
-        node_18b = SkillNode(3, 2, "Node 18b", color)
-        node_18c = SkillNode(3, 4, "Node 18c", color)
-        node_19 =  SkillNode(3, 3, "Node 19", color)
-        node_20 =  SkillNode(4, 3, "Node 20", color)
+        self.nodes["0_right"] = SkillNode(0, 3, "Node 0", color)
+        self.nodes["1_right"] = SkillNode(1, 2, "Node 1", color)
+        self.nodes["2_right"] = SkillNode(1, 3, "Node 2", color)
+        self.nodes["3_right"] = SkillNode(1, 4, "Node 3", color)
+        self.nodes["4_right"] = SkillNode(2, 2, "Node 4", color)
+        self.nodes["5_right"] = SkillNode(2, 3, "Node 5", color)
+        self.nodes["6_right"] = SkillNode(2, 4, "Node 6", color)
+        self.nodes["7_right"] = SkillNode(3, 2, "Node 7", color)
+        self.nodes["8_right"] = SkillNode(3, 3, "Node 8", color)
+        self.nodes["9_right"] = SkillNode(3, 4, "Node 9", color)
+        self.nodes["10_right"] = SkillNode(4, 3, "Node 10", color)
 
-        # Define the relationships
-        self.root.children = [node_0, node_7, node_14]
+        # Define the root note relationships
+        self.root.children = [self.nodes["0_left"], self.nodes["0_center"], self.nodes["0_right"]]
+
         # Left tree
-        node_0.children = [node_1]
-        node_1.children = [node_2a, node_2b]
-        node_2a.children = [node_3a]
-        node_2b.children = [node_3b]
-        node_3a.children = [node_4a, node_4b]
-        node_3b.children = [node_4a, node_4c]
-        node_4a.children = [node_5]
-        node_4b.children = [node_5]
-        node_4c.children = [node_5]
-        node_5.children = [node_6]
-        # Center tree
-        node_7.children = [node_8]
-        node_8.children = [node_9a, node_9b]
-        node_9a.children = [node_10a]
-        node_9b.children = [node_10b]
-        node_10a.children = [node_11a, node_11b]
-        node_10b.children = [node_11a, node_11c]
-        node_11a.children = [node_12]
-        node_11b.children = [node_12]
-        node_11c.children = [node_12]
-        node_12.children = [node_13]
-        # Right tree
-        node_14.children = [node_15]
-        node_15.children = [node_16a, node_16b]
-        node_16a.children = [node_17a]
-        node_16b.children = [node_17b]
-        node_17a.children = [node_18a, node_18b]
-        node_17b.children = [node_18a, node_18c]
-        node_18a.children = [node_19]
-        node_18b.children = [node_19]
-        node_18c.children = [node_19]
-        node_19.children = [node_20]
+        self.nodes["0_left"].children = [self.nodes["2_left"]]
+        self.nodes["1_left"].children = [self.nodes["4_left"]]
+        self.nodes["2_left"].children = [self.nodes["1_left"], self.nodes["3_left"]]
+        self.nodes["3_left"].children = [self.nodes["6_left"]]
+        self.nodes["4_left"].children = [self.nodes["5_left"], self.nodes["7_left"]]
+        self.nodes["5_left"].children = [self.nodes["8_left"]]
+        self.nodes["6_left"].children = [self.nodes["5_left"],self.nodes["9_left"]]
+        self.nodes["7_left"].children = [self.nodes["8_left"]]
+        self.nodes["8_left"].children = [self.nodes["10_left"]]
+        self.nodes["9_left"].children = [self.nodes["8_left"]]
+        
 
+        # Center tree
+        self.nodes["0_center"].children = [self.nodes["2_center"]]
+        self.nodes["1_center"].children = [self.nodes["4_center"]]
+        self.nodes["2_center"].children = [self.nodes["1_center"], self.nodes["3_center"]]
+        self.nodes["3_center"].children = [self.nodes["6_center"]]
+        self.nodes["4_center"].children = [self.nodes["5_center"], self.nodes["7_center"]]
+        self.nodes["5_center"].children = [self.nodes["8_center"]]
+        self.nodes["6_center"].children = [self.nodes["5_center"],self.nodes["9_center"]]
+        self.nodes["7_center"].children = [self.nodes["8_center"]]
+        self.nodes["8_center"].children = [self.nodes["10_center"]]
+        self.nodes["9_center"].children = [self.nodes["8_center"]]
+       
+        # Right tree
+        self.nodes["0_right"].children = [self.nodes["2_right"]]
+        self.nodes["1_right"].children = [self.nodes["4_right"]]
+        self.nodes["2_right"].children = [self.nodes["1_right"], self.nodes["3_right"]]
+        self.nodes["3_right"].children = [self.nodes["6_right"]]
+        self.nodes["4_right"].children = [self.nodes["5_right"], self.nodes["7_right"]]
+        self.nodes["5_right"].children = [self.nodes["8_right"]]
+        self.nodes["6_right"].children = [self.nodes["5_right"],self.nodes["9_right"]]
+        self.nodes["7_right"].children = [self.nodes["8_right"]]
+        self.nodes["8_right"].children = [self.nodes["10_right"]]
+        self.nodes["9_right"].children = [self.nodes["8_right"]]
         self.root.add_point()
 
-        self.flattened = []
-        self.flatten_tree(self.root)
+    #     self.flattened = []
+    #     self.flatten_tree(self.root)
 
-    def flatten_tree(self, node):
-        self.flattened.append(node)  # Add the current node to the flat list
-        for child in node.children:  # Recursively add all children
-            if child not in self.flattened:
-                self.flatten_tree(child)
+    # def flatten_tree(self, node):
+    #     self.flattened.append(node)  # Add the current node to the flat list
+    #     for child in node.children:  # Recursively add all children
+    #         if child not in self.flattened:
+    #             self.flatten_tree(child)
 
     def change_weapon_stats(self, weapon_name, stat_name, delta):
         self.game.player.weapon_stats[weapon_name][stat_name] += delta

@@ -3,7 +3,7 @@ from settings import *
 import pygame as pg
 
 class Backpack:
-    def __init__(self):
+    def __init__(self, wood=0):
         self.wood = 0
 
         self.row_capacity = BACKPACK_ROW_CAPACITY

@@ -9,7 +9,7 @@ class SkillTreeMenu:
         self.build_elements() # calls self.layout_nodes()
 
     def update(self, mouse_pos):
-        for node in self.skill_tree.flattened:
+        for id, node in self.skill_tree.nodes.items():
             node.is_hovered = node.button.collidepoint(mouse_pos)
 
     def build_elements(self):
@@ -48,7 +48,7 @@ class SkillTreeMenu:
         """
         button_width = WINDOW_WIDTH // 19
 
-        for node in self.skill_tree.flattened:
+        for id, node in self.skill_tree.nodes.items():
             # Calculate the position for each node based on its row and col
             button_x = (button_width * node.col * 2) + WINDOW_WIDTH // 2 - button_width // 2
             button_y = (button_width * node.row * 2) + self.tree_3_label_rect.bottom
@@ -61,7 +61,7 @@ class SkillTreeMenu:
             node.points_label_rect = points_label_rect
 
     def handle_click(self, mouse_pos):
-        for node in self.skill_tree.flattened:
+        for id, node in self.skill_tree.nodes.items():
             if node.button.collidepoint(mouse_pos):
                 if node.status!="not_active" and self.game.player.skill_points_available > 0 and node.current_points < node.total_points:
                     self.game.player.skill_points_available -= 1
@@ -118,7 +118,7 @@ class SkillTreeMenu:
         self.game.screen.blit(self.tree_2_label_surface, self.tree_2_label_rect)
         self.game.screen.blit(self.tree_3_label_surface, self.tree_3_label_rect)        
 
-        for node in self.skill_tree.flattened:
+        for id, node in self.skill_tree.nodes.items():
             # skip the root node
             if node.description == 'root':
                 continue

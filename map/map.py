@@ -35,8 +35,6 @@ class Map:
         for chunk_to_unload in chunks_to_unload:
             self.unload_chunk(chunk_to_unload)
 
-        print(self.chunks.keys())
-
     def unload_chunk(self, chunk_id):
         self.chunks[chunk_id].save()
         self.chunks[chunk_id].unload()
