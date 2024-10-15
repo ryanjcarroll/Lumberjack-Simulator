@@ -144,10 +144,9 @@ class Tile(ABC):
                 and TILE_SIZE*((CHUNK_SIZE//2)-1) <= self.y <= TILE_SIZE*((CHUNK_SIZE//2)+1) :
                 # spawn nothing in the Camp area
                 pass
-            else:  
-                r = random.random()
+            else:
                 # Spawn Trees
-                if r < self.tree_density: # spawn only on a percentage of tiles  
+                if random.random() < self.tree_density: # spawn only on a percentage of tiles  
                     spawn_loc = self.can_spawn()
                     if spawn_loc:
                         self.objects.append(self.tree_type(self.game, *spawn_loc, self))
@@ -167,7 +166,7 @@ class Tile(ABC):
                     if spawn_loc:
                         self.objects.append(SkillPoint(self.game, *spawn_loc, self))      
                 # Spawn Rocks
-                elif random.random() < .1: # spawn an SkillPoint item on a small percentage of tiles which don't have a tree
+                elif random.random() < self.rock_density: # spawn an SkillPoint item on a small percentage of tiles which don't have a tree
                     spawn_loc = self.can_spawn()
                     if spawn_loc:
                         self.objects.append(Rock(self.game, *spawn_loc, self))                
@@ -332,6 +331,7 @@ class Tile(ABC):
 class ForestTile(Tile):
     def __init__(self, game, chunk, row, col, load_decor=True):
         self.tree_density = 0.6
+        self.rock_density = 0.07
         self.tree_type = Tree
         self.decor_weights = {
             "butterfly" : 2,
@@ -349,6 +349,7 @@ class ForestTile(Tile):
 class IceForestTile(Tile):
     def __init__(self, game, chunk, row, col, load_decor=True):
         self.tree_density = 0.5
+        self.rock_density = 0.15
         self.tree_type = IceTree
         self.decor_weights = {
             "pebble":10,
@@ -370,6 +371,7 @@ class IceForestTile(Tile):
 class AutumnForestTile(Tile):
     def __init__(self, game, chunk, row, col, load_decor=True):
         self.tree_density = 0.7
+        self.rock_density = 0.05
         self.tree_type = AutumnTree
         self.decor_weights = {
             "pebble":2,
@@ -392,6 +394,7 @@ class AutumnForestTile(Tile):
 class MangroveForestTile(Tile):
     def __init__(self, game, chunk, row, col, load_decor=True):
         self.tree_density = 0.8
+        self.rock_density = 0.05
         self.tree_type = MangroveTree
         self.decor_weights = {}
 

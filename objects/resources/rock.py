@@ -17,6 +17,14 @@ class Rock(SpriteObject):
 
         self.health = ROCK_HEALTH
 
+        self.collision_rect = pg.Rect(
+            0,
+            0,
+            2 * self.rect.width //3,
+            2 * self.rect.height //3
+        )
+        self.collision_rect.center = self.rect.center
+
         self.game.can_pick_list.add(self)
         self.game.can_collide_list.add(self)
 
