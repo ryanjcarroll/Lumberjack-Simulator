@@ -63,10 +63,10 @@ class SoundAssetManager:
                 self.load("sounds/chop_tree/industrial_tools_axe_chop_wood_007.mp3"),
             ],
             "fell_tree":[
-                self.load("sounds/split_tree/industrial_tools_axe_chop_wood_003.mp3"),
-                self.load("sounds/split_tree/industrial_tools_axe_chop_wood_006.mp3"),
-                self.load("sounds/split_tree/industrial_tools_axe_chop_wood_008.mp3"),
-                self.load("sounds/split_tree/industrial_tools_axe_chop_wood_009.mp3"),
+                self.load("sounds/fell_tree/industrial_tools_axe_chop_wood_003.mp3"),
+                self.load("sounds/fell_tree/industrial_tools_axe_chop_wood_006.mp3"),
+                self.load("sounds/fell_tree/industrial_tools_axe_chop_wood_008.mp3"),
+                self.load("sounds/fell_tree/industrial_tools_axe_chop_wood_009.mp3"),
             ],
             "unpack":[
                 self.load("sounds/misc/186719__andromadax24__chime_01.wav")

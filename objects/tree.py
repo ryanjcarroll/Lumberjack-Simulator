@@ -148,6 +148,7 @@ class Tree(SpriteObject):
             self.falling = True
             self.fall_direction = 1 if self.game.player.pos[0] > self.pos[0] else -1
             self.game.can_collide_list.remove(self)
+            self.game.can_axe_list.remove(self)
         else:
             self.shake_timer = 0
             self.shaking = True
