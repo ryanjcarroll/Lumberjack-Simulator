@@ -61,6 +61,7 @@ class Game:
         self.can_collect_list = pg.sprite.Group() # objects the player can collect by colliding with, but should not stop movement
         self.can_axe_list = pg.sprite.Group() # objects the player can hit with their axe
         self.can_sword_list = pg.sprite.Group() # objects the player can hit with their sword
+        self.can_pick_list = pg.sprite.Group() # objects the player can hit with their pickaxe
         
         # initialize input-agnostic game objects
         self.camera = Camera(WINDOW_WIDTH, WINDOW_HEIGHT)

@@ -12,8 +12,9 @@ class Item(SpriteObject):
             tile,
             layer=SPRITE_LAYER, 
             image=None,
-            can_collect=True
         )
+        self.game.can_collect_list.add(self)
+        self.collision_rect = self.rect
 
 class SkillPoint(Item):
     def __init__(self, game, x, y, tile):

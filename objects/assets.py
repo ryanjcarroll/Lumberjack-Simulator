@@ -57,16 +57,23 @@ class SoundAssetManager:
 
         self.sounds = {
             "chop_tree":[
-                self.load("sounds/chop_tree/industrial_tools_axe_chop_wood_002.mp3"),
-                self.load("sounds/chop_tree/industrial_tools_axe_chop_wood_004.mp3"),
-                self.load("sounds/chop_tree/industrial_tools_axe_chop_wood_005.mp3"),
-                self.load("sounds/chop_tree/industrial_tools_axe_chop_wood_007.mp3"),
+                self.load("sounds/tree/chop/industrial_tools_axe_chop_wood_002.mp3"),
+                self.load("sounds/tree/chop/industrial_tools_axe_chop_wood_004.mp3"),
+                self.load("sounds/tree/chop/industrial_tools_axe_chop_wood_005.mp3"),
+                self.load("sounds/tree/chop/industrial_tools_axe_chop_wood_007.mp3"),
             ],
             "fell_tree":[
-                self.load("sounds/fell_tree/industrial_tools_axe_chop_wood_003.mp3"),
-                self.load("sounds/fell_tree/industrial_tools_axe_chop_wood_006.mp3"),
-                self.load("sounds/fell_tree/industrial_tools_axe_chop_wood_008.mp3"),
-                self.load("sounds/fell_tree/industrial_tools_axe_chop_wood_009.mp3"),
+                self.load("sounds/tree/fell/industrial_tools_axe_chop_wood_003.mp3"),
+                self.load("sounds/tree/fell/industrial_tools_axe_chop_wood_006.mp3"),
+                self.load("sounds/tree/fell/industrial_tools_axe_chop_wood_008.mp3"),
+                self.load("sounds/tree/fell/industrial_tools_axe_chop_wood_009.mp3"),
+            ],
+            "chop_rock":[
+                self.load("sounds/rock/chop/stone-001.wav"),
+                self.load("sounds/rock/chop/stone-002.wav"),
+            ],
+            "fell_rock":[
+                self.load("sounds/rock/fell/stone-003.wav"),
             ],
             "unpack":[
                 self.load("sounds/misc/186719__andromadax24__chime_01.wav")

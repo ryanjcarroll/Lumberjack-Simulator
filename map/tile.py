@@ -5,7 +5,8 @@ import random
 from glob import glob
 from objects.sprites import SpriteObject
 from abc import ABC, abstractmethod
-from objects.tree import *
+from objects.resources.tree import *
+from objects.resources.rock import Rock
 import opensimplex
 from objects.items.items import SkillPoint
 from objects.npcs.bat import Bat
@@ -127,8 +128,8 @@ class Tile(ABC):
                 object_type = globals()[d['type']]
                 args = [self.game, *d['topleft'], self]
                 
-                if "tree_type" in d:
-                    args.append(d["tree_type"])
+                if "image_name" in d:
+                    args.append(d["image_name"])
                 if "flipped" in d:
                     args.append(d["flipped"])
                     
@@ -151,20 +152,25 @@ class Tile(ABC):
                     if spawn_loc:
                         self.objects.append(self.tree_type(self.game, *spawn_loc, self))
                 # Spawn Bats
-                elif r > 0.99:
+                elif random.random() < .01:
                     spawn_loc = self.can_spawn()
                     if spawn_loc:
                         self.objects.append(Bat(self.game, *spawn_loc, self))                
                 # Spawn Slimes
-                elif r > 0.98:
+                elif random.random() < .01:
                     spawn_loc = self.can_spawn()
                     if spawn_loc:
                         self.objects.append(Slime(self.game, *spawn_loc, self))                
                 # Spawn Skill Points
-                elif r > 0.97: # spawn an SkillPoint item on a small percentage of tiles which don't have a tree
+                elif random.random() < .005: # spawn an SkillPoint item on a small percentage of tiles which don't have a tree
                     spawn_loc = self.can_spawn()
                     if spawn_loc:
-                        self.objects.append(SkillPoint(self.game, *spawn_loc, self))                
+                        self.objects.append(SkillPoint(self.game, *spawn_loc, self))      
+                # Spawn Rocks
+                elif random.random() < .1: # spawn an SkillPoint item on a small percentage of tiles which don't have a tree
+                    spawn_loc = self.can_spawn()
+                    if spawn_loc:
+                        self.objects.append(Rock(self.game, *spawn_loc, self))                
                 
     def load_decor(self):
         decor_weights = self.decor_weights
@@ -348,7 +354,7 @@ class IceForestTile(Tile):
             "pebble":10,
             "print":3,
             "grass":3,
-            "stone":5
+            # "rock":5
         }
 
         super().__init__(game, chunk, row, col, load_decor)
@@ -419,12 +425,13 @@ class WaterTile(Tile):
 
     def load_objects(self, objects=None):
         # load water
-        self.objects.append(SpriteObject(
+        water = SpriteObject(
             game=self.game,
             x=self.x,
             y=self.y,
             tile=self,
             image=self.game.sprites.load("assets/textures/transparent.png"),
             layer=BASE_LAYER,
-            can_collide=True
-        ))
+        )
+        self.game.can_collide_list.add(water)
+        self.objects.append(water)
