@@ -39,9 +39,10 @@ class Map:
             self.unload_chunk(chunk_to_unload)
 
     def unload_chunk(self, chunk_id):
-        self.chunks[chunk_id].save()
-        self.chunks[chunk_id].unload()
-        del self.chunks[chunk_id]
+        with self.lock:
+            self.chunks[chunk_id].save()
+            self.chunks[chunk_id].unload()
+            del self.chunks[chunk_id]
 
     def load_chunk(self, x, y, type=Chunk):
         self.currently_loading.add(f"{x},{y}")

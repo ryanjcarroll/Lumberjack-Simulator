@@ -142,8 +142,9 @@ class Game:
         )
 
         # chunk data
-        for chunk_id, chunk in self.map.chunks.items():
-            chunk.save()
+        with self.map.lock:
+            for chunk_id, chunk in self.map.chunks.items():
+                chunk.save()
             
     def update(self):
         """
