@@ -1,4 +1,5 @@
 # Welcome to Lumberjack Simulator!
+Lumberjack simulator is for that member of your gaming group that loves chopping trees and gathering resources.
 
 # Implementation Details
 Lumberjack Simulator is 2D Pygame project with several neat features:
