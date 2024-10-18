@@ -20,25 +20,6 @@ class StartMenu:
         self.title_text_x = WINDOW_WIDTH // 2 - self.title_text.get_width() // 2
         self.title_text_y = WINDOW_HEIGHT // 3
 
-        # # Define start button rectangle
-        # start_button_width = 200
-        # start_button_height = 50
-        # start_button_x = (WINDOW_WIDTH - start_button_width) // 2
-        # start_button_y = ((WINDOW_HEIGHT - start_button_height) //2) + 10
-        # self.start_button = pg.Rect(start_button_x, start_button_y, start_button_width, start_button_height)
-        # continue_button_x = (WINDOW_WIDTH - start_button_width) // 2
-        # continue_button_y = start_button_y + (start_button_height * 1.25) # position below New Game
-        # self.continue_button = pg.Rect(continue_button_x, continue_button_y, start_button_width, start_button_height)
-
-        # self.font = pg.font.Font(None, 36)
-        # self.start_text = self.font.render(f"New Game", True, BLACK)
-        # self.start_text_x = self.start_button.centerx - self.start_text.get_width() // 2  # Center the text horizontally within the rectangle
-        # self.start_text_y = self.start_button.centery - self.start_text.get_height() // 2  # Center the text vertically within the rectangle
-
-        # self.continue_text = self.font.render(f"Continue", True, BLACK)
-        # self.continue_text_x = self.continue_button.centerx - self.continue_text.get_width() // 2  # Center the text horizontally within the rectangle
-        # self.continue_text_y = self.continue_button.centery - self.continue_text.get_height() // 2  # Center the text vertically within the rectangle
-
         # Create buttons with actions
         self.new_game_button = Button(
             screen=self.game.screen,

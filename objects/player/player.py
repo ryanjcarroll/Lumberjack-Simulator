@@ -10,6 +10,7 @@ import json
 from objects.sprites import SpriteObject
 from objects.items.items import SkillPoint
 from objects.player.skills import SkillTree
+from objects.player.phototaker import Phototaker
 
 class Player(SpriteObject):
     """
@@ -63,7 +64,7 @@ class Player(SpriteObject):
         self.crit_chance = 0
 
         # photos taken
-        self.photos = []
+        self.phototaker = Phototaker(self.game, self)
 
         # initialize animation settings
         self.animation_timer = 0
@@ -133,7 +134,28 @@ class Player(SpriteObject):
                 # combine cimponents into a single animation frame and add to the frames library
                 self.frames[action].append((combine_images(images)))
         
+    def handle_event(self, event):
+        """
+        Handle events based on a keypress, but not a held-down key
+        """
+        # left mouse button clicked while camera open
+        if self.game.weapon_menu.get_weapon_name() == 'camera':
+            if event.type == pg.MOUSEWHEEL:
+                self.phototaker.adjust_aperture(event.y)
+            elif event.type == pg.MOUSEBUTTONDOWN and event.button==1:
+                lens = self.phototaker.get_lens()
+
+                # Capture the area as a photo (Surface object)
+                photo = pg.Surface((lens.width, lens.height))
+                photo.blit(self.game.screen, (0, 0), (lens.x, lens.y, lens.width, lens.height))
+
+                # Add the photo to the player's album
+                self.phototaker.take_photo(photo)
+
     def handle_keys(self, keys:list):
+        """
+        Handle movement commands (including held-down keys like WASD)
+        """
         movement = vec(0, 0)
 
         # if an attack/tool is ongoing, don't exceute any movements
@@ -160,7 +182,6 @@ class Player(SpriteObject):
             return False
             
         self.apply_movement(movement)
-        print(self.pos)
 
     def apply_movement(self, movement:vec):
         # normalize diagonal walking movements
@@ -391,6 +412,10 @@ class Player(SpriteObject):
         self.rect.center = self.pos + self.sprite_offset
         self.collision_rect.center = self.pos
 
+        # update phototaker
+        if self.game.weapon_menu.get_weapon_name() == 'camera':
+            self.phototaker.update()
+
         self.check_can_collect()
 
         # if player health reaches 0 or lower, end the game
@@ -400,15 +425,10 @@ class Player(SpriteObject):
     def draw(self, screen, camera):
         # self.draw_hitboxes(screen, camera)
         screen.blit(self.image, camera.apply(self.rect))
-
+        
+        # draw phototaker
         if self.game.weapon_menu.get_weapon_name() == 'camera':
-            
-            # Draw a red rectangle outline at the mouse position
-            mouse_pos = pg.mouse.get_pos()
-            rect_width, rect_height = TILE_SIZE, 2*TILE_SIZE//3
-            rect_x = mouse_pos[0] - rect_width // 2
-            rect_y = mouse_pos[1] - rect_height // 2
-            pg.draw.rect(screen, (255, 0, 0), (rect_x, rect_y, rect_width, rect_height), 3)  # Red color, outline width 3
+            self.phototaker.draw(screen)
             
     def draw_hitboxes(self, screen, camera):
         """

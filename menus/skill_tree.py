@@ -8,7 +8,8 @@ class SkillTreeMenu:
 
         self.build_elements() # calls self.layout_nodes()
 
-    def update(self, mouse_pos):
+    def update(self):
+        mouse_pos = pg.mouse.get_pos()
         for id, node in self.skill_tree.nodes.items():
             node.is_hovered = node.button.collidepoint(mouse_pos)
 

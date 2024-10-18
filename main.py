@@ -244,7 +244,9 @@ class Game:
                 self.start_menu.handle_event(event)
             elif self.at_loadout_menu:
                 self.loadout_menu.handle_event(event) 
-            elif self.playing and not self.at_skilltree_menu:
+
+            # main non-menu gameplay state
+            elif self.playing and not self.at_skilltree_menu and not self.at_photo_menu:
                 if event.type == pg.KEYDOWN:
                     # open the skilltree menu
                     if event.key == pg.K_i:
@@ -252,9 +254,10 @@ class Game:
                     # open the photos menu
                     elif event.key == pg.K_p:
                         self.photo_screen()
-                    # cycle weapons
-                    elif pg.K_0 <= event.key <= pg.K_9:
-                        self.weapon_menu.handle_event(event)
+                
+                self.weapon_menu.handle_event(event)
+                self.player.handle_event(event)
+
             elif self.at_skilltree_menu:
                 self.skilltree_menu.handle_event(event)
             elif self.at_photo_menu:
@@ -287,7 +290,7 @@ class Game:
         self.at_loadout_menu = True
         while self.at_loadout_menu:
             self.events()
-            self.loadout_menu.update(pg.mouse.get_pos())
+            self.loadout_menu.update()
             self.loadout_menu.draw()
         return self.loadout_menu.get_loadout()
 
@@ -299,7 +302,7 @@ class Game:
         self.at_skilltree_menu = True
         while self.at_skilltree_menu:
             self.events()
-            self.skilltree_menu.update(pg.mouse.get_pos())
+            self.skilltree_menu.update()
             self.skilltree_menu.draw()
 
     def photo_screen(self):
@@ -310,7 +313,7 @@ class Game:
         self.at_photo_menu = True
         while self.at_photo_menu:
             self.events()
-            self.photo_menu.update(pg.mouse.get_pos())
+            self.photo_menu.update()
             self.photo_menu.draw()
 
     def run(self):
