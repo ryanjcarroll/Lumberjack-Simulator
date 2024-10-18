@@ -62,6 +62,9 @@ class Player(SpriteObject):
         self.dodge_chance = 0
         self.crit_chance = 0
 
+        # photos taken
+        self.photos = []
+
         # initialize animation settings
         self.animation_timer = 0
         self.current_frame_index = -1
@@ -130,16 +133,60 @@ class Player(SpriteObject):
                 # combine cimponents into a single animation frame and add to the frames library
                 self.frames[action].append((combine_images(images)))
         
-    def check_keys(self):
-        """
-        Check for keyboard input and update movement and angle information accordingly. 
-        """
-        keys = pg.key.get_pressed()
-        movement = self.get_movement(keys)
+    def handle_keys(self, keys:list):
+        movement = vec(0, 0)
 
-        # # always update angle, regardless of collision and movement
-        # self.angle = math.degrees(math.atan2(-movement.y, movement.x))
+        # if an attack/tool is ongoing, don't exceute any movements
+        if self.action in WEAPONS_TO_LOAD:
+            return False
 
+        if keys[pg.K_SPACE]:
+            self.current_frame_index = -1 # start the animation sequence for new inputs
+            self.action = self.game.weapon_menu.get_weapon_name()
+            return movement
+        
+        if keys[pg.K_a] or keys[pg.K_LEFT]:
+            movement.x -= self.move_distance
+        if keys[pg.K_d] or keys[pg.K_RIGHT]:
+            movement.x += self.move_distance
+        if keys[pg.K_w] or keys[pg.K_UP]:
+            movement.y -= self.move_distance
+        if keys[pg.K_s] or keys[pg.K_DOWN]:
+            movement.y += self.move_distance
+
+        # if no movement, set action to stand
+        if movement.length_squared() == 0:
+            self.action = "stand"
+            return False
+            
+        self.apply_movement(movement)
+        print(self.pos)
+
+    def apply_movement(self, movement:vec):
+        # normalize diagonal walking movements
+        if movement.length_squared() > self.move_distance:
+            movement = movement.normalize() * self.move_distance
+            self.last_movement = movement
+            self.action = "walk"
+        # if horizontal/vertical movement, set the action
+        else:
+            self.action = "walk"
+
+        # for any walk, set the direction
+        # if moving diagonally, we want the L/R sprite animation instead of U/D
+        if movement.x > 0:
+            self.direction = "right"
+        elif movement.x < 0:
+            self.direction = "left"
+        elif movement.y > 0:
+            self.direction = "down"
+        elif movement.y < 0:
+            self.direction = "up"
+
+        # Update player angle based on the last movement direction
+        self.angle = math.degrees(math.atan2(-self.last_movement.y, self.last_movement.x))
+
+        # check if movement would put player at camp
         self.check_at_camp(movement)
         
         # break movement into X and Y component vectors
@@ -170,7 +217,7 @@ class Player(SpriteObject):
             self.collision_rect.center += movement
             self.pos += movement
             self.rect.center = self.pos + self.sprite_offset
-            self.collision_rect.center = self.pos
+            self.collision_rect.center = self.pos       
 
     def check_at_camp(self, movement):
         # before adjusting for collisions, check if colliding with camp
@@ -190,60 +237,6 @@ class Player(SpriteObject):
                     self.skill_points_available += 1
                     self.game.sounds.play("skillpoint",0)
                 obj.kill()
-
-    def get_movement(self, keys) -> vec:
-        """
-        Given a set of keyboard inputs, set action and direction, and return movement vector. 
-        """
-        movement = vec(0, 0)
-
-        # if axe attack is ongoing, don't exceute any movements
-        if self.action in WEAPONS_TO_LOAD:
-            return movement
-
-        if keys[pg.K_SPACE]:
-            self.current_frame_index = -1 # start the animation sequence for new inputs
-            self.action = self.game.weapon_menu.get_weapon_name()
-            return movement
-        
-        if keys[pg.K_a] or keys[pg.K_LEFT]:
-            movement.x -= self.move_distance
-        if keys[pg.K_d] or keys[pg.K_RIGHT]:
-            movement.x += self.move_distance
-        if keys[pg.K_w] or keys[pg.K_UP]:
-            movement.y -= self.move_distance
-        if keys[pg.K_s] or keys[pg.K_DOWN]:
-            movement.y += self.move_distance
-
-        # if no movement, set action to stand
-        if movement.length_squared() == 0:
-            self.action = "stand"
-            return movement
-
-        # normalize diagonal walking movements
-        if movement.length_squared() > self.move_distance:
-            movement = movement.normalize() * self.move_distance
-            self.last_movement = movement
-            self.action = "walk"
-        # if horizontal/vertical movement, set the action
-        else:
-            self.action = "walk"
-
-        # for any walk, set the direction
-        # if moving diagonally, we want the L/R sprite animation instead of U/D
-        if movement.x > 0:
-            self.direction = "right"
-        elif movement.x < 0:
-            self.direction = "left"
-        elif movement.y > 0:
-            self.direction = "down"
-        elif movement.y < 0:
-            self.direction = "up"
-
-        # Update player angle based on the last movement direction
-        self.angle = math.degrees(math.atan2(-self.last_movement.y, self.last_movement.x))
-
-        return movement
 
     def get_equipped_weapon_stats(self):
         weapon_stats = self.weapon_stats[self.game.weapon_menu.get_weapon_name()]
@@ -383,7 +376,6 @@ class Player(SpriteObject):
         """
         Called each game step to update the Player object.
         """
-        self.check_keys()
         self.set_animation_counters(self.game.dt)
 
         # set the frame for animations
@@ -408,7 +400,16 @@ class Player(SpriteObject):
     def draw(self, screen, camera):
         # self.draw_hitboxes(screen, camera)
         screen.blit(self.image, camera.apply(self.rect))
-    
+
+        if self.game.weapon_menu.get_weapon_name() == 'camera':
+            
+            # Draw a red rectangle outline at the mouse position
+            mouse_pos = pg.mouse.get_pos()
+            rect_width, rect_height = TILE_SIZE, 2*TILE_SIZE//3
+            rect_x = mouse_pos[0] - rect_width // 2
+            rect_y = mouse_pos[1] - rect_height // 2
+            pg.draw.rect(screen, (255, 0, 0), (rect_x, rect_y, rect_width, rect_height), 3)  # Red color, outline width 3
+            
     def draw_hitboxes(self, screen, camera):
         """
         Debugging method to show player attack collision areas.

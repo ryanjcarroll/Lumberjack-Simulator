@@ -14,6 +14,7 @@ from menus.start import StartMenu
 from menus.loadout import LoadoutMenu
 from menus.game_over import GameOverMenu
 from menus.skill_tree import SkillTreeMenu
+from menus.photos import PhotoMenu
 from objects.assets import SpriteAssetManager, SoundAssetManager
 import uuid
 import os
@@ -48,6 +49,8 @@ class Game:
         self.at_start_menu = False
         self.at_game_over = False
         self.at_skilltree_menu = False
+        self.at_photo_menu = False
+        self.player = None
 
     def start_game(self):
         """
@@ -242,17 +245,27 @@ class Game:
             elif self.at_loadout_menu:
                 self.loadout_menu.handle_event(event) 
             elif self.playing and not self.at_skilltree_menu:
-                # open the skilltree menu if 'i'
-                if event.type == pg.KEYDOWN and event.key == pg.K_i:
-                    self.skilltree_screen()
-                # cycle weapons
-                elif event.type == pg.KEYDOWN and pg.K_0 <= event.key <= pg.K_9:
-                    self.weapon_menu.handle_keys(event)
-                # other event inputs are handled in the Player class #TODO re-work them to be here
+                if event.type == pg.KEYDOWN:
+                    # open the skilltree menu
+                    if event.key == pg.K_i:
+                        self.skilltree_screen()
+                    # open the photos menu
+                    elif event.key == pg.K_p:
+                        self.photo_screen()
+                    # cycle weapons
+                    elif pg.K_0 <= event.key <= pg.K_9:
+                        self.weapon_menu.handle_event(event)
             elif self.at_skilltree_menu:
                 self.skilltree_menu.handle_event(event)
+            elif self.at_photo_menu:
+                self.photo_menu.handle_event(event)
             elif self.at_game_over:
                 self.game_over_menu.handle_event(event)
+
+        # player inputs must be slightly different because \
+        # we care about keys pressed, even if they weren't first pressed this frame
+        if self.player:
+            self.player.handle_keys(pg.key.get_pressed())
 
     def start_screen(self):
         """
@@ -288,6 +301,17 @@ class Game:
             self.events()
             self.skilltree_menu.update(pg.mouse.get_pos())
             self.skilltree_menu.draw()
+
+    def photo_screen(self):
+        """
+        Screen where player can see photos they've taken
+        """
+        self.photo_menu = PhotoMenu(self)
+        self.at_photo_menu = True
+        while self.at_photo_menu:
+            self.events()
+            self.photo_menu.update(pg.mouse.get_pos())
+            self.photo_menu.draw()
 
     def run(self):
         """
