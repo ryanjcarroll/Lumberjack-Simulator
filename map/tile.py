@@ -173,12 +173,12 @@ class Tile(ABC):
                     if spawn_loc:
                         self.objects.append(Rock(self.game, *spawn_loc, self))    
                 # Spawn Butterflies
-                elif random.random() < .01:
+                elif random.random() < .02:
                     spawn_loc = self.can_spawn()
                     if spawn_loc:
                         Butterfly(self.game, self.rect.centerx, self.rect.centery, self)     
                 # Spawn Grasshoppers
-                elif random.random() < .01:
+                elif random.random() < .02:
                     spawn_loc = self.can_spawn()
                     if spawn_loc:
                         Grasshopper(self.game, self.rect.centerx, self.rect.centery, self)      
