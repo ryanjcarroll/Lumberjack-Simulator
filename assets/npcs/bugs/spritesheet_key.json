@@ -1,0 +1,4 @@
+{
+    "jump_right":{"row":0,"num_frames":6},
+    "jump_left":{"row":1,"num_frames":6}
+}

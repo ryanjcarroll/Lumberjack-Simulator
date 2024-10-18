@@ -363,7 +363,7 @@ class Player(SpriteObject):
             if self.animation_timer >= self.animation_speed:
                 self.current_frame_index = (self.current_frame_index + 1) % len(self.frames[f"{self.action}_{self.direction}"])
                 self.animation_timer = 0
-        elif self.action == "sleep":
+        elif self.action == "idle":
             if self.animation_timer >= self.animation_speed:
                 self.current_frame_index = (self.current_frame_index + 1) % len(self.frames[f"{self.action}"])
                 self.animation_timer = 0
@@ -389,8 +389,8 @@ class Player(SpriteObject):
         # set the frame for animations
         if self.action in ["walk"] + WEAPONS_TO_LOAD:
             self.image = self.frames[f"{self.action}_{self.direction}"][self.current_frame_index]
-        elif self.action == "sleep":
-            self.image = self.frames["sleep"][self.current_frame_index]
+        elif self.action == "idle":
+            self.image = self.frames["idle"][self.current_frame_index]
         else:
             # to stand, set to the first frame of the directional walk animation
             self.image = self.frames[f"walk_{self.direction}"][0]
@@ -438,7 +438,7 @@ class Player(SpriteObject):
         pg.draw.rect(screen, GREEN, camera.apply(self.collision_rect))  # Draw the player's collision rect
 
     def game_over_update(self):
-        self.action = "sleep"
+        self.action = "idle"
         self.current_frame_index = 0
         self.update()
         self.game.game_over_menu.draw(self.game.screen)

@@ -25,7 +25,7 @@ class Bat(SpriteObject):
         # animation variables
         self.animation_timer = 0
         self.current_frame_index = -1
-        self.action = "sleep"
+        self.action = "idle"
         self.direction = "down"
         self.animation_speed = PLAYER_ANIMATION_SPEED
 
@@ -80,7 +80,7 @@ class Bat(SpriteObject):
             if self.animation_timer >= self.animation_speed:
                 self.current_frame_index = (self.current_frame_index + 1) % len(self.frames[f"{self.action}_{self.direction}"])
                 self.animation_timer = 0
-        elif self.action == "sleep":
+        elif self.action == "idle":
             if self.animation_timer >= self.animation_speed:
                 self.current_frame_index = 0
                 self.animation_timer = 0
@@ -137,8 +137,8 @@ class Bat(SpriteObject):
 
             # Aggro if near enough
             elif distance_to_player < aggression_radius:
-                # if transitioning from sleep to walk, play wakeup sound
-                if self.action == "sleep":
+                # if transitioning from idle to walk, play wakeup sound
+                if self.action == "idle":
                     self.game.sounds.play_random("bat_wake")
 
                 # self.attack_timer = 0  # Reset the attack timer anytime the bat is no longer in attack range
@@ -188,7 +188,7 @@ class Bat(SpriteObject):
 
             # Optional idle or patrol behavior if player is out of range
             else:
-                self.action = "sleep"  # Example: bat could sleep or wander
+                self.action = "idle"  # Example: bat could idle or wander
 
     def attack_player(self, distance, player_x, player_y):
         if distance < self.attack_distance:
@@ -240,8 +240,8 @@ class Bat(SpriteObject):
         # set the frame for animations
         if self.action in ["walk"]:
             self.image = self.frames[f"{self.action}_{self.direction}"][self.current_frame_index]
-        elif self.action == "sleep":
-            self.image = self.frames["sleep"][0]
+        elif self.action == "idle":
+            self.image = self.frames["idle"][0]
         elif self.action == "die":
             self.image = self.frames["die"][self.current_frame_index]
         else:

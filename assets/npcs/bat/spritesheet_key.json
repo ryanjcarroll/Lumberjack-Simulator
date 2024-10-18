@@ -3,6 +3,6 @@
     "walk_up": {"row": 1, "num_frames": 4},
     "walk_left": {"row": 2, "num_frames": 4},
     "walk_right": {"row": 3, "num_frames": 4},
-    "sleep": {"row": 4, "num_frames": 1},
+    "idle": {"row": 4, "num_frames": 1},
     "die": {"row": 5, "num_frames": 4}
 }
