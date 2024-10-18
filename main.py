@@ -6,6 +6,7 @@ import sys
 from objects.player.player import Player
 from objects.inventory import *
 from objects.npcs.grasshopper import Grasshopper
+from objects.npcs.butterfly import Butterfly
 from ui.compass import Compass
 from ui.bars import HealthBar
 from ui.inventory import BackpackInventoryMenu, CampInventoryMenu
@@ -123,9 +124,6 @@ class Game:
         self.health_bar = HealthBar(self)
         self.weapon_menu = WeaponMenu(self)
         self.compass = Compass(self)
-
-        # TODO remove
-        Grasshopper(self, (CHUNK_SIZE*TILE_SIZE)//2, (CHUNK_SIZE*TILE_SIZE)//2, self.player.tile)
 
         # move on from the start menu
         self.at_start_menu = False

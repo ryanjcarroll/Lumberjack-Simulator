@@ -38,7 +38,7 @@ class Grasshopper(SpriteObject):
 
     def load_animations(self):       
         # load the spritesheet key to determine which rows go with which animations               
-        with open("assets/npcs/bugs/spritesheet_key.json") as f_in:
+        with open("assets/npcs/bugs/grasshopper/spritesheet_key.json") as f_in:
             row_key = json.load(f_in)
         
         for action, info in row_key.items():
@@ -49,7 +49,7 @@ class Grasshopper(SpriteObject):
                 self.frames[action].append(
                     pg.transform.scale(
                         self.game.sprites.load_from_tilesheet(
-                            path=f"assets/npcs/bugs/grasshopper.png",
+                            path=f"assets/npcs/bugs/grasshopper/grasshopper.png",
                             row_index=info['row'],
                             col_index=col,
                             tile_size=18
