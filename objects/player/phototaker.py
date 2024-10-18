@@ -6,10 +6,12 @@ class Phototaker:
         self.game = game
         self.player = player
 
-        self.apperture_min_width = 25
-        self.aperture_max_width = 100
-        self.aperture_width = 50
+        self.apperture_min_width = 30
+        self.aperture_max_width = 150
+        self.aperture_width = 70
         self.aperture_height = self.aperture_width
+
+        self.line_width = 4
 
         self.max_distance = TILE_SIZE*4
 
@@ -20,14 +22,14 @@ class Phototaker:
     def take_photo(self, photo):
         self.photos.append(photo)
 
-        self.game.sounds.play("unpack",0)
+        self.game.sounds.play("shutter",0)
 
     def adjust_aperture(self, scroll_delta):
         """
         Adjust the camera aperture (height) based on scroll input.
         scroll_delta > 0 means scroll up, scroll_delta < 0 means scroll down.
         """
-        self.aperture_width += scroll_delta * 5  # Change the factor to adjust sensitivity
+        self.aperture_width += scroll_delta * 10  # Change the factor to adjust sensitivity
         self.aperture_width = max(self.apperture_min_width, min(self.aperture_width, self.aperture_max_width))
         self.aperture_height = self.aperture_width
         self.update()
@@ -65,4 +67,4 @@ class Phototaker:
 
     def draw(self, screen):
         # Draw a red rectangle outline at the mouse position
-        pg.draw.rect(screen, (255, 0, 0), self.lens, width=3)
+        pg.draw.rect(screen, (255, 0, 0), self.lens, width=self.line_width)

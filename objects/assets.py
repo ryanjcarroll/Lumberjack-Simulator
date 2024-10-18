@@ -111,6 +111,9 @@ class SoundAssetManager:
             "slime":[
                 self.load("sounds/slime/340794__kuchenanderung1__slime-squish.wav"),
                 self.load("sounds/slime/353250__zuzek06__slimejump.wav")
+            ],
+            "shutter":[
+                self.load("sounds/misc/shutter.wav")
             ]
         }
 

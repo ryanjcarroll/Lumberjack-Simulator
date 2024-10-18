@@ -42,13 +42,27 @@ class PhotoMenu:
         screen.fill(LIGHTER_GREY)  # background
         screen.blit(self.title_surface, self.title_rect)
 
-        # Display current photo centered
+        # Display current photo
         if self.game.player.phototaker.photos:
             photo = self.game.player.phototaker.photos[self.current_photo_index]
 
             width = WINDOW_WIDTH // 2
             photo = pg.transform.scale(photo, (width, width))
-            photo_rect = photo.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
+
+            # create a white rectangle for the Polaroid effect
+            padding = 25
+            polaroid_rect = pg.Rect(
+                (
+                    WINDOW_WIDTH // 2 - width // 2 - padding, # x
+                    WINDOW_HEIGHT // 2 - width // 2 - (2*padding), # y
+                    width + (padding * 2),  # width
+                    width + (padding * 4) # height
+                )
+            )
+
+            pg.draw.rect(screen, (255, 255, 255), polaroid_rect)
+            pg.draw.rect(screen, (200, 200, 200), polaroid_rect, 5)  # Gray border
+            photo_rect = photo.get_rect(center=(WINDOW_WIDTH // 2, (WINDOW_HEIGHT // 2)-padding))
             self.game.screen.blit(photo, photo_rect)
 
         

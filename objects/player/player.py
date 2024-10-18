@@ -146,8 +146,19 @@ class Player(SpriteObject):
                 lens = self.phototaker.get_lens()
 
                 # Capture the area as a photo (Surface object)
-                photo = pg.Surface((lens.width, lens.height))
-                photo.blit(self.game.screen, (0, 0), (lens.x, lens.y, lens.width, lens.height))
+                photo_width = lens.width - (2 * self.phototaker.line_width)
+                photo_height = lens.height - (2 * self.phototaker.line_width)
+                photo = pg.Surface((photo_width, photo_height))
+                photo.blit(
+                    self.game.screen, 
+                    (0, 0), 
+                    (  # crop out the red Phototaker rectangle
+                        lens.x + self.phototaker.line_width, 
+                        lens.y + self.phototaker.line_width, 
+                        photo_width, 
+                        photo_height
+                    )
+                )
 
                 # Add the photo to the player's album
                 self.phototaker.take_photo(photo)
@@ -285,17 +296,20 @@ class Player(SpriteObject):
         """
         Get a value to apply for damage on the currently equipped weapon.
         """
-        attack_distance, base_damage = self.get_equipped_weapon_stats()
-        # apply +/- 25% randomness to damage
-        multiplier = random.uniform(0.75, 1.25)
-        damage = int(base_damage * multiplier)
+        if self.action in self.weapon_stats:
+            attack_distance, base_damage = self.get_equipped_weapon_stats()
+            # apply +/- 25% randomness to damage
+            multiplier = random.uniform(0.75, 1.25)
+            damage = int(base_damage * multiplier)
 
-        # apply crit for sword attacks
-        if self.action == "sword":
-            if random.random() < self.crit_chance:
-                damage *= 2
+            # apply crit for sword attacks
+            if self.action == "sword":
+                if random.random() < self.crit_chance:
+                    damage *= 2
 
-        return damage
+            return damage
+        else:
+            return None
     
     def apply_weapon(self):
         """
