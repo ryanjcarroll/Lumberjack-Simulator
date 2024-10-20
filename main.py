@@ -5,8 +5,7 @@ from map.camera import Camera
 import sys
 from objects.player.player import Player
 from objects.inventory import *
-from objects.npcs.grasshopper import Grasshopper
-from objects.npcs.butterfly import Butterfly
+from objects.npcs.ladybug import Ladybug
 from ui.compass import Compass
 from ui.bars import HealthBar
 from ui.inventory import BackpackInventoryMenu, CampInventoryMenu

@@ -15,6 +15,7 @@ from objects.inventory import Camp
 from objects.player.player import Player
 from objects.npcs.butterfly import Butterfly
 from objects.npcs.grasshopper import Grasshopper
+from objects.npcs.ladybug import Ladybug
 
 class Tile(ABC):
     def __init__(self, game, chunk, row, col, load_decor=False):
@@ -173,7 +174,7 @@ class Tile(ABC):
                     if spawn_loc:
                         self.objects.append(Rock(self.game, *spawn_loc, self))    
                 # Spawn Butterflies
-                elif random.random() < .02:
+                elif random.random() < .2:
                     spawn_loc = self.can_spawn()
                     if spawn_loc:
                         Butterfly(self.game, self.rect.centerx, self.rect.centery, self)     
@@ -182,7 +183,11 @@ class Tile(ABC):
                     spawn_loc = self.can_spawn()
                     if spawn_loc:
                         Grasshopper(self.game, self.rect.centerx, self.rect.centery, self)      
-                        
+                # Spawn Ladybugs
+                elif random.random() < .02:
+                    spawn_loc = self.can_spawn()
+                    if spawn_loc:
+                        Ladybug(self.game, self.rect.centerx, self.rect.centery, self)      
                 
     def load_decor(self):
         decor_weights = self.decor_weights
