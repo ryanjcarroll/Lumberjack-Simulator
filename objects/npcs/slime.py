@@ -49,9 +49,8 @@ class Slime(SpriteObject):
 
     def load_animations(self):       
         # load the spritesheet key to determine which rows go with which animations               
-        with open("assets/npcs/slime/spritesheet_key.json") as f_in:
-            row_key = json.load(f_in)
-        
+        row_key = self.game.jsons.read("assets/npcs/slime/spritesheet_key.json")
+
         for action, info in row_key.items():
             self.frames[action] = []
 

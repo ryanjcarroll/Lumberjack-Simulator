@@ -2,6 +2,7 @@ import pygame as pg
 from settings import *
 import threading
 import random
+import json
 
 class SpriteAssetManager:
     def __init__(self):
@@ -20,11 +21,11 @@ class SpriteAssetManager:
             return self.images[path].copy()
 
     def load_from_tilesheet(self, path, row_index, col_index, tile_size):
-        with self.lock:
-            if path not in self.images:
-                sheet = pg.image.load(path)
-                self.images[path] = sheet
+        if path not in self.images:
+            sheet = pg.image.load(path)
+            self.images[path] = sheet
 
+        with self.lock:
             tile_path = f"{path}?{row_index},{col_index},{tile_size}"
             if tile_path not in self.images:
                 # Extract a single image from spritesheet
@@ -34,7 +35,7 @@ class SpriteAssetManager:
                 tile_rect = pg.Rect(x, y, tile_size, tile_size)
                 self.images[tile_path] = self.images[path].subsurface(tile_rect)
 
-            return self.images[tile_path]
+            return self.images[tile_path].copy()
         
     def load_from_spritesheet(self, path, topleft:tuple, width:int, height:int):
         with self.lock:
@@ -48,7 +49,7 @@ class SpriteAssetManager:
                 tile_rect = pg.Rect(topleft[0], topleft[1], width, height)
                 self.images[tile_path] = self.images[path].subsurface(tile_rect)
 
-            return self.images[tile_path]
+            return self.images[tile_path].copy()
         
 class SoundAssetManager:
     def __init__(self):
@@ -132,3 +133,14 @@ class SoundAssetManager:
                 if num < len(self.sounds[category]):
                     self.sounds[category][num].play()
                 
+class JSONFileManager:
+    def __init__(self):
+        self.files = {}
+
+    def read(self, path):
+        if path not in self.files:
+            with open(path) as f_in:
+                js = json.load(f_in)
+            self.files[path] = js
+        
+        return self.files[path]

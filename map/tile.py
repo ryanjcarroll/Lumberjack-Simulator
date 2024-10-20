@@ -94,7 +94,7 @@ class Tile(ABC):
 
         return darkened_image
 
-    def can_spawn(self, spawn_attempts=3, max_offset=TILE_SIZE//2, buffer=TILE_SIZE//2):
+    def can_spawn(self, spawn_attempts=3, max_offset=TILE_SIZE//3, buffer=2*TILE_SIZE//3):
         """
         Attempt to find a pos to spawn an object.
 
@@ -343,9 +343,9 @@ class Tile(ABC):
 
 class ForestTile(Tile):
     def __init__(self, game, chunk, row, col, load_decor=True):
-        self.tree_density = 0.6
+        self.tree_density = 0.8
         self.rock_density = 0.07
-        self.tree_type = Tree
+        self.tree_type = ForestTree
         self.decor_weights = {
             "butterfly" : 2,
             "flower"    : 3,
@@ -361,7 +361,7 @@ class ForestTile(Tile):
 
 class IceForestTile(Tile):
     def __init__(self, game, chunk, row, col, load_decor=True):
-        self.tree_density = 0.5
+        self.tree_density = 0.25
         self.rock_density = 0.15
         self.tree_type = IceTree
         self.decor_weights = {
@@ -383,7 +383,7 @@ class IceForestTile(Tile):
     
 class AutumnForestTile(Tile):
     def __init__(self, game, chunk, row, col, load_decor=True):
-        self.tree_density = 0.7
+        self.tree_density = 0.75
         self.rock_density = 0.05
         self.tree_type = AutumnTree
         self.decor_weights = {
