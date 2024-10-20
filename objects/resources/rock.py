@@ -49,7 +49,7 @@ class Rock(SpriteObject):
         if not self.image_name:
             self.image_name = random.choices(
                 population = list(self.spawn_weights.keys()),
-                weights = list(self.spawn_weights.values())
+                weights = list(self.spawn_weights.values()),
             )[0]
 
         # load an image, remove transparent boundaries, and scale it to size

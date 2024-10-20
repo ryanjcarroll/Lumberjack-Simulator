@@ -237,7 +237,9 @@ class LoadoutMenu:
         # base character preview image
         self.char_image = combine_images(images)
 
-    def update(self, mouse_pos):
+    def update(self):
+        mouse_pos = pg.mouse.get_pos()
+
         # update button color if mouse is hovering over them
         for attribute, d in self.buttons.items():
             for dir in ["left","right"]:

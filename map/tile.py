@@ -13,6 +13,8 @@ from objects.npcs.bat import Bat
 from objects.npcs.slime import Slime
 from objects.inventory import Camp
 from objects.player.player import Player
+from objects.npcs.butterfly import Butterfly
+from objects.npcs.grasshopper import Grasshopper
 
 class Tile(ABC):
     def __init__(self, game, chunk, row, col, load_decor=False):
@@ -169,7 +171,18 @@ class Tile(ABC):
                 elif random.random() < self.rock_density: # spawn an SkillPoint item on a small percentage of tiles which don't have a tree
                     spawn_loc = self.can_spawn()
                     if spawn_loc:
-                        self.objects.append(Rock(self.game, *spawn_loc, self))                
+                        self.objects.append(Rock(self.game, *spawn_loc, self))    
+                # Spawn Butterflies
+                elif random.random() < .02:
+                    spawn_loc = self.can_spawn()
+                    if spawn_loc:
+                        Butterfly(self.game, self.rect.centerx, self.rect.centery, self)     
+                # Spawn Grasshoppers
+                elif random.random() < .02:
+                    spawn_loc = self.can_spawn()
+                    if spawn_loc:
+                        Grasshopper(self.game, self.rect.centerx, self.rect.centery, self)      
+                        
                 
     def load_decor(self):
         decor_weights = self.decor_weights

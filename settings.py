@@ -31,7 +31,7 @@ BIOME_NOISE_FACTOR = .0005
 # sprite settings
 SPRITESHEET_TILE_SIZE = 32
 SPRITESHEET_NUM_COLUMNS = 8
-ACTIONS_TO_LOAD = ["walk","sleep"]
+ACTIONS_TO_LOAD = ["walk","idle"]
 WEAPONS_TO_LOAD = [
     "axe",
     "sword",
@@ -44,7 +44,8 @@ LAYER_ORDER = ["body","hair","face","shirt","pants","accessories"]
 # render layer settings (0 is drawn first)
 BASE_LAYER = 0
 DECOR_LAYER = 1
-SPRITE_LAYER = 2
+GROUND_NPC_LAYER = 2
+SPRITE_LAYER = 3
 
 # player settings
 PLAYER_SWORD_ATTACK_DAMAGE = 100 if GOD_MODE else 10

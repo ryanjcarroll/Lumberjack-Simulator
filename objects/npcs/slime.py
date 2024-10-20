@@ -13,7 +13,7 @@ class Slime(SpriteObject):
         self.height = 36
         self.frames = {}
 
-        super().__init__(game, x, y, tile, layer=SPRITE_LAYER, image=None)
+        super().__init__(game, x, y, tile, layer=GROUND_NPC_LAYER, image=None)
 
         # position and movement variables
         self.pos = vec(x,y)
@@ -25,7 +25,7 @@ class Slime(SpriteObject):
         # animation variables
         self.animation_timer = 0
         self.current_frame_index = -1
-        self.action = "sleep"
+        self.action = "idle"
         self.direction = "down"
         self.animation_speed = PLAYER_ANIMATION_SPEED
 
@@ -79,9 +79,9 @@ class Slime(SpriteObject):
             if self.animation_timer >= self.animation_speed:
                 self.current_frame_index = (self.current_frame_index + 1) % len(self.frames[f"{self.action}_{self.direction}"])
                 self.animation_timer = 0
-        elif self.action == "sleep":
+        elif self.action == "idle":
             if self.animation_timer >= self.animation_speed:
-                self.current_frame_index = (self.current_frame_index + 1) % len(self.frames["sleep"])
+                self.current_frame_index = (self.current_frame_index + 1) % len(self.frames["idle"])
                 self.animation_timer = 0
         elif self.action == "die":
             if self.animation_timer >= self.animation_speed:
@@ -152,7 +152,7 @@ class Slime(SpriteObject):
 
             # Optional idle or patrol behavior if player is out of range
             else:
-                self.action = "sleep"  # Example: slime could stay put or wobble slightly
+                self.action = "idle"  # Example: slime could stay put or wobble slightly
 
     def attack_player(self, distance, player_x, player_y):
         if distance < self.attack_distance:
@@ -206,8 +206,8 @@ class Slime(SpriteObject):
         # set the frame for animations
         if self.action in ["walk"]:
             self.image = self.frames[f"{self.action}_{self.direction}"][self.current_frame_index]
-        elif self.action == "sleep":
-            self.image = self.frames["sleep"][0]
+        elif self.action == "idle":
+            self.image = self.frames["idle"][0]
         elif self.action == "die":
             self.image = self.frames["die"][self.current_frame_index]
         else:

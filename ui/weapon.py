@@ -6,7 +6,7 @@ class WeaponMenu:
         self.game = game
         
         # Define the weapon names and initial selection
-        self.weapons = WEAPONS_TO_LOAD
+        self.weapons = WEAPONS_TO_LOAD + ["camera"]
         self.selected_weapon = 0  # Index of the selected weapon
         
         # Define the dimensions for the hotbar slots
@@ -33,7 +33,7 @@ class WeaponMenu:
                 if weapon == name:
                     return i
 
-    def handle_keys(self, event):
+    def handle_event(self, event):
         # Check for number key presses to switch between weapons
         if event.type == pg.KEYDOWN and pg.K_1 <= event.key <= pg.K_9:            
             number_pressed = event.key - pg.K_0

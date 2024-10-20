@@ -10,6 +10,7 @@ import json
 from objects.sprites import SpriteObject
 from objects.items.items import SkillPoint
 from objects.player.skills import SkillTree
+from objects.player.phototaker import Phototaker
 
 class Player(SpriteObject):
     """
@@ -61,6 +62,9 @@ class Player(SpriteObject):
         self.wood_per_tree = 1
         self.dodge_chance = 0
         self.crit_chance = 0
+
+        # photos taken
+        self.phototaker = Phototaker(self.game, self)
 
         # initialize animation settings
         self.animation_timer = 0
@@ -129,16 +133,91 @@ class Player(SpriteObject):
                 # combine cimponents into a single animation frame and add to the frames library
                 self.frames[action].append((combine_images(images)))
         
-    def check_keys(self):
+    def handle_event(self, event):
         """
-        Check for keyboard input and update movement and angle information accordingly. 
+        Handle events based on a keypress, but not a held-down key
         """
-        keys = pg.key.get_pressed()
-        movement = self.get_movement(keys)
+        # left mouse button clicked while camera open
+        if self.game.weapon_menu.get_weapon_name() == 'camera':
+            if event.type == pg.MOUSEWHEEL:
+                self.phototaker.adjust_aperture(event.y)
+            elif event.type == pg.MOUSEBUTTONDOWN and event.button==1:
+                lens = self.phototaker.get_lens()
 
-        # # always update angle, regardless of collision and movement
-        # self.angle = math.degrees(math.atan2(-movement.y, movement.x))
+                # Capture the area as a photo (Surface object)
+                photo_width = lens.width - (2 * self.phototaker.line_width)
+                photo_height = lens.height - (2 * self.phototaker.line_width)
+                photo = pg.Surface((photo_width, photo_height))
+                photo.blit(
+                    self.game.screen, 
+                    (0, 0), 
+                    (  # crop out the red Phototaker rectangle
+                        lens.x + self.phototaker.line_width, 
+                        lens.y + self.phototaker.line_width, 
+                        photo_width, 
+                        photo_height
+                    )
+                )
 
+                # Add the photo to the player's album
+                self.phototaker.take_photo(photo)
+
+    def handle_keys(self, keys:list):
+        """
+        Handle movement commands (including held-down keys like WASD)
+        """
+        movement = vec(0, 0)
+
+        # if an attack/tool is ongoing, don't exceute any movements
+        if self.action in WEAPONS_TO_LOAD:
+            return False
+
+        if keys[pg.K_SPACE]:
+            self.current_frame_index = -1 # start the animation sequence for new inputs
+            self.action = self.game.weapon_menu.get_weapon_name()
+            return movement
+        
+        if keys[pg.K_a] or keys[pg.K_LEFT]:
+            movement.x -= self.move_distance
+        if keys[pg.K_d] or keys[pg.K_RIGHT]:
+            movement.x += self.move_distance
+        if keys[pg.K_w] or keys[pg.K_UP]:
+            movement.y -= self.move_distance
+        if keys[pg.K_s] or keys[pg.K_DOWN]:
+            movement.y += self.move_distance
+
+        # if no movement, set action to stand
+        if movement.length_squared() == 0:
+            self.action = "stand"
+            return False
+            
+        self.apply_movement(movement)
+
+    def apply_movement(self, movement:vec):
+        # normalize diagonal walking movements
+        if movement.length_squared() > self.move_distance:
+            movement = movement.normalize() * self.move_distance
+            self.last_movement = movement
+            self.action = "walk"
+        # if horizontal/vertical movement, set the action
+        else:
+            self.action = "walk"
+
+        # for any walk, set the direction
+        # if moving diagonally, we want the L/R sprite animation instead of U/D
+        if movement.x > 0:
+            self.direction = "right"
+        elif movement.x < 0:
+            self.direction = "left"
+        elif movement.y > 0:
+            self.direction = "down"
+        elif movement.y < 0:
+            self.direction = "up"
+
+        # Update player angle based on the last movement direction
+        self.angle = math.degrees(math.atan2(-self.last_movement.y, self.last_movement.x))
+
+        # check if movement would put player at camp
         self.check_at_camp(movement)
         
         # break movement into X and Y component vectors
@@ -169,7 +248,7 @@ class Player(SpriteObject):
             self.collision_rect.center += movement
             self.pos += movement
             self.rect.center = self.pos + self.sprite_offset
-            self.collision_rect.center = self.pos
+            self.collision_rect.center = self.pos       
 
     def check_at_camp(self, movement):
         # before adjusting for collisions, check if colliding with camp
@@ -189,60 +268,6 @@ class Player(SpriteObject):
                     self.skill_points_available += 1
                     self.game.sounds.play("skillpoint",0)
                 obj.kill()
-
-    def get_movement(self, keys) -> vec:
-        """
-        Given a set of keyboard inputs, set action and direction, and return movement vector. 
-        """
-        movement = vec(0, 0)
-
-        # if axe attack is ongoing, don't exceute any movements
-        if self.action in WEAPONS_TO_LOAD:
-            return movement
-
-        if keys[pg.K_SPACE]:
-            self.current_frame_index = -1 # start the animation sequence for new inputs
-            self.action = self.game.weapon_menu.get_weapon_name()
-            return movement
-        
-        if keys[pg.K_a] or keys[pg.K_LEFT]:
-            movement.x -= self.move_distance
-        if keys[pg.K_d] or keys[pg.K_RIGHT]:
-            movement.x += self.move_distance
-        if keys[pg.K_w] or keys[pg.K_UP]:
-            movement.y -= self.move_distance
-        if keys[pg.K_s] or keys[pg.K_DOWN]:
-            movement.y += self.move_distance
-
-        # if no movement, set action to stand
-        if movement.length_squared() == 0:
-            self.action = "stand"
-            return movement
-
-        # normalize diagonal walking movements
-        if movement.length_squared() > self.move_distance:
-            movement = movement.normalize() * self.move_distance
-            self.last_movement = movement
-            self.action = "walk"
-        # if horizontal/vertical movement, set the action
-        else:
-            self.action = "walk"
-
-        # for any walk, set the direction
-        # if moving diagonally, we want the L/R sprite animation instead of U/D
-        if movement.x > 0:
-            self.direction = "right"
-        elif movement.x < 0:
-            self.direction = "left"
-        elif movement.y > 0:
-            self.direction = "down"
-        elif movement.y < 0:
-            self.direction = "up"
-
-        # Update player angle based on the last movement direction
-        self.angle = math.degrees(math.atan2(-self.last_movement.y, self.last_movement.x))
-
-        return movement
 
     def get_equipped_weapon_stats(self):
         weapon_stats = self.weapon_stats[self.game.weapon_menu.get_weapon_name()]
@@ -270,17 +295,20 @@ class Player(SpriteObject):
         """
         Get a value to apply for damage on the currently equipped weapon.
         """
-        attack_distance, base_damage = self.get_equipped_weapon_stats()
-        # apply +/- 25% randomness to damage
-        multiplier = random.uniform(0.75, 1.25)
-        damage = int(base_damage * multiplier)
+        if self.action in self.weapon_stats:
+            attack_distance, base_damage = self.get_equipped_weapon_stats()
+            # apply +/- 25% randomness to damage
+            multiplier = random.uniform(0.75, 1.25)
+            damage = int(base_damage * multiplier)
 
-        # apply crit for sword attacks
-        if self.action == "sword":
-            if random.random() < self.crit_chance:
-                damage *= 2
+            # apply crit for sword attacks
+            if self.action == "sword":
+                if random.random() < self.crit_chance:
+                    damage *= 2
 
-        return damage
+            return damage
+        else:
+            return None
     
     def apply_weapon(self):
         """
@@ -362,7 +390,7 @@ class Player(SpriteObject):
             if self.animation_timer >= self.animation_speed:
                 self.current_frame_index = (self.current_frame_index + 1) % len(self.frames[f"{self.action}_{self.direction}"])
                 self.animation_timer = 0
-        elif self.action == "sleep":
+        elif self.action == "idle":
             if self.animation_timer >= self.animation_speed:
                 self.current_frame_index = (self.current_frame_index + 1) % len(self.frames[f"{self.action}"])
                 self.animation_timer = 0
@@ -382,14 +410,13 @@ class Player(SpriteObject):
         """
         Called each game step to update the Player object.
         """
-        self.check_keys()
         self.set_animation_counters(self.game.dt)
 
         # set the frame for animations
         if self.action in ["walk"] + WEAPONS_TO_LOAD:
             self.image = self.frames[f"{self.action}_{self.direction}"][self.current_frame_index]
-        elif self.action == "sleep":
-            self.image = self.frames["sleep"][self.current_frame_index]
+        elif self.action == "idle":
+            self.image = self.frames["idle"][self.current_frame_index]
         else:
             # to stand, set to the first frame of the directional walk animation
             self.image = self.frames[f"walk_{self.direction}"][0]
@@ -397,6 +424,10 @@ class Player(SpriteObject):
         self.rect = self.image.get_rect(center=self.rect.center)
         self.rect.center = self.pos + self.sprite_offset
         self.collision_rect.center = self.pos
+
+        # update phototaker
+        if self.game.weapon_menu.get_weapon_name() == 'camera':
+            self.phototaker.update()
 
         self.check_can_collect()
 
@@ -407,7 +438,11 @@ class Player(SpriteObject):
     def draw(self, screen, camera):
         # self.draw_hitboxes(screen, camera)
         screen.blit(self.image, camera.apply(self.rect))
-    
+        
+        # draw phototaker
+        if self.game.weapon_menu.get_weapon_name() == 'camera':
+            self.phototaker.draw(screen)
+            
     def draw_hitboxes(self, screen, camera):
         """
         Debugging method to show player attack collision areas.
@@ -436,7 +471,7 @@ class Player(SpriteObject):
         pg.draw.rect(screen, GREEN, camera.apply(self.collision_rect))  # Draw the player's collision rect
 
     def game_over_update(self):
-        self.action = "sleep"
+        self.action = "idle"
         self.current_frame_index = 0
         self.update()
         self.game.game_over_menu.draw(self.game.screen)
