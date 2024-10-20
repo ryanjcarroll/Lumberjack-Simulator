@@ -36,26 +36,24 @@ class Butterfly(SpriteObject):
         return self.frames[f"fly"][0]
 
     def load_animations(self):       
-        # load the spritesheet key to determine which rows go with which animations               
-        with open("assets/npcs/bugs/butterfly/spritesheet_key.json") as f_in:
-            row_key = json.load(f_in)
-        
-        for action, info in row_key.items():
-            self.frames[action] = []
+        # randomly choose a row to load from the butterfly spritesheet
+        # TODO add some better choice algos here         
+        row = random.randint(0,10)
+        self.frames['fly'] = []
 
-            for col in range(info['num_frames']):
-                # load the component frame and add to images list
-                self.frames[action].append(
-                    pg.transform.scale(
-                        self.game.sprites.load_from_tilesheet(
-                            path=f"assets/npcs/bugs/butterfly/butterfly.png",
-                            row_index=info['row'],
-                            col_index=col,
-                            tile_size=16
-                        ),
-                        (self.width, self.height)
-                    )
+        # load the component frame and add to images list
+        for col in range(9):
+            self.frames["fly"].append(
+                pg.transform.scale(
+                    self.game.sprites.load_from_tilesheet(
+                        path=f"assets/npcs/bugs/butterfly/butterfly.png",
+                        row_index=row,
+                        col_index=col,
+                        tile_size=16
+                    ),
+                    (self.width, self.height)
                 )
+            )
 
     def move(self, dt):
         self.direction_timer += dt
