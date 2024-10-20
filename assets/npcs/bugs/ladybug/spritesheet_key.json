@@ -1,0 +1,4 @@
+{
+    "walk_left":{"row":0,"num_frames":4},
+    "walk_right":{"row":1,"num_frames":4}
+}

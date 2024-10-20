@@ -5,7 +5,7 @@ from pygame import Vector2 as vec
 from settings import *
 import random
 
-class Butterfly(SpriteObject):
+class Ladybug(SpriteObject):
     def __init__(self, game, x, y, tile):
         self.width = 36
         self.height = 36
@@ -18,14 +18,15 @@ class Butterfly(SpriteObject):
         self.direction = pg.Vector2(random.choice([-1, 1]), random.choice([-1, 1]))
 
         self.direction_timer = 0
-        self.direction_duration = 1 # time to change direction, in seconds
-        self.speed = 16 # pixels per second
+        self.direction_duration = 3 # time to pick a new action, in seconds
+        self.speed = 4 # pixels per second
 
         # animation variables
         self.animation_timer = 0
         self.current_frame_index = -1
-        self.animation_speed = PLAYER_ANIMATION_SPEED / 2
-        self.action = "fly"
+        self.animation_speed = PLAYER_ANIMATION_SPEED
+        self.action = "walk"
+        self.direction = "left"
 
         # state variables
         self.idle_timer = 0
@@ -33,11 +34,11 @@ class Butterfly(SpriteObject):
 
     def load_image(self):
         self.load_animations()
-        return self.frames[f"fly"][0]
-
+        return self.frames[f"walk_left"][0]
+    
     def load_animations(self):       
         # load the spritesheet key to determine which rows go with which animations               
-        with open("assets/npcs/bugs/butterfly/spritesheet_key.json") as f_in:
+        with open("assets/npcs/bugs/ladybug/spritesheet_key.json") as f_in:
             row_key = json.load(f_in)
         
         for action, info in row_key.items():
@@ -48,7 +49,7 @@ class Butterfly(SpriteObject):
                 self.frames[action].append(
                     pg.transform.scale(
                         self.game.sprites.load_from_tilesheet(
-                            path=f"assets/npcs/bugs/butterfly/butterfly.png",
+                            path=f"assets/npcs/bugs/ladybug/ladybug.png",
                             row_index=info['row'],
                             col_index=col,
                             tile_size=16
@@ -58,16 +59,18 @@ class Butterfly(SpriteObject):
                 )
 
     def move(self, dt):
-        self.direction_timer += dt
-        if self.direction_timer >= self.direction_duration:
-            self.direction += pg.Vector2(random.uniform(-0.2, 0.2), random.uniform(-0.2, 0.2))
-            self.direction = self.direction.normalize()
-            self.direction_duration = (random.random() * 1.5) + 0.5 # random duration from 0.5 to 2
+        if self.direction == "idle":
+            pass
+        else:
+            if self.direction == "right":
+                move_vec = vec(self.speed, 0)
+            elif self.direction == "left":
+                move_vec = vec(-self.speed, 0)
 
-        self.pos += self.direction * self.speed * dt
+            self.pos += move_vec * self.speed * dt
 
-        # # Update the rect position to the new position
-        self.rect.center = self.pos
+            # # Update the rect position to the new position
+            self.rect.center = self.pos
 
     def die(self):
         self.kill()
@@ -78,10 +81,10 @@ class Butterfly(SpriteObject):
         """
         self.animation_timer += dt
 
-        if self.action == "fly":
+        if self.action == "walk":
             # update walk animation frame if enough time has passed
             if self.animation_timer >= self.animation_speed:
-                self.current_frame_index = (self.current_frame_index + 1) % len(self.frames[f"{self.action}"])
+                self.current_frame_index = (self.current_frame_index + 1) % len(self.frames[f"{self.action}_{self.direction}"])
                 self.animation_timer = 0
         elif self.action == "idle":
             if self.animation_timer >= self.animation_speed:
@@ -94,12 +97,20 @@ class Butterfly(SpriteObject):
         """
         self.set_animation_counters(self.game.dt)
         
+        # once timer is up, choose a new action/direction
+        self.direction_timer += self.game.dt
+        if self.direction_timer >= self.direction_duration:
+            self.action = random.choice(["walk","idle"])
+            if self.action == "walk":
+                self.direction = random.choice(["left","right"])
+            self.direction_timer = 0
+
         # set the frame for animations
-        if self.action in ["fly"]:
+        if self.action in ["walk"]:
             self.move(self.game.dt)
-            self.image = self.frames[f"{self.action}"][self.current_frame_index]
+            self.image = self.frames[f"{self.action}_{self.direction}"][self.current_frame_index]
         elif self.action == "idle":
-            self.image = self.frames[f"fly"][0]
+            self.image = self.frames[f"walk_{self.direction}"][0]
         
         self.rect = self.image.get_rect(center=self.pos)
         self.collision_rect = self.rect
