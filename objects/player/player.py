@@ -80,8 +80,7 @@ class Player(SpriteObject):
         Load spritesheets and animation frames.
         """
         # load the spritesheet key to determine which rows go with which animations
-        with open("assets/player/spritesheet_key.json") as f_in:
-            row_key = json.load(f_in)
+        row_key = self.game.jsons.read("assets/player/spritesheet_key.json")
 
         frames_to_load = {}
         # Iterate over original dictionary
@@ -427,13 +426,12 @@ class Player(SpriteObject):
             )
 
             # Draw the attack area as a circle
-            pg.draw.circle(screen, LIGHT_GREY, camera.apply_circle(attack_pos, attack_distance)[0], 
-               camera.apply_circle(attack_pos, attack_distance)[1], 1)
+            pg.draw.circle(screen, LIGHT_GREY, camera.apply_point(attack_pos), attack_distance, 1)
 
         # Draw the actual attack area based on the current angle
         attack_circles = self.get_attack_area()
         for center, radius in attack_circles:
-            pg.draw.circle(screen, RED, *camera.apply_circle(center, radius), 1)  # Draw outline circle
+            pg.draw.circle(screen, RED, camera.apply_point(center), radius, 1)  # Draw outline circle
 
         pg.draw.rect(screen, GREEN, camera.apply(self.collision_rect))  # Draw the player's collision rect
 
