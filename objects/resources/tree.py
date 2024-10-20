@@ -11,7 +11,6 @@ class Tree(SpriteObject):
         
         self.image_name = image_name
         self.flipped = flipped
-        self.spawn_weights = self.get_spawn_weights()
 
         super().__init__(game, x, y, tile=tile, layer=SPRITE_LAYER, image=None)
 
@@ -20,10 +19,10 @@ class Tree(SpriteObject):
         self.collision_rect = pg.Rect(
             0,
             0,
-            2 * self.rect.width //3,
-            2 * self.rect.height //3
+            1 * self.rect.width //3,
+            1 * self.rect.height //3
         )
-        self.collision_rect.topleft = (self.rect.topleft[0] + self.rect.width//6, self.rect.topleft[1] + self.rect.width//3)
+        self.collision_rect.topleft = (self.rect.topleft[0] + self.rect.width//3, self.rect.topleft[1] + 2*self.rect.width//3)
 
         # variables for shake effect
         self.draw_rect = self.rect  # .draw_rect may be different while shaking, but .rect will stay the same
@@ -36,6 +35,7 @@ class Tree(SpriteObject):
 
         # variables for fall effect
         self.angle = 0
+        self.fall_image = self.image
         self.falling = False
         self.fall_timer = 0
         self.fall_duration = 1
@@ -45,55 +45,74 @@ class Tree(SpriteObject):
         self.game.can_collide_list.add(self)
         self.game.can_axe_list.add(self)
 
-    def get_spawn_weights(self) -> dict:
-        return {
-            "Burned_tree1":5,
-            "Burned_tree2":5,
-            "Burned_tree3":5,
-            "Christmas_tree1":10,
-            "Christmas_tree2":10,
-            "Christmas_tree3":10,
-            "Flower_tree1":2,
-            "Flower_tree2":2,
-            "Flower_tree3":2,
-            "Fruit_tree1":3,
-            "Fruit_tree2":3,
-            "Tree1":50,
-            "Tree2":50,
-            "Tree3":50,
-        }
+        self.set_shadow()
 
     def load_image(self):
-        # only set flipped and image_name if they weren't passed
-        if type(self.flipped) != bool:
-            self.flipped = random.random() > 0.5
+        # load/set image name
         if not self.image_name:
-            self.image_name = random.choices(
-                population = list(self.spawn_weights.keys()),
-                weights = list(self.spawn_weights.values())
-            )[0]
+            weights = self.get_spawn_weights()
+            self.image_name = random.choices(list(weights.keys()), list(weights.values()))[0]
 
-        # load an image, remove transparent boundaries, and scale it to size
+        # load sprite that corresponds with image name
+        key = self.game.jsons.read("assets/trees/spritesheet_key.json")
+        found = False
+        for spritesheet in key:
+            for sprite in spritesheet['sprites']:
+                if sprite['name'] == self.image_name:
+                    loadout = {
+                        "path":spritesheet['path'],
+                        "tile_size":spritesheet['tile_size'],
+                        **sprite
+                    }
+                    found = True
+                    break
+            if found:
+                break
+        if not found:
+            raise Exception(f"Couldn't find sprite for Tree `{self.image_name}`")
+
+        # load and remove padding from image        
         scaled_image = pg.transform.scale(
             remove_padding_and_scale(
-                self.game.sprites.load(f"assets/trees/{self.image_name}.png")
-            )
-            ,(TILE_SIZE, TILE_SIZE)
+                self.game.sprites.load_from_tilesheet(
+                    path=loadout['path'],
+                    row_index=loadout['row_index'],
+                    col_index=loadout['col_index'],
+                    tile_size=loadout['tile_size']
+                )
+            ),
+            (TILE_SIZE*1.5, TILE_SIZE*1.5)
         )
-        # randomly flip 50% of images along their Y-axis
+
+        # flip on vertical mirror if applicable
+        if type(self.flipped) != bool:
+            self.flipped = random.random() > 0.5
         if self.flipped:
             scaled_image = pg.transform.flip(scaled_image, True, False)
 
-        # set a separate shadlowless image for use in the fall animation
-        self.fall_image = pg.transform.scale(
-            remove_padding_and_scale(
-                self.game.sprites.load(f"assets/trees/no_shadow/{self.image_name}.png")
-            )
-            ,(TILE_SIZE, TILE_SIZE)
-        )
-
         return scaled_image
-  
+    
+    def set_shadow(self):
+        # drop shadow
+        self.shadow_color = (0, 0, 0, 50)
+        self.shadow_width = int(self.rect.width * 0.6)  # 3/5 of the Tree width
+        self.shadow_height = int(self.shadow_width / 3)  # 1/3 of the shadow width
+        self.shadow_surface = pg.Surface((self.shadow_width, self.shadow_height), pg.SRCALPHA)
+
+        # for checking isvisible() - want to render Tile if shadow is visible (otherwise shadow disappears when Tree goes out of view)
+        self.shadow_topleft = (self.rect.centerx - self.shadow_width // 2, self.rect.bottom - 3 - self.shadow_height // 2)
+        self.shadow_rect = pg.Rect(
+            self.shadow_topleft[0],
+            self.shadow_topleft[1],
+            self.shadow_width,
+            self.shadow_height
+        )
+        self.shadow_rect.topleft = self.shadow_topleft
+
+        # draw the shadow onto the surface
+        pg.draw.ellipse(self.shadow_surface, self.shadow_color, 
+                        (0, 0, self.shadow_width, self.shadow_height))
+
     def update(self):
         # update falling animation after killed
         if self.falling:
@@ -138,6 +157,8 @@ class Tree(SpriteObject):
         self.kill()
 
     def draw(self, screen, camera):
+        if not self.falling:
+            screen.blit(self.shadow_surface, self.game.camera.apply_point(self.shadow_topleft))
         screen.blit(self.image, camera.apply(self.draw_rect))
         # self.draw_collision_rects(screen, camera)
 
@@ -164,57 +185,54 @@ class Tree(SpriteObject):
             "flipped":self.flipped
         }
 
+class ForestTree(Tree):
+    def __init__(self, game, x, y, tile, image_name=None, flipped=None):
+
+        super().__init__(game, x, y, tile, image_name, flipped)
+        self.fall_image = self.image
+    
+    def get_spawn_weights(self):
+        return {
+            "CozyOak1":10,
+            "CozyOak2":10,
+            "CozyBirch1":20,
+            "Oak1":10,
+            "Oak2":10,
+            "Dead1":2,
+            "Dead2":2
+        }
+
 class IceTree(Tree):
     def __init__(self, game, x, y, tile, image_name=None, flipped=None):
         super().__init__(game, x, y, tile, image_name, flipped)
 
-    def get_spawn_weights(self) -> dict:
+    def get_spawn_weights(self):
         return {
-            "Burned_tree1":5,
-            "Burned_tree2":5,
-            "Burned_tree3":5,
-            "Snow_christmas_tree1":10,
-            "Snow_christmas_tree2":10,
-            "Snow_christmas_tree3":10,
-            "Snow_tree1":10,
-            "Snow_tree2":10,
-            "Snow_tree3":10,
+            "SnowCone1":5,
+            "SnowCone2":5,
+            "SnowDead1":10,
+            "SnowDead2":10
         }
 
 class AutumnTree(Tree):
     def __init__(self, game, x, y, tile, image_name=None, flipped=None):
         super().__init__(game, x, y, tile, image_name, flipped)
 
-    def get_spawn_weights(self) -> dict:
+    def get_spawn_weights(self):
         return {
-            "Burned_tree1":10,
-            "Burned_tree2":10,
-            "Burned_tree3":10,
-            "Autumn_tree1":30,
-            "Autumn_tree2":30,
-            "Autumn_tree3":30,
-            "Tree1":8,
-            "Tree2":8,
-            "Tree3":8,
-            "Fruit_tree1":10,
-            "Fruit_tree2":10,
-            "Apple_tree":5,
+            "Autumn1":10,
+            "Autumn2":10,
+            "CozyRough1":20,
+            "CozyAutumn1":10,
         }
       
 class MangroveTree(Tree):
     def __init__(self, game, x, y, tile, image_name=None, flipped=None):
         super().__init__(game, x, y, tile, image_name, flipped)
 
-    def get_spawn_weights(self) -> dict:     
+    def get_spawn_weights(self):
         return {
-            "Moss_tree1":20,
-            "Moss_tree2":20,
-            "Moss_tree3":20,
-            "Palm_tree1_1":5,
-            "Palm_tree1_2":5,
-            "Palm_tree2_1":5,
-            "Palm_tree2_2":5,
-            "Tree1":2,
-            "Tree2":2,
-            "Tree3":2,
+            "CozyGreen1":10,
+            "Moss1":10,
+            "Moss2":10,
         }

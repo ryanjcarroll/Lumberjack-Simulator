@@ -13,7 +13,7 @@ from menus.start import StartMenu
 from menus.loadout import LoadoutMenu
 from menus.game_over import GameOverMenu
 from menus.skill_tree import SkillTreeMenu
-from objects.assets import SpriteAssetManager, SoundAssetManager
+from objects.assets import SpriteAssetManager, SoundAssetManager, JSONFileManager
 import uuid
 import os
 from utility import write_json
@@ -34,6 +34,7 @@ class Game:
         # intitialize the asset managers
         self.sprites = SpriteAssetManager()  
         self.sounds = SoundAssetManager()
+        self.jsons = JSONFileManager()
 
         self.reset_game_variables()
 
@@ -105,7 +106,9 @@ class Game:
             self.seed = random.randint(0,100000)
             opensimplex.seed(self.seed)
 
-            loadout = self.loadout_screen()
+            loadout = {
+                "body":{"category":"body5","style":0},"hair":{"category":"curly","style":13},"face":{"category":"makeup","style":0},"shirt":{"category":"sailor","style":9},"pants":{"category":"skirt","style":9},"accessories":{"category":"clown_mask","style":1}
+            } if SKIP_MENU else self.loadout_screen()
 
             # build map
             self.map = Map(self)
@@ -310,5 +313,5 @@ game = Game()
 menu_loop = True
 # loop multiple games in a row if necessary
 while menu_loop:
-    game.start_screen()
+    game.start_game() if SKIP_MENU else game.start_screen()
     game.run()

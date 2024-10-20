@@ -17,13 +17,13 @@ class Camera:
             rect.height
         )
     
-    def apply_circle(self, pos, radius):
+    def apply_point(self, pos):
         """
-        Adjust a circle's center position using relative coordinates within the camera frame.
+        Adjust a position using relative coordinates within the camera frame.
         """
         adjusted_x = pos[0] - self.rect.topleft[0]
         adjusted_y = pos[1] - self.rect.topleft[1]
-        return (adjusted_x, adjusted_y), radius  # Return the adjusted position and radius
+        return (adjusted_x, adjusted_y)  # Return the adjusted position and radius
 
     def update(self, target):
         """
@@ -34,4 +34,9 @@ class Camera:
         self.rect.topleft = (x,y)
 
     def is_visible(self, entity):
-        return self.rect.colliderect(entity.rect)
+        if self.rect.colliderect(entity.rect):
+            return True
+        elif hasattr(object, "shadow_rect"):
+            if self.rect.colliderect(object.shadow_rect):
+                return True
+        return False
