@@ -41,7 +41,7 @@ class Phototaker:
         
         # Calculate the distance from the player to the mouse position
         mouse_pos = pg.mouse.get_pos()
-        player_pos, _ = self.game.camera.apply_circle(self.player.collision_rect.center, 0) # Assuming the player has a rect attribute
+        player_pos = self.game.camera.apply_point(self.player.collision_rect.center) # Assuming the player has a rect attribute
         distance_x = mouse_pos[0] - player_pos[0]
         distance_y = mouse_pos[1] - player_pos[1]
 
