@@ -21,7 +21,6 @@ class Phototaker:
     
     def take_photo(self, photo):
         self.photos.append(photo)
-
         self.game.sounds.play("shutter",0)
 
     def adjust_aperture(self, scroll_delta):
