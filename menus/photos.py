@@ -1,4 +1,5 @@
 from settings import *
+from menus.button import TriangleButton
 import pygame as pg
 
 class PhotoMenu:
@@ -17,24 +18,28 @@ class PhotoMenu:
         self.title_rect = self.title_surface.get_rect(center=(WINDOW_WIDTH // 2, 30))  # Centered at the top
 
         # Triangle buttons for navigation
-        self.left_button = pg.Rect(50, WINDOW_HEIGHT // 2 - 25, 50, 50)  # Left triangle
-        self.right_button = pg.Rect(WINDOW_WIDTH - 100, WINDOW_HEIGHT // 2 - 25, 50, 50)  # Right triangle
+        self.left_button = TriangleButton(
+            screen=self.game.screen, 
+            rect=(50, WINDOW_HEIGHT//2 - 25, 50, 50), 
+            direction="left",
+            on_click = lambda : self.update_current(-1)
+        )
+        self.right_button = TriangleButton(
+            screen=self.game.screen, 
+            rect=(WINDOW_WIDTH - 100, WINDOW_HEIGHT // 2 - 25, 50, 50), 
+            direction="right",
+            on_click = lambda : self.update_current(1)
+        )
+
+    def update_current(self, n):
+        self.current_photo_index = (self.current_photo_index + n) % len(self.game.player.phototaker.photos)
 
     def handle_event(self, event):
         if event.type == pg.KEYDOWN and event.key == pg.K_p:
             self.game.at_photo_menu = False
-
-        if event.type == pg.MOUSEBUTTONDOWN:
-            if self.left_button.collidepoint(event.pos):
-                self.current_photo_index = (self.current_photo_index - 1) % len(self.game.player.phototaker.photos)
-            elif self.right_button.collidepoint(event.pos):
-                self.current_photo_index = (self.current_photo_index + 1) % len(self.game.player.phototaker.photos)
-
-    def update(self):
-        # Check mouse position for hover
-        mouse_pos = pg.mouse.get_pos()
-        self.left_hovered = self.left_button.collidepoint(mouse_pos)
-        self.right_hovered = self.right_button.collidepoint(mouse_pos)
+        
+        self.left_button.handle_event(event)
+        self.right_button.handle_event(event)
 
     def draw(self):
         screen = self.game.screen
@@ -65,18 +70,9 @@ class PhotoMenu:
             photo_rect = photo.get_rect(center=(WINDOW_WIDTH // 2, (WINDOW_HEIGHT // 2)-padding))
             self.game.screen.blit(photo, photo_rect)
 
-        
-        # Draw triangle buttons with hover effect
-        left_color = (255, 0, 0) if self.left_hovered else (0, 0, 0)  # Red if hovered, else black
-        right_color = (255, 0, 0) if self.right_hovered else (0, 0, 0)  # Red if hovered, else black
-
         # Draw triangle buttons
-        pg.draw.polygon(screen, left_color, [(self.left_button.left, self.left_button.centery), 
-                                                      (self.left_button.right, self.left_button.top), 
-                                                      (self.left_button.right, self.left_button.bottom)])  # Left triangle
-        pg.draw.polygon(screen, right_color, [(self.right_button.right, self.right_button.centery), 
-                                                      (self.right_button.left, self.right_button.top), 
-                                                      (self.right_button.left, self.right_button.bottom)])  # Right triangle
+        self.left_button.draw()
+        self.right_button.draw()
 
         # Display photo index (e.g., "1/10") at the top right
         photo_count_text = self.photo_count_font.render(f"{self.current_photo_index + 1 if len(self.game.player.phototaker.photos) > 0 else 0}/{len(self.game.player.phototaker.photos)}", True, (0, 0, 0))

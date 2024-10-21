@@ -267,7 +267,7 @@ class Game:
 
         # player inputs must be slightly different because \
         # we care about keys pressed, even if they weren't first pressed this frame
-        if self.player:
+        if self.player and self.playing and not self.at_skilltree_menu and not self.at_photo_menu:
             self.player.handle_keys(pg.key.get_pressed())
 
     def start_screen(self):
@@ -313,7 +313,7 @@ class Game:
         self.at_photo_menu = True
         while self.at_photo_menu:
             self.events()
-            self.photo_menu.update()
+            # self.photo_menu.update()
             self.photo_menu.draw()
 
     def run(self):

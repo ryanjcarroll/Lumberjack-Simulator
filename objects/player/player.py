@@ -140,7 +140,7 @@ class Player(SpriteObject):
         # left mouse button clicked while camera open
         if self.game.weapon_menu.get_weapon_name() == 'camera':
             if event.type == pg.MOUSEWHEEL:
-                self.phototaker.adjust_aperture(event.y)
+                self.phototaker.adjust_lens(event.y)
             elif event.type == pg.MOUSEBUTTONDOWN and event.button==1:
                 lens = self.phototaker.get_lens()
 
