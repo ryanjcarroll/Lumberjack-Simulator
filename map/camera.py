@@ -1,7 +1,8 @@
 import pygame as pg
 
 class Camera:
-    def __init__(self, width, height):
+    def __init__(self, game, width, height):
+        self.game = game
         self.rect = pg.Rect(0, 0, width, height)
         self.width = width
         self.height = height
@@ -25,12 +26,12 @@ class Camera:
         adjusted_y = pos[1] - self.rect.topleft[1]
         return (adjusted_x, adjusted_y)  # Return the adjusted position and radius
 
-    def update(self, target):
+    def update(self):
         """
         Update the camera's position to follow the target (player).
         """
-        x = target.rect.center[0] - int(self.width / 2)
-        y = target.rect.center[1] - int(self.height / 2)
+        x = self.game.player.pos.x - int(round(self.width / 2))
+        y = self.game.player.pos.y - int(round(self.height / 2))
         self.rect.topleft = (x,y)
 
     def is_visible(self, entity):

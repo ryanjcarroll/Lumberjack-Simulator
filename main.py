@@ -80,7 +80,7 @@ class Game:
         self.can_pick_list = pg.sprite.Group() # objects the player can hit with their pickaxe
         
         # initialize input-agnostic game objects
-        self.camera = Camera(WINDOW_WIDTH, WINDOW_HEIGHT)
+        self.camera = Camera(self, WINDOW_WIDTH, WINDOW_HEIGHT)
         self.backpack = Backpack()
 
         # Load from Save
@@ -183,31 +183,12 @@ class Game:
 
         # call .update() on all sprites
         self.sprite_list.update()
-        self.camera.update(self.player)
+        self.camera.update()
     
         # every N seconds, update the map to see if new chunks need to be generated
         if self.map_reload_timer >= 1:
             self.map.update()
             self.map_reload_timer = 0
-
-    def draw_layer_if(self, layer, condition=lambda x:True):
-        """
-        Draw all tiles in visible chunks, passing a layer parameter.
-        If a condition is passed, only draw objects if the tile meets that condition.
-        """
-        tiles = []
-        for chunk_id in self.map.get_visible_chunks(self.player, tile_buffer=0):
-            with self.map.lock:
-                if chunk_id in self.map.chunks:
-                    chunk = self.map.chunks[chunk_id]
-                else:
-                    continue
-            for tile in chunk.tiles:
-                if condition(tile):
-                    tiles.append(tile)
-        # draw tiles in order by ascending y coordinate
-        for tile in sorted(tiles, key=lambda t: t.y):
-            tile.draw(layer, self.screen, self.camera)
 
     def draw(self):
         """
@@ -230,6 +211,12 @@ class Game:
             ,key = lambda sprite:(sprite.layer, sprite.rect.center[1])
         ):
             sprite.draw(self.screen, self.camera)
+
+        # pg.draw.rect(self.screen, RED, self.camera.apply(self.camera.rect), width=2)
+        # if "0,-1152" in self.map.chunks:
+        #     for tile in self.map.chunks["0,-1152"].tiles:
+        #         if tile.col == 15:
+        #             pg.draw.rect(self.screen, BLUE, tile.rect, width=2)
 
         # draw menus 
         self.backpack_inventory_menu.draw(self.screen)
