@@ -7,8 +7,9 @@ import json
 from utility import write_json
 
 class Chunk:
-    def __init__(self, game, x, y):
+    def __init__(self, game, x, y, load_objects=True):
         self.game = game
+        self.load_objects = load_objects
         
         self.tiles = []
         self.rect = Rect(x, y, x+CHUNK_SIZE*TILE_SIZE, y+CHUNK_SIZE*TILE_SIZE)
@@ -22,14 +23,15 @@ class Chunk:
                 for tiledata in chunk_data['tiles']:
                     tile_type = globals()[tiledata['type']]
                     tile = tile_type(self.game, self, *tiledata["position"], is_explored=tiledata['is_explored'])
-                    tile.load_objects(objects=tiledata['objects'])
+                    if self.load_objects:
+                        tile.load_objects(objects=tiledata['objects'])
                     self.tiles.append(tile)
 
         # Build New Chunk
         else:
-            self.render_tiles()
+            self.load_tiles()
 
-    def render_tiles(self):
+    def load_tiles(self):
         # fill the chunk with Tiles
         for row in range(CHUNK_SIZE):
             for col in range(CHUNK_SIZE):
@@ -39,7 +41,8 @@ class Chunk:
                     row = row,
                     col = col
                 )
-                tile.load_objects()
+                if self.load_objects:
+                    tile.load_objects()
                 self.tiles.append(tile)
 
     def get_tile_type(self, row, col) -> type:
@@ -106,7 +109,7 @@ class SpawnChunk(Chunk):
 
         return tile_type
 
-    def render_tiles(self):
+    def load_tiles(self):
         # fill the chunk with Tiles
         for row in range(CHUNK_SIZE):
             for col in range(CHUNK_SIZE):

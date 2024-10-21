@@ -48,7 +48,7 @@ class MapEcho:
             with self.lock:              
                 chunk_x, chunk_y = chunk_id.split(",")
                 chunk_x, chunk_y = int(chunk_x), int(chunk_y)
-                self.chunks[chunk_id] = ChunkEcho(Chunk(self.game, chunk_x, chunk_y))      
+                self.chunks[chunk_id] = ChunkEcho(Chunk(self.game, chunk_x, chunk_y, load_objects=False))      
                 self.currently_loading.remove(chunk_id)
         
 class ChunkEcho:
