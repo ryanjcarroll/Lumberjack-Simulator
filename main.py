@@ -14,6 +14,7 @@ from menus.start import StartMenu
 from menus.loadout import LoadoutMenu
 from menus.game_over import GameOverMenu
 from menus.skill_tree import SkillTreeMenu
+from menus.map import MapMenu
 from menus.photos import PhotoMenu
 from objects.assets import SpriteAssetManager, SoundAssetManager, JSONFileManager
 import uuid
@@ -51,6 +52,7 @@ class Game:
         self.at_game_over = False
         self.at_skilltree_menu = False
         self.at_photo_menu = False
+        self.at_map_menu = False
         self.player = None
 
     def start_game(self):
@@ -126,6 +128,11 @@ class Game:
         self.health_bar = HealthBar(self)
         self.weapon_menu = WeaponMenu(self)
         self.compass = Compass(self)
+
+        # ui menus
+        self.skilltree_menu = SkillTreeMenu(self)
+        self.map_menu = MapMenu(self)
+        self.photo_menu = PhotoMenu(self)
 
         # move on from the start menu
         self.at_start_menu = False
@@ -211,6 +218,8 @@ class Game:
                 for tile in self.map.chunks[chunk_id].tiles:
                     if self.camera.is_visible(tile):
                         tile.draw(self.screen, self.camera)
+                        if not tile.is_explored:
+                            tile.is_explored = True
 
         # draw on-screen objects in layer order, and by ascending Y-coordinate
         for sprite in sorted(
@@ -246,7 +255,10 @@ class Game:
                 self.loadout_menu.handle_event(event) 
 
             # main non-menu gameplay state
-            elif self.playing and not self.at_skilltree_menu and not self.at_photo_menu:
+            elif self.playing \
+                    and not self.at_skilltree_menu \
+                    and not self.at_photo_menu \
+                    and not self.at_map_menu:
                 if event.type == pg.KEYDOWN:
                     # open the skilltree menu
                     if event.key == pg.K_i:
@@ -254,6 +266,9 @@ class Game:
                     # open the photos menu
                     elif event.key == pg.K_p:
                         self.photo_screen()
+                    # open the map menu
+                    elif event.key == pg.K_m:
+                        self.map_screen()
                 
                 self.weapon_menu.handle_event(event)
                 self.player.handle_event(event)
@@ -262,12 +277,18 @@ class Game:
                 self.skilltree_menu.handle_event(event)
             elif self.at_photo_menu:
                 self.photo_menu.handle_event(event)
+            elif self.at_map_menu:
+                self.map_menu.handle_event(event)
             elif self.at_game_over:
                 self.game_over_menu.handle_event(event)
-
+            
         # player inputs must be slightly different because \
         # we care about keys pressed, even if they weren't first pressed this frame
-        if self.player and self.playing and not self.at_skilltree_menu and not self.at_photo_menu:
+        if self.player \
+                and self.playing \
+                and not self.at_skilltree_menu \
+                and not self.at_photo_menu \
+                and not self.at_map_menu:
             self.player.handle_keys(pg.key.get_pressed())
 
     def start_screen(self):
@@ -296,22 +317,28 @@ class Game:
         """
         Screen where the player can apply skill points they've earned.
         """
-        self.skilltree_menu = SkillTreeMenu(self)
         self.at_skilltree_menu = True
         while self.at_skilltree_menu:
             self.events()
             self.skilltree_menu.update()
             self.skilltree_menu.draw()
 
+    def map_screen(self):
+        """
+        Screen where the player see the map of areas they've explored so far.
+        """
+        self.at_map_menu = True
+        while self.at_map_menu:
+            self.events()
+            self.map_menu.draw()
+
     def photo_screen(self):
         """
         Screen where player can see photos they've taken
         """
-        self.photo_menu = PhotoMenu(self)
         self.at_photo_menu = True
         while self.at_photo_menu:
             self.events()
-            # self.photo_menu.update()
             self.photo_menu.draw()
 
     def run(self):

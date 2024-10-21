@@ -33,6 +33,10 @@ class Tile(ABC):
         # store the y coordinate for layer ordering during rendering
         self.x = chunk.rect.topleft[0] + (col * TILE_SIZE)
         self.y = chunk.rect.topleft[1] + (row * TILE_SIZE)
+
+        # minimap variables
+        self.minimap_color = BLACK
+        self.is_explored = False # sets to true once the tile is drawn on scren
         
         # set image textures and load object sprites
         self.image = self.load_texture()
@@ -361,6 +365,8 @@ class ForestTile(Tile):
 
         super().__init__(game, chunk, row, col, load_decor)
 
+        self.minimap_color = (119,177,82)
+
     def get_spritesheet_path(self) -> str:
         return "assets/textures/forest_tileset.png"
 
@@ -377,6 +383,8 @@ class IceForestTile(Tile):
         }
 
         super().__init__(game, chunk, row, col, load_decor)
+
+        self.minimap_color = (237,237,237)
 
     def get_spritesheet_path(self) -> str:
         return "assets/textures/ice_forest_tileset.png"
@@ -400,13 +408,10 @@ class AutumnForestTile(Tile):
 
         super().__init__(game, chunk, row, col, load_decor)
 
+        self.minimap_color = (136,177,79)
+
     def get_spritesheet_path(self) -> str:
         return "assets/textures/autumn_forest_tileset.png"
-    
-    # def load_decor(self):
-    #     # load decor multiple times
-    #     for i in range(2):
-    #         super().load_decor()
     
  
 class MangroveForestTile(Tile):
@@ -417,6 +422,8 @@ class MangroveForestTile(Tile):
         self.decor_weights = {}
 
         super().__init__(game, chunk, row, col, load_decor)
+
+        self.minimap_color = (100,153,61)
 
     def get_spritesheet_path(self) -> str:
         return "assets/textures/mangrove_forest_tileset.png"
@@ -429,6 +436,8 @@ class WaterTile(Tile):
     def __init__(self, game, chunk, row, col, load_decor=True):
         self.decor_weights = {}
         super().__init__(game, chunk, row, col, load_decor)
+
+        self.minimap_color = (54,140,249)
 
     # unused
     def get_spritesheet_path(self) -> str:
