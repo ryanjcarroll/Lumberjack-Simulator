@@ -22,10 +22,11 @@ class Phototaker:
         self.photos.append(photo)
         self.game.sounds.play("shutter",0)
 
-        print("---")
+        # print("---")
         for obj in self.game.sprite_list:
             if self.game.camera.apply(obj.rect).colliderect(self.get_lens()):
-                print(type(obj))
+                # print(type(obj))
+                pass
         
     def adjust_lens(self, scroll_delta):
         """

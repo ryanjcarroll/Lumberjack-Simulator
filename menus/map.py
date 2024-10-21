@@ -39,18 +39,15 @@ class MapMenu:
         # drag start
         if event.type == pg.MOUSEBUTTONDOWN:
             if event.button == 1:  # Left mouse button
-                print("drag start")
                 self.dragging = True
                 self.last_mouse_pos = event.pos
         # drag end
         if event.type == pg.MOUSEBUTTONUP:
             if event.button == 1:  # Left mouse button
-                print("drag end")
                 self.dragging = False
         # drag and move
         if event.type == pg.MOUSEMOTION:
             if self.dragging:
-                print("drag move")
                 # Calculate the movement and update the offsets
                 mouse_x, mouse_y = event.pos
                 dx = mouse_x - self.last_mouse_pos[0]
@@ -70,26 +67,46 @@ class MapMenu:
         offset_y = (WINDOW_HEIGHT // 2) - player_pos_y + self.drag_offset_y
 
         # draw the chunks which are currently loaded in memory
-        for chunk_id, chunk in self.game.map.chunks.copy().items():
+        for chunk_id, chunk in self.game.map.chunks.items():
             for tile in chunk.tiles:
                 if tile.is_explored:
                     tile_mini = pg.Rect(
-                        (tile.x * self.scale_factor) + offset_x,
-                        (tile.y * self.scale_factor) + offset_y,
-                        TILE_SIZE * self.scale_factor,
-                        TILE_SIZE * self.scale_factor
+                        round((tile.x * self.scale_factor) + offset_x), # round calculations to avoid gridlines
+                        round((tile.y * self.scale_factor) + offset_y),
+                        round(TILE_SIZE * self.scale_factor) + 1,
+                        round(TILE_SIZE * self.scale_factor) + 1
                     )
-                    pg.draw.rect(screen, tile.minimap_color, tile_mini)
+                    pg.draw.rect(screen, tile.color, tile_mini)
 
-        # Draw the player as a red dot in the center of the mini-map
+        # draw the chunks which are saved to disk (using data from the MapEcho)
+        for chunk_id, chunk in self.game.map_echo.chunks.items():
+            for tile in chunk.tiles:
+                if tile.is_explored:
+                    tile_mini = pg.Rect(
+                        round((tile.x * self.scale_factor) + offset_x),
+                        round((tile.y * self.scale_factor) + offset_y),
+                        round(TILE_SIZE * self.scale_factor) + 1,
+                        round(TILE_SIZE * self.scale_factor) + 1
+                    )
+                    pg.draw.rect(screen, tile.color, tile_mini)
+
+        # Draw the player as a red dot
         pg.draw.circle(
             screen, 
             RED, 
+            (WINDOW_WIDTH//2 + self.drag_offset_x, WINDOW_HEIGHT//2 + self.drag_offset_y), 
+            radius=5
+        )
+
+        # Draw the spawn as a blue dot
+        pg.draw.circle(
+            screen, 
+            BLUE, 
             (
-                WINDOW_WIDTH//2 + self.drag_offset_x, 
-                WINDOW_HEIGHT//2 + self.drag_offset_y
-            ), 
-            5
+                (self.game.camp.rect.center[0] * self.scale_factor) + offset_x, 
+                (self.game.camp.rect.center[1] * self.scale_factor) + offset_y
+            ),
+            radius=5
         )
 
 

@@ -41,6 +41,11 @@ class Map:
     def unload_chunk(self, chunk_id):
         with self.lock:
             self.chunks[chunk_id].save()
+    
+            # add chunk to the map echo before deletion
+            if self.game.map_echo:
+                self.game.map_echo.add_chunk(self.chunks[chunk_id])
+
             self.chunks[chunk_id].unload()
             del self.chunks[chunk_id]
 
@@ -49,6 +54,11 @@ class Map:
         chunk = type(self.game, x, y)
         with self.lock: # prevent race condition
             self.chunks[chunk.id] = chunk
+            
+            # remove from the map echo once loaded
+            if self.game.map_echo and chunk.id in self.game.map_echo.chunks:
+                self.game.map_echo.remove_chunk(chunk.id)
+
             self.currently_loading.remove(chunk.id)
 
     def get_chunk_id(self, x, y):

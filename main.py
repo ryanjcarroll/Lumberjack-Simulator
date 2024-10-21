@@ -5,7 +5,6 @@ from map.camera import Camera
 import sys
 from objects.player.player import Player
 from objects.inventory import *
-from objects.npcs.ladybug import Ladybug
 from ui.compass import Compass
 from ui.bars import HealthBar
 from ui.inventory import BackpackInventoryMenu, CampInventoryMenu
@@ -15,6 +14,7 @@ from menus.loadout import LoadoutMenu
 from menus.game_over import GameOverMenu
 from menus.skill_tree import SkillTreeMenu
 from menus.map import MapMenu
+from map.map_echo import MapEcho
 from menus.photos import PhotoMenu
 from objects.assets import SpriteAssetManager, SoundAssetManager, JSONFileManager
 import uuid
@@ -45,7 +45,12 @@ class Game:
         """
         Called before a new game is started or after game_over.
         """
+        # pre-initialization game attributes
         self.game_id = None
+        self.player = None
+        self.map_echo = None
+
+        # menu-tracking booleans
         self.playing = False
         self.at_loadout_menu = False
         self.at_start_menu = False
@@ -53,7 +58,6 @@ class Game:
         self.at_skilltree_menu = False
         self.at_photo_menu = False
         self.at_map_menu = False
-        self.player = None
 
     def start_game(self):
         """
@@ -65,7 +69,6 @@ class Game:
         self.clock = pg.time.Clock()
         self.dt = 0
         self.map_reload_timer = 0
-        self.health_tick_timer = 0
 
         # initialize sprite lists and the map 
         # IMPORTANT: Map must go after sprite lists because it creates sprites
@@ -123,16 +126,20 @@ class Game:
             # initialize Player and Player-dependent game objects after loadout is selected
             self.player = Player(self, (CHUNK_SIZE*TILE_SIZE)//2, (CHUNK_SIZE*TILE_SIZE)//2, loadout)
         
+        # ui elements on main screen
         self.backpack_inventory_menu = BackpackInventoryMenu(self)
         self.camp_inventory_menu = CampInventoryMenu(self)
         self.health_bar = HealthBar(self)
         self.weapon_menu = WeaponMenu(self)
         self.compass = Compass(self)
 
-        # ui menus
+        # ui elements with their own screens
         self.skilltree_menu = SkillTreeMenu(self)
-        self.map_menu = MapMenu(self)
         self.photo_menu = PhotoMenu(self)
+        self.map_menu = MapMenu(self)
+
+        # store data for unloaded chunks as separate entity
+        self.map_echo = MapEcho(self)
 
         # move on from the start menu
         self.at_start_menu = False
@@ -173,7 +180,6 @@ class Game:
         # update timers and dt        
         self.dt = self.clock.tick(FPS) / 1000
         self.map_reload_timer += self.dt
-        self.health_tick_timer += self.dt
 
         # call .update() on all sprites
         self.sprite_list.update()
@@ -183,9 +189,6 @@ class Game:
         if self.map_reload_timer >= 1:
             self.map.update()
             self.map_reload_timer = 0
-        if self.health_tick_timer >= 15:
-            # self.player.modify_health(-5) # removed since bats are now added
-            self.health_tick_timer = 0
 
     def draw_layer_if(self, layer, condition=lambda x:True):
         """
