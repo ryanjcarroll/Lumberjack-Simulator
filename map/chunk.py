@@ -21,9 +21,10 @@ class Chunk:
                 
                 for tiledata in chunk_data['tiles']:
                     tile_type = globals()[tiledata['type']]
-                    tile = tile_type(self.game, self, *tiledata["position"])
+                    tile = tile_type(self.game, self, *tiledata["position"], is_explored=tiledata['is_explored'])
                     tile.load_objects(objects=tiledata['objects'])
                     self.tiles.append(tile)
+
         # Build New Chunk
         else:
             self.render_tiles()

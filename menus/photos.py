@@ -9,15 +9,15 @@ class PhotoMenu:
         self.build_elements()
 
     def build_elements(self):
-        # Set font for title and other text
+        # set fonts
         self.title_font = pg.font.Font(None, 36)  # Font size for the title
         self.photo_count_font = pg.font.Font(None, 24)  # Font for photo count display
 
-        # Draw the title "Photos" at the top center
+        # title text
         self.title_surface = self.title_font.render("Photos", True, (0, 0, 0))  # Black text
         self.title_rect = self.title_surface.get_rect(center=(WINDOW_WIDTH // 2, 30))  # Centered at the top
 
-        # Triangle buttons for navigation
+        # triangle buttons for navigation
         self.left_button = TriangleButton(
             screen=self.game.screen, 
             rect=(50, WINDOW_HEIGHT//2 - 25, 50, 50), 

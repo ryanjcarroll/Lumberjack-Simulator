@@ -18,7 +18,7 @@ from objects.npcs.grasshopper import Grasshopper
 from objects.npcs.ladybug import Ladybug
 
 class Tile(ABC):
-    def __init__(self, game, chunk, row, col, load_decor=False):
+    def __init__(self, game, chunk, row, col, load_decor=False, is_explored=False):
         self.game = game
         self.chunk = chunk
         self.objects = []
@@ -33,6 +33,10 @@ class Tile(ABC):
         # store the y coordinate for layer ordering during rendering
         self.x = chunk.rect.topleft[0] + (col * TILE_SIZE)
         self.y = chunk.rect.topleft[1] + (row * TILE_SIZE)
+
+        # minimap variables
+        self.color = BLACK
+        self.is_explored = is_explored # sets to true once the tile is drawn on scren
         
         # set image textures and load object sprites
         self.image = self.load_texture()
@@ -343,11 +347,12 @@ class Tile(ABC):
         return {
             "type":type(self).__name__,
             "position":[self.row, self.col],
-            "objects":[obj.to_json() for obj in self.objects]
+            "objects":[obj.to_json() for obj in self.objects],
+            "is_explored":self.is_explored
         }
 
 class ForestTile(Tile):
-    def __init__(self, game, chunk, row, col, load_decor=True):
+    def __init__(self, game, chunk, row, col, load_decor=True, is_explored=False):
         self.tree_density = 0.8
         self.rock_density = 0.07
         self.tree_type = ForestTree
@@ -359,13 +364,15 @@ class ForestTile(Tile):
             "pebble"    : 5,
         }
 
-        super().__init__(game, chunk, row, col, load_decor)
+        super().__init__(game, chunk, row, col, load_decor, is_explored)
+
+        self.color = (119,177,82)
 
     def get_spritesheet_path(self) -> str:
         return "assets/textures/forest_tileset.png"
 
 class IceForestTile(Tile):
-    def __init__(self, game, chunk, row, col, load_decor=True):
+    def __init__(self, game, chunk, row, col, load_decor=True, is_explored=False):
         self.tree_density = 0.25
         self.rock_density = 0.15
         self.tree_type = IceTree
@@ -376,7 +383,9 @@ class IceForestTile(Tile):
             # "rock":5
         }
 
-        super().__init__(game, chunk, row, col, load_decor)
+        super().__init__(game, chunk, row, col, load_decor, is_explored)
+
+        self.color = (237,237,237)
 
     def get_spritesheet_path(self) -> str:
         return "assets/textures/ice_forest_tileset.png"
@@ -387,7 +396,7 @@ class IceForestTile(Tile):
             super().load_decor()
     
 class AutumnForestTile(Tile):
-    def __init__(self, game, chunk, row, col, load_decor=True):
+    def __init__(self, game, chunk, row, col, load_decor=True, is_explored=False):
         self.tree_density = 0.75
         self.rock_density = 0.05
         self.tree_type = AutumnTree
@@ -398,25 +407,24 @@ class AutumnForestTile(Tile):
             "butterfly":5
         }
 
-        super().__init__(game, chunk, row, col, load_decor)
+        super().__init__(game, chunk, row, col, load_decor, is_explored)
+
+        self.color = (136,177,79)
 
     def get_spritesheet_path(self) -> str:
         return "assets/textures/autumn_forest_tileset.png"
     
-    # def load_decor(self):
-    #     # load decor multiple times
-    #     for i in range(2):
-    #         super().load_decor()
-    
  
 class MangroveForestTile(Tile):
-    def __init__(self, game, chunk, row, col, load_decor=True):
+    def __init__(self, game, chunk, row, col, load_decor=True, is_explored=False):
         self.tree_density = 0.8
         self.rock_density = 0.05
         self.tree_type = MangroveTree
         self.decor_weights = {}
 
-        super().__init__(game, chunk, row, col, load_decor)
+        super().__init__(game, chunk, row, col, load_decor, is_explored)
+
+        self.color = (100,153,61)
 
     def get_spritesheet_path(self) -> str:
         return "assets/textures/mangrove_forest_tileset.png"
@@ -426,9 +434,11 @@ class MangroveForestTile(Tile):
         pass
 
 class WaterTile(Tile):
-    def __init__(self, game, chunk, row, col, load_decor=True):
+    def __init__(self, game, chunk, row, col, load_decor=True, is_explored=False):
         self.decor_weights = {}
-        super().__init__(game, chunk, row, col, load_decor)
+        super().__init__(game, chunk, row, col, load_decor, is_explored)
+
+        self.color = (54,140,249)
 
     # unused
     def get_spritesheet_path(self) -> str:
