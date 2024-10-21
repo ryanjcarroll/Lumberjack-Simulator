@@ -4,7 +4,7 @@ from glob import glob
 from utility import point_inside_triangle, combine_images
 import os
 import random
-from menus.button import Button
+from menus.button import Button, TriangleButton
 
 
 """
@@ -30,12 +30,10 @@ self.assets = {
 self.buttons = {
     "body":{
         "row_rect":<pg.Rect>,
-        "left_arrow_rect":<pg.Rect>,
-        "right_arrow_rect":<pg.Rect>,
-        "left_arrow_color":BLACK,
-        "right_arrow_color":BLACK,
-        "left_arrow_points":[(...),(...),(...)],
-        "right_arrow_points":[(...),(...),(...)],
+        "left_arrow":<TriangleButton>,
+        "right_arrow":<TriangleButton>,
+        "up_arrow":<TriangleButton>,
+        "down_arrow":<TriangleButton>,
     },
     ...
 }
@@ -86,7 +84,6 @@ class LoadoutMenu:
                 
         # build the default selections (category, style)
         self.selections = self.get_random_selections()
-        
 
         self.buttons = {}
         self.update_image()
@@ -125,54 +122,49 @@ class LoadoutMenu:
         row_width = WINDOW_WIDTH // 2
         row_height = 50
         row_margin = 20
-        row_y = self.char_image_rect.bottom + row_margin  # Adjusted row_y calculation
-        h_arrow_size = 24 # side length
+        row_y = self.char_image_rect.bottom + row_margin # y-coord to start at
         h_arrow_padding = 96 # from edge of window
 
         for attribute in self.attributes:
             # Build the selector box and the horizontal category selector arrows
             self.buttons[attribute] = {}
-            row_rect = pg.Rect((WINDOW_WIDTH - row_width) // 2, row_y, row_width, row_height)  # Adjusted x-coordinate
-            left_arrow_rect = pg.Rect(h_arrow_padding, row_y + row_height // 4, row_height // 2, row_height // 2)
-            right_arrow_rect = pg.Rect(WINDOW_WIDTH - row_height // 2 - h_arrow_padding, row_y + row_height // 4, row_height // 2, row_height // 2)  # Adjusted x-coordinate
-            self.buttons[attribute]["row_rect"] = row_rect 
-            self.buttons[attribute]["left_arrow_rect"] = left_arrow_rect
-            self.buttons[attribute]["right_arrow_rect"] = right_arrow_rect
-            self.buttons[attribute]["left_arrow_color"] = BLACK
-            self.buttons[attribute]["right_arrow_color"] = BLACK
+            self.buttons[attribute]['row_rect'] = pg.Rect((WINDOW_WIDTH - row_width) // 2, row_y, row_width, row_height)  # Adjusted x-coordinate
+
+            # build the left and right TriangleButtons to cycle each attribute
+            self.buttons[attribute]["left_arrow"] = TriangleButton(
+                screen=self.game.screen,
+                rect=(h_arrow_padding, row_y + row_height // 4, row_height // 2, row_height // 2),
+                direction="left",
+                on_click = lambda attr=attribute: self.increment_category(attr, -1)
+            )
+            self.buttons[attribute]["right_arrow"] = TriangleButton(
+                screen=self.game.screen,
+                rect=(WINDOW_WIDTH - row_height // 2 - h_arrow_padding, row_y + row_height // 4, row_height // 2, row_height // 2),
+                direction="right",
+                on_click = lambda attr=attribute: self.increment_category(attr, 1)
+            )
             row_y += row_height + row_margin
-
-            left_arrow_points = [(left_arrow_rect.centerx - h_arrow_size, left_arrow_rect.centery),
-                                (left_arrow_rect.centerx + h_arrow_size, left_arrow_rect.centery - h_arrow_size),
-                                (left_arrow_rect.centerx + h_arrow_size, left_arrow_rect.centery + h_arrow_size)]
-            right_arrow_points = [(right_arrow_rect.centerx + h_arrow_size, right_arrow_rect.centery),
-                                (right_arrow_rect.centerx - h_arrow_size, right_arrow_rect.centery - h_arrow_size),
-                                (right_arrow_rect.centerx - h_arrow_size, right_arrow_rect.centery + h_arrow_size)]
-            self.buttons[attribute]["left_arrow_points"] = left_arrow_points
-            self.buttons[attribute]["right_arrow_points"] = right_arrow_points
-
-            # Build the vertical style selector arrows
+            
+            # build the vertical style selector TriangleButtons
             v_arrow_size = 14  # side length
             v_arrow_padding = 5  # padding from the right edge of row_rect
-            v_arrow_top_y = row_rect.top + v_arrow_padding
-            v_arrow_bottom_y = row_rect.bottom - v_arrow_padding - v_arrow_size
-            v_arrow_x = row_rect.right - v_arrow_padding - v_arrow_size
+            v_arrow_top_y = self.buttons[attribute]['row_rect'].top + v_arrow_padding
+            v_arrow_bottom_y = self.buttons[attribute]['row_rect'].bottom - v_arrow_padding - v_arrow_size
+            v_arrow_x = self.buttons[attribute]['row_rect'].right - v_arrow_padding - v_arrow_size
 
-            # Save arrow button positions and colors
-            self.buttons[attribute]["v_arrows_active"] = True
-            self.buttons[attribute]["up_arrow_rect"] = pg.Rect(v_arrow_x, v_arrow_top_y, v_arrow_size, v_arrow_size)
-            self.buttons[attribute]["down_arrow_rect"] = pg.Rect(v_arrow_x, v_arrow_bottom_y, v_arrow_size, v_arrow_size)
-            self.buttons[attribute]["up_arrow_color"] = BLACK
-            self.buttons[attribute]["down_arrow_color"] = BLACK
+            self.buttons[attribute]['up_arrow'] = TriangleButton(
+                screen=self.game.screen,
+                rect=(v_arrow_x, v_arrow_top_y, v_arrow_size, v_arrow_size),
+                direction="up",
+                on_click = lambda attr=attribute: self.increment_style(attr, 1)
+            )
+            self.buttons[attribute]['down_arrow'] = TriangleButton(
+                screen=self.game.screen,
+                rect=(v_arrow_x, v_arrow_bottom_y, v_arrow_size, v_arrow_size),
+                direction="down",
+                on_click = lambda attr=attribute: self.increment_style(attr, -1)
+            )
 
-            # Save arrow button points for drawing
-            self.buttons[attribute]["up_arrow_points"] = [(v_arrow_x + v_arrow_size // 2, v_arrow_top_y),
-                                                            (v_arrow_x + v_arrow_size, v_arrow_top_y + v_arrow_size),
-                                                            (v_arrow_x, v_arrow_top_y + v_arrow_size)]
-            self.buttons[attribute]["down_arrow_points"] = [(v_arrow_x, v_arrow_bottom_y),
-                                                                (v_arrow_x + v_arrow_size, v_arrow_bottom_y),
-                                                                (v_arrow_x + v_arrow_size // 2, v_arrow_bottom_y + v_arrow_size)]
-            
             # Build the Start button
             self.start_button = Button(
                 screen=self.game.screen,
@@ -189,42 +181,41 @@ class LoadoutMenu:
             )
 
     def handle_event(self, event):  
- 
-        self.start_button.handle_event(event)
+        # handle mousebutton clicks
+        if event.type == pg.MOUSEBUTTONDOWN or event.type == pg.MOUSEMOTION:
+            self.start_button.handle_event(event)
 
-        if event.type == pg.MOUSEBUTTONDOWN:
-            mouse_pos = pg.mouse.get_pos()
-
-            # take appropriate actions when buttons are clicked
+            # take appropriate actions when navigation buttons are clicked
             for attribute, d in self.buttons.items():
-                (category, style) = self.selections[attribute]
+                d['left_arrow'].handle_event(event)
+                d['right_arrow'].handle_event(event)
+                d['up_arrow'].handle_event(event)
+                d['down_arrow'].handle_event(event)
 
-                # click left arrow (decrement category category)
-                if point_inside_triangle(mouse_pos, d["left_arrow_points"]):
-                    # we count of styles in the new category to make sure we don't overflow when coming from one with more styles
-                    new_category = (category-1) % len(self.assets[attribute])
-                    num_styles = len(self.assets[attribute][new_category]['styles']) 
-                    new_style = style if num_styles > style else 0
-                    self.selections[attribute] = (new_category, new_style)
-                # click right arrow (increment category category)
-                elif point_inside_triangle(mouse_pos, d["right_arrow_points"]):
-                    # we count of styles in the new category to make sure we don't overflow when coming from one with more styles
-                    new_category = (category+1) % len(self.assets[attribute])
-                    num_styles = len(self.assets[attribute][new_category]['styles'])
-                    new_style = style if num_styles > style else 0
-                    self.selections[attribute] = (new_category, new_style)
-                # click up arrow (increment style)
-                elif point_inside_triangle(mouse_pos, d["up_arrow_points"]) and self.buttons[attribute]["v_arrows_active"]:
-                    style = (style+1) % len(self.assets[attribute][category]['styles'])
-                    self.selections[attribute] = (category, style)
-                # click down arrow (decrement style)
-                elif point_inside_triangle(mouse_pos, d["down_arrow_points"]) and self.buttons[attribute]["v_arrows_active"]:
-                    style = (style-1) % len(self.assets[attribute][category]['styles'])
-                    self.selections[attribute] = (category, style)
-                else:
-                    continue
-                self.update_image()
+            self.update_image()
 
+    def increment_category(self, attribute, n):
+        """
+        Called when the left and right arrows are clicked.
+        """
+        (category, style) = self.selections[attribute]
+
+        # cycle the category
+        new_category = (category+n) % len(self.assets[attribute])
+        num_styles = len(self.assets[attribute][new_category]['styles']) 
+        new_style = style if num_styles > style else 0
+        self.selections[attribute] = (new_category, new_style)
+
+    def increment_style(self, attribute, n):
+        """
+        Called when the up and down arrows are clicked
+        """
+        (category, style) = self.selections[attribute]
+
+        # cycle the style within the active categorey
+        style = (style+n) % len(self.assets[attribute][category]['styles'])
+        self.selections[attribute] = (category, style)
+    
     def update_image(self):
         images = []
         
@@ -236,34 +227,15 @@ class LoadoutMenu:
 
         # base character preview image
         self.char_image = combine_images(images)
-
-    def update(self):
-        mouse_pos = pg.mouse.get_pos()
-
-        # update button color if mouse is hovering over them
-        for attribute, d in self.buttons.items():
-            for dir in ["left","right"]:
-                self.buttons[attribute][f"v_arrows_active"] = True
-                self.buttons[attribute][f"{dir}_arrow_color"] = \
-                    RED if point_inside_triangle(mouse_pos, d[f"{dir}_arrow_points"]) \
-                    else BLACK
-            for dir in ["up","down"]:
-                (category, style) = self.selections[attribute]
-                if len(self.assets[attribute][category]['styles']) > 1:
-                    self.buttons[attribute][f"v_arrows_active"] = True
-                    self.buttons[attribute][f"{dir}_arrow_color"] = \
-                        RED if point_inside_triangle(mouse_pos, d[f"{dir}_arrow_points"]) \
-                        else BLACK
-                else:
-                    self.buttons[attribute][f"v_arrows_active"] = False # if there are no styles in the current category, disable the vertical arrows
-                    self.buttons[attribute][f"{dir}_arrow_color"] = LIGHT_GREY
-
+                
     def draw(self):
         self.game.screen.fill(LIGHTER_GREY)  # background
         self.game.screen.blit(self.title_text, (self.title_text_x, self.title_text_y))
         self.game.screen.blit(self.char_image, self.char_image_rect)
 
         for attribute, d in self.buttons.items():
+            (category, style) = self.selections[attribute]
+
             # draw middle rectangle and text
             pg.draw.rect(self.game.screen, LIGHT_GREY, d["row_rect"])
             
@@ -281,13 +253,14 @@ class LoadoutMenu:
             text_rect = text_surface.get_rect(center=d["row_rect"].center)
             self.game.screen.blit(text_surface, text_rect)
 
-            # draw category selector arrows
-            pg.draw.polygon(self.game.screen, d["left_arrow_color"], d["left_arrow_points"])
-            pg.draw.polygon(self.game.screen, d["right_arrow_color"], d["right_arrow_points"])
+            # draw navigation arrows
+            d['left_arrow'].draw()
+            d['right_arrow'].draw()
 
-            # draw style selector arrows
-            pg.draw.polygon(self.game.screen, d["up_arrow_color"], d["up_arrow_points"])
-            pg.draw.polygon(self.game.screen, d["down_arrow_color"], d["down_arrow_points"])
+            # draw vertical arrows (as long as there are styles in the current category)
+            if len(self.assets[attribute][category]['styles']) > 1:
+                d['up_arrow'].draw()
+                d['down_arrow'].draw()
 
         # draw start button
         self.start_button.draw()

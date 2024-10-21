@@ -278,7 +278,6 @@ class Game:
         self.at_start_menu = True
         while self.at_start_menu:
             self.events()
-            # self.start_menu.update()
             self.start_menu.draw()
         self.start_game()
 
@@ -290,7 +289,6 @@ class Game:
         self.at_loadout_menu = True
         while self.at_loadout_menu:
             self.events()
-            self.loadout_menu.update()
             self.loadout_menu.draw()
         return self.loadout_menu.get_loadout()
 

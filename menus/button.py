@@ -26,6 +26,7 @@ class Button:
         self.on_click = on_click
         self.on_hover = on_hover
         self.is_hovered = False
+        self.is_active = True
 
         self.render_text()
 
@@ -36,9 +37,12 @@ class Button:
 
     def draw(self):
         """Draw the button on the screen."""
-        current_color = self.hover_color if self.is_hovered else self.color
-        pg.draw.rect(self.screen, current_color, self.rect)
-        self.screen.blit(self.text_surface, self.text_rect)
+        if self.is_active:
+            current_color = self.hover_color if self.is_hovered else self.color
+            pg.draw.rect(self.screen, current_color, self.rect)
+            self.screen.blit(self.text_surface, self.text_rect)
+        else:
+            pass
 
     def handle_event(self, event):
         # Hover
@@ -58,9 +62,14 @@ class Button:
                     self.draw()
                     self.on_click()
 
+    def set_inactive(self):
+        self.is_active = False
+
+    def set_active(self):
+        self.is_active = True
 
 class TriangleButton(Button):
-    def __init__(self, screen, rect, direction="up", color=BLACK, hover_color=RED, text='', font=None, text_color=(0, 0, 0), on_click=None, on_hover=None):
+    def __init__(self, screen, rect, direction="up", color=BLACK, hover_color=RED, on_click=None, on_hover=None):
         """
         Initialize a triangular button.
         
@@ -71,9 +80,8 @@ class TriangleButton(Button):
         self.rect = pg.Rect(rect)
         self.points = self.get_points()  # Store the triangle points
 
-        # Call the parent constructor with a default rect that won't be used, as this is a triangle
-        super().__init__(screen, rect=(0, 0, 1, 1), color=color, hover_color=hover_color, text=text, font=font, text_color=text_color, on_click=on_click, on_hover=on_hover)
-        # also calls self.render_text()
+        # Call the parent constructor
+        super().__init__(screen, rect=rect, color=color, hover_color=hover_color, on_click=on_click, on_hover=on_hover)
     
     def get_points(self):
         if self.direction == "up":
@@ -103,36 +111,28 @@ class TriangleButton(Button):
 
         return points
 
-    def render_text(self):
-        """Renders the button's text and positions it inside the triangle."""
-        self.text_surface = self.font.render(self.text, True, self.text_color)
-        # Position the text centered within the bounding box of the triangle
-        self.text_rect = self.text_surface.get_rect(center=self.get_triangle_center())
-
-    def get_triangle_center(self):
-        """Calculate the center point of the triangle by averaging its vertices."""
-        x = (self.points[0][0] + self.points[1][0] + self.points[2][0]) // 3
-        y = (self.points[0][1] + self.points[1][1] + self.points[2][1]) // 3
-        return (x, y)
-
     def draw(self):
         """Draw the triangle button on the screen."""
-        current_color = self.hover_color if self.is_hovered else self.color
-        pg.draw.polygon(self.screen, current_color, self.points)
-        self.screen.blit(self.text_surface, self.text_rect)
+        if self.is_active:
+            current_color = self.hover_color if self.is_hovered else self.color
+            pg.draw.polygon(self.screen, current_color, self.points)
+            self.screen.blit(self.text_surface, self.text_rect)
+        else:
+            pass
 
     def handle_event(self, event):
         """Handle hover and click events for the triangle button."""
         # Hover detection
         if event.type == pg.MOUSEMOTION:
-            self.is_hovered = point_inside_triangle(event.pos, self.points)
-            if self.is_hovered and self.on_hover:
-                self.on_hover()
+            if point_inside_triangle(event.pos, self.points):
+                self.is_hovered = True
+                if self.on_hover:
+                    self.on_hover()
+            else:
+                self.is_hovered = False
 
         # Click detection
         if event.type == pg.MOUSEBUTTONDOWN:
             if event.button == 1 and point_inside_triangle(event.pos, self.points):  # Left-click
                 if self.on_click:
-                    self.text = "Loading..."
-                    self.draw()
                     self.on_click()
