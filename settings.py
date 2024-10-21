@@ -1,7 +1,5 @@
 from pygame import Rect
-
-SKIP_MENU = False
-GOD_MODE = False
+from debug import *
 
 # colors (RGB)
 WHITE = (255, 255, 255)
