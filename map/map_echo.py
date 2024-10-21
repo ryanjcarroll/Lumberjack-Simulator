@@ -22,7 +22,10 @@ class MapEcho:
         # check for saved chunks and load any which are not already in the MapEcho
         for filepath in glob(f"data/saves/{self.game.game_id}/chunks/*"):
             chunk_id = os.path.basename(filepath).split(".")[0]
-            if chunk_id not in self.chunks and chunk_id not in self.currently_loading:
+            if chunk_id not in self.chunks \
+                    and chunk_id not in self.game.map.chunks \
+                    and chunk_id not in self.game.map.currently_loading \
+                    and chunk_id not in self.currently_loading:
                 self.currently_loading.add(chunk_id)
                 generate_thread = threading.Thread(target=self.load_chunk_from_disk, args=(chunk_id,))
                 generate_thread.start()
@@ -43,7 +46,9 @@ class MapEcho:
         
         if os.path.exists(filepath):
             with self.lock:              
-                self.chunks[chunk_id] = ChunkEcho(Chunk(chunk_id))      
+                chunk_x, chunk_y = chunk_id.split(",")
+                chunk_x, chunk_y = int(chunk_x), int(chunk_y)
+                self.chunks[chunk_id] = ChunkEcho(Chunk(self.game, chunk_x, chunk_y))      
                 self.currently_loading.remove(chunk_id)
         
 class ChunkEcho:

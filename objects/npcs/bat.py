@@ -156,7 +156,10 @@ class Bat(SpriteObject):
                         to_enemy = bat_pos - enemy_pos
                         distance_to_enemy = to_enemy.length()
 
-                        if distance_to_enemy < clump_radius:
+                        # two bats are directly on each other, each pick a random direction until no longer on each other
+                        if distance_to_enemy == 0:
+                            separation_vec = vec(random.random()-0.5, random.random()-0.5).normalize()
+                        elif distance_to_enemy < clump_radius:
                             # Push away from the other bat
                             separation_vec += to_enemy.normalize()
 

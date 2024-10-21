@@ -24,6 +24,7 @@ class Map:
         """
         # Generate new chunks when the player is within 4 tiles of them
         chunks_to_load = self.get_visible_chunks(buffer=TILE_SIZE*4)
+
         for chunk_id in chunks_to_load:
             with self.lock:
                 chunk_x, chunk_y = tuple(int(val) for val in chunk_id.split(","))
