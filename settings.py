@@ -35,7 +35,7 @@ WEAPONS_TO_LOAD = [
     "sword",
     "pick",
     # "stick",
-    # "hoe"
+    "hoe"
 ]
 LAYER_ORDER = ["body","hair","face","shirt","pants","accessories"]
 

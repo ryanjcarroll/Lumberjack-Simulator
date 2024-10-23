@@ -54,6 +54,9 @@ class MapEcho:
 class ChunkEcho:
     def __init__(self, chunk):
         self.tiles = [[TileEcho(tile) for tile in row] for row in chunk.tiles]
+    
+    def get_tiles(self):
+        return [tile for row in self.tiles for tile in row]
 
 class TileEcho:
     def __init__(self, tile):

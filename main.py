@@ -113,6 +113,7 @@ class Game:
             # set game variables
             self.game_id = str(uuid.uuid4())
             self.seed = random.randint(0,100000)
+            print(self.seed)
             opensimplex.seed(self.seed)
 
             loadout = {
@@ -196,22 +197,23 @@ class Game:
         """
         self.screen.fill(BG_COLOR)
 
-        # draw tiles if they are visible on screen
-        for chunk_id in self.map.get_visible_chunks():
+        # draw tiles without running into dictionary resize errors due to map.chunks threading
+        for chunk_id in self.map.get_visible_chunks(buffer=TILE_SIZE):
             if chunk_id in self.map.chunks: 
-                for tile in self.map.chunks[chunk_id].get_tiles():
+                chunk = self.map.chunks[chunk_id]
+                for tile in chunk.get_tiles():
                     if self.camera.is_visible(tile):
                         tile.draw(self.screen, self.camera)
                         if not tile.is_explored:
                             tile.is_explored = True
+                # pg.draw.rect(self.screen, RED, self.camera.apply(chunk.rect), width=4) # draw chunk boundaries
 
         # draw on-screen objects in layer order, and by ascending Y-coordinate
         for sprite in sorted(
             [sprite for sprite in self.sprite_list if self.camera.is_visible(sprite)]
             ,key = lambda sprite:(sprite.layer, sprite.rect.center[1])
-        ):
+        ): 
             sprite.draw(self.screen, self.camera)
-
 
         # draw menus 
         self.backpack_inventory_menu.draw(self.screen)

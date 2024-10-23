@@ -49,7 +49,7 @@ class SpriteAssetManager:
 
         with self.lock:
             # generate the image_id
-            image_id = f"path={path}?row={row_index}&col={col_index}&tilesize={tile_size}"
+            image_id = f"path={path}&row={row_index}&col={col_index}&tilesize={tile_size}"
             if resize:
                 image_id += f"&resize={resize}"
             if remove_padding:
@@ -84,7 +84,7 @@ class SpriteAssetManager:
                 self.images[f"path={path}"] = sheet
             
             # generate the image_id
-            image_id = f"path={path}?topleft={topleft}&width={width}&height={height}"
+            image_id = f"path={path}&topleft={topleft}&width={width}&height={height}"
             if resize:
                 image_id += f"&resize={resize}"
             if remove_padding:

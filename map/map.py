@@ -1,6 +1,6 @@
 from settings import *
 import threading
-from map.chunk import Chunk, SpawnChunk
+from map.chunk import Chunk
 from pygame import Vector2 as vec
 from glob import glob
 import json
@@ -16,14 +16,14 @@ class Map:
 
     def new(self):
         # generate the starting chunk with the top left corner at (0,0)
-        self.load_chunk(0,0, type=SpawnChunk)
+        self.load_chunk(0,0)
 
     def update(self):
         """
         Check if new chunks need to be generated based on the player's position.
         """
         # Generate new chunks when the player is within 4 tiles of them
-        chunks_to_load = self.get_visible_chunks(buffer=TILE_SIZE*4)
+        chunks_to_load = self.get_visible_chunks(buffer=4*TILE_SIZE)
 
         for chunk_id in chunks_to_load:
             with self.lock:
@@ -59,6 +59,7 @@ class Map:
                 self.game.map_echo.remove_chunk(chunk.id)
 
             self.chunks[chunk.id] = chunk
+            self.chunks[chunk.id].check_neighboring_edges()
             self.currently_loading.remove(chunk.id)
 
     def get_chunk_id(self, x, y):
