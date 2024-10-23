@@ -11,7 +11,9 @@ class Chunk:
         self.game = game
         self.load_objects = load_objects
 
-        self.tiles = []
+        # store a list of rows, each of which contains a list of Tiles
+        self.tiles = [[None for _ in range(CHUNK_SIZE)] for _ in range(CHUNK_SIZE)] 
+
         self.rect = Rect(x, y, x+CHUNK_SIZE*TILE_SIZE, y+CHUNK_SIZE*TILE_SIZE)
         self.id = f"{self.rect.topleft[0]},{self.rect.topleft[1]}"
 
@@ -25,15 +27,28 @@ class Chunk:
                     tile = tile_type(self.game, self, *tiledata["position"], is_explored=tiledata['is_explored'])
                     if self.load_objects:
                         tile.load_objects(objects=tiledata['objects'])
-                    self.tiles.append(tile)
-
+                    self.tiles[tiledata["position"][0]][tiledata["position"][1]] = tile
         # Build New Chunk
         else:
             self.load_tiles()
 
+        if self.id == "0,0":
+            self.build_spawn()
+
+    def build_spawn(self):
+        # set up Spawn Chunk with Campsite
+        if self.id == "0,0":
+            camp_tile = self.get_tile(CHUNK_SIZE//2, CHUNK_SIZE//2 + 1)
+            self.game.camp = Camp(self.game, *camp_tile.rect.topleft, camp_tile)
+            camp_tile.objects.append(self.game.camp)
+
+    def get_tiles(self):
+        return [tile for row in self.tiles for tile in row]
+
     def load_tiles(self):
         # fill the chunk with Tiles
         for row in range(CHUNK_SIZE):
+            tile_row = []
             for col in range(CHUNK_SIZE):
                 tile = self.get_tile_type(row, col)(
                     game = self.game,
@@ -41,26 +56,15 @@ class Chunk:
                     row = row,
                     col = col
                 )
-                # if self.load_objects:
-                #     tile.load_objects()
-                self.tiles.append(tile)
+                if self.load_objects:
+                    tile.load_objects()
+                self.tiles[row][col] = tile
 
-        self.update_tile_textures()
-
-    def update_tile_textures(self):
-        """
-        Second phase of tile loading where we assign textures based on neighboring tiles (ie, water's edge tiles).
-        If we tried to do this inside load_tiles(), neighboring tiles may not exist yet.
-        """
-        for tile in self.tiles:
+        for tile in self.get_tiles():
             tile.load_texture()
 
     def get_tile(self, row, col) -> Tile:
-        for tile in self.tiles:
-            if tile.row == row and tile.col == col:
-                return tile
-            
-        return None
+        return self.tiles[row][col]
 
     def get_tile_type(self, row, col) -> type:
         x = self.rect.topleft[0] + col*TILE_SIZE
@@ -84,9 +88,9 @@ class Chunk:
         write_json(f"data/saves/{self.game.game_id}/chunks/{self.id}.json", self.to_json())
 
     def unload(self):
-        for tile in self.tiles:
+        for tile in self.get_tiles():
             tile.unload()
-        self.tiles = []
+        self.tiles = [[None for _ in range(CHUNK_SIZE)] for _ in range(CHUNK_SIZE)] 
 
     def to_json(self):
         return {
@@ -94,17 +98,13 @@ class Chunk:
             "id":self.id,
             "position":[self.rect.topleft[0],self.rect.topleft[1]],
             "tiles":[
-                tile.to_json() for tile in self.tiles
+                tile.to_json() for tile in self.get_tiles()
             ]
         }
     
 class SpawnChunk(Chunk):
     def __init__(self, game,x, y):
         super().__init__(game, x, y)
-
-        camp_tile = self.get_tile(CHUNK_SIZE//2, CHUNK_SIZE//2 + 1)
-        self.game.camp = Camp(self.game, *camp_tile.rect.topleft, camp_tile)
-        camp_tile.objects.append(self.game.camp)
 
     def get_tile_type(self, row, col) -> type:
         x = self.rect.topleft[0] + col*TILE_SIZE

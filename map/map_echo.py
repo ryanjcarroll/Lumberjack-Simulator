@@ -53,8 +53,8 @@ class MapEcho:
         
 class ChunkEcho:
     def __init__(self, chunk):
-        self.tiles = [TileEcho(tile) for tile in chunk.tiles]
-        
+        self.tiles = [[TileEcho(tile) for tile in row] for row in chunk.tiles]
+
 class TileEcho:
     def __init__(self, tile):
         self.color = tile.color

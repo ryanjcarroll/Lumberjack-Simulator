@@ -199,7 +199,7 @@ class Game:
         # draw tiles if they are visible on screen
         for chunk_id in self.map.get_visible_chunks():
             if chunk_id in self.map.chunks: 
-                for tile in self.map.chunks[chunk_id].tiles:
+                for tile in self.map.chunks[chunk_id].get_tiles():
                     if self.camera.is_visible(tile):
                         tile.draw(self.screen, self.camera)
                         if not tile.is_explored:

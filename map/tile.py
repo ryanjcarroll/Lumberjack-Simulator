@@ -315,10 +315,10 @@ class Tile(ABC):
 
         output = {}
         if direction:
-            return self.__get_neighbor(d_values[direction].x, d_values[direction].y)
+            return self.__get_neighbor(int(d_values[direction].x), int(d_values[direction].y))
         else:
             for direction, d_vec in d_values.items():
-                output[direction] = self.__get_neighbor(d_vec.x, d_vec.y)
+                output[direction] = self.__get_neighbor(int(d_vec.x), int(d_vec.y))
             return output
 
     def __get_neighbor(self, d_row, d_col):

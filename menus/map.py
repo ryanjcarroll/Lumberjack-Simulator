@@ -68,7 +68,7 @@ class MapMenu:
 
         # draw the chunks which are currently loaded in memory
         for chunk_id, chunk in self.game.map.chunks.items():
-            for tile in chunk.tiles:
+            for tile in chunk.get_tiles():
                 if tile.is_explored:
                     tile_mini = pg.Rect(
                         round((tile.x * self.scale_factor) + offset_x), # round calculations to avoid gridlines
@@ -80,7 +80,7 @@ class MapMenu:
 
         # draw the chunks which are saved to disk (using data from the MapEcho)
         for chunk_id, chunk in self.game.map_echo.chunks.items():
-            for tile in chunk.tiles:
+            for tile in chunk.get_tiles():
                 if tile.is_explored:
                     tile_mini = pg.Rect(
                         round((tile.x * self.scale_factor) + offset_x),
