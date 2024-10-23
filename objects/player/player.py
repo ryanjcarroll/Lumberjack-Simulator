@@ -6,7 +6,6 @@ from utility import *
 from objects.inventory import Backpack
 from objects.resources.tree import Tree
 from objects.resources.rock import Rock
-import json
 from objects.sprites import SpriteObject
 from objects.items.items import SkillPoint
 from objects.player.skills import SkillTree
@@ -372,10 +371,11 @@ class Player(SpriteObject):
                 self.game.sounds.play_random("chop_rock")
 
         elif self.action == "hoe":
-            for chunk_id, chunk in self.game.map.chunks.items():
+            for chunk_id in self.game.map.get_visible_chunks():
+                chunk = self.game.map.chunks[chunk_id]
                 for tile in chunk.get_tiles():
                     if any([circle_collides(center, radius, tile.rect)for center, radius in attack_circles]):
-                        tile.set_tile_type("dirt")
+                        tile.set_tile_type("clay")
 
     def set_animation_counters(self, dt):
         """

@@ -108,12 +108,12 @@ class Chunk:
             for row in range(CHUNK_SIZE//2 - 1, CHUNK_SIZE//2 + 2):
                 for col in range(CHUNK_SIZE//2 - 1, CHUNK_SIZE//2 + 2):
                     tile = self.get_tile(row, col)
-                    tile.set_tile_type("dirt")
-            
-            # for row in range(CHUNK_SIZE//2 - 1, CHUNK_SIZE//2 + 2):
+                    tile.set_tile_type("sand")
+
+            # for row in range(CHUNK_SIZE//2 - 4, CHUNK_SIZE//2 - 1):
             #     for col in range(CHUNK_SIZE//2 - 1, CHUNK_SIZE//2 + 2):
             #         tile = self.get_tile(row, col)
-            #         tile.update_texture()
+            #         tile.set_tile_type("clay")
 
     def get_tiles(self):
         return [tile for row in self.tiles for tile in row]

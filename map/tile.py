@@ -16,6 +16,7 @@ from objects.player.player import Player
 from objects.npcs.butterfly import Butterfly
 from objects.npcs.grasshopper import Grasshopper
 from objects.npcs.ladybug import Ladybug
+from utility import combine_images
 
 class Tile(ABC):
     def __init__(self, game, chunk, row, col, load_decor=False, is_explored=False, tile_type="grass", texture=None):
@@ -27,6 +28,7 @@ class Tile(ABC):
         # texture variables        
         self.tile_type = tile_type
         self.texture = texture # will be set to a spritesheet tuple once neighbors are loaded
+        self.base_texture = None
         self.image = None
 
         # row & col position within chunk        
@@ -54,8 +56,8 @@ class Tile(ABC):
             TILE_SIZE,
             TILE_SIZE
         )
-        if load_decor:
-            self.load_decor()
+        # if load_decor:
+        #     self.load_decor()
 
         # load water
         if self.tile_type == "water":
@@ -86,91 +88,116 @@ class Tile(ABC):
             direction:self.get_neighbors(direction=direction) 
             for direction in ['right','bottom','bottomright']
         }
-        if all([neighbor is not None for neighbor in neighbors.values()]):
 
+        # set the texture as long as all 4 neighbors of the draw_rect exist
+        if all([neighbor is not None for neighbor in neighbors.values()]):
             # 4-tile congfiguration - [topleft, topright, bottomleft, bottomright]
             n = [self.tile_type, neighbors['right'].tile_type, neighbors['bottom'].tile_type, neighbors['bottomright'].tile_type]
             
             # configurations for all-one-texture
             if len(set(n)) == 1:
                 if n == ['grass', 'grass', 'grass', 'grass']:
-                    self.texture = (2, 12)
+                    self.texture = (0,0)
                 elif n == ['water', 'water', 'water', 'water']:
-                    self.texture = (13, 12)
-                elif n == ['dirt', 'dirt', 'dirt', 'dirt']:
-                    self.texture = (7,5)
+                    self.texture = (0,3)
+                elif n == ['sand', 'sand', 'sand', 'sand']:
+                    self.texture = (0,1)  
+                elif n == ['clay', 'clay', 'clay', 'clay']:
+                    self.texture = (0,2)  
 
             elif set(n) == set(["grass","water"]):
                 # 14 possible grass/water configurations of the 4 neighboring tiles of the draw_rect
                 if n == ['grass', 'grass', 'grass', 'water']:
-                    self.texture = (13, 3)
+                    self.texture = (5, 3)
                 elif n == ['grass', 'grass', 'water', 'grass']:
-                    self.texture = (13, 4)
+                    self.texture = (5, 4)
                 elif n == ['grass', 'water', 'water', 'water']:
-                    self.texture = (14, 2)
-                elif n == ['grass', 'water', 'grass', 'grass']:
-                    self.texture = (14, 3)
-                elif n == ['grass', 'grass', 'water', 'water']:
-                    self.texture = (14, 1)
-                elif n == ['grass', 'water', 'grass', 'water']:
-                    self.texture = (13, 2)
-                elif n == ['grass', 'water', 'water', 'grass']:
-                    self.texture = (15, 12)
-                elif n == ['water', 'water', 'water', 'grass']:
-                    self.texture = (12, 0)
-                elif n == ['water', 'water', 'grass', 'water']:
-                    self.texture = (12, 2)
-                elif n == ['water', 'grass', 'grass', 'grass']:
-                    self.texture = (14, 4)
-                elif n == ['water', 'grass', 'water', 'water']:
-                    self.texture = (14, 0)
-                elif n == ['water', 'water', 'grass', 'grass']:
-                    self.texture = (12, 1)
-                elif n == ['water', 'grass', 'water', 'grass']:
-                    self.texture = (13, 0)
-                elif n == ['water', 'grass', 'grass', 'water']:
-                    self.texture = (15, 11)
-
-            elif set(n) == set(["grass","dirt"]):
-                print(self.col, self.row, n)
-                # 14 possible grass/dirt configurations of the 4 neighboring tiles of the draw_rect
-                if n == ['grass', 'grass', 'grass', 'dirt']:
-                    self.texture = (7, 3)
-                elif n == ['grass', 'grass', 'dirt', 'grass']:
-                    self.texture = (7, 4)
-                elif n == ['grass', 'dirt', 'dirt', 'dirt']:
-                    self.texture = (8, 2)
-                elif n == ['grass', 'dirt', 'grass', 'grass']:
-                    self.texture = (8, 3)
-                elif n == ['grass', 'grass', 'dirt', 'dirt']:
-                    self.texture = (8, 1)
-                elif n == ['grass', 'dirt', 'grass', 'dirt']:
-                    self.texture = (7, 2)
-                elif n == ['grass', 'dirt', 'dirt', 'grass']:
-                    self.texture = (6, 4)
-                elif n == ['dirt', 'dirt', 'dirt', 'grass']:
-                    self.texture = (6, 0)
-                elif n == ['dirt', 'dirt', 'grass', 'dirt']:
                     self.texture = (6, 2)
-                elif n == ['dirt', 'grass', 'grass', 'grass']:
-                    self.texture = (8, 4)
-                elif n == ['dirt', 'grass', 'dirt', 'dirt']:
-                    self.texture = (8, 0)
-                elif n == ['dirt', 'dirt', 'grass', 'grass']:
-                    self.texture = (6, 1)
-                elif n == ['dirt', 'grass', 'dirt', 'grass']:
-                    self.texture = (7, 0)
-                elif n == ['dirt', 'grass', 'grass', 'dirt']:
+                elif n == ['grass', 'water', 'grass', 'grass']:
                     self.texture = (6, 3)
+                elif n == ['grass', 'grass', 'water', 'water']:
+                    self.texture = (6, 1)
+                elif n == ['grass', 'water', 'grass', 'water']:
+                    self.texture = (5, 2)
+                elif n == ['grass', 'water', 'water', 'grass']:
+                    self.texture = (4, 4)
+                elif n == ['water', 'water', 'water', 'grass']:
+                    self.texture = (4, 0)
+                elif n == ['water', 'water', 'grass', 'water']:
+                    self.texture = (4, 2)
+                elif n == ['water', 'grass', 'grass', 'grass']:
+                    self.texture = (6, 4)
+                elif n == ['water', 'grass', 'water', 'water']:
+                    self.texture = (6, 0)
+                elif n == ['water', 'water', 'grass', 'grass']:
+                    self.texture = (4, 1)
+                elif n == ['water', 'grass', 'water', 'grass']:
+                    self.texture = (5, 0)
+                elif n == ['water', 'grass', 'grass', 'water']:
+                    self.texture = (4, 3)
+
+            elif len(set(n)) == 2 and "grass" in n:
+                if "sand" in n:
+                    self.base_texture = (0,1)
+                elif "clay" in n:
+                    self.base_texture = (0,2)
+                
+                # 14 possible grass/other configurations of the 4 neighboring tiles of the draw_rect
+                n = ["grass" if t=="grass" else "other" for t in n]
+                if n == ['grass', 'grass', 'grass', 'other']:
+                    self.texture = (2, 3)
+                elif n == ['grass', 'grass', 'other', 'grass']:
+                    self.texture = (2, 4)
+                elif n == ['grass', 'other', 'other', 'other']:
+                    self.texture = (3, 2)
+                elif n == ['grass', 'other', 'grass', 'grass']:
+                    self.texture = (3, 3)
+                elif n == ['grass', 'grass', 'other', 'other']:
+                    self.texture = (3, 1)
+                elif n == ['grass', 'other', 'grass', 'other']:
+                    self.texture = (2, 2)
+                elif n == ['grass', 'other', 'other', 'grass']:
+                    self.texture = (1, 4)
+                elif n == ['other', 'other', 'other', 'grass']:
+                    self.texture = (1, 0)
+                elif n == ['other', 'other', 'grass', 'other']:
+                    self.texture = (1, 2)
+                elif n == ['other', 'grass', 'grass', 'grass']:
+                    self.texture = (3, 4)
+                elif n == ['other', 'grass', 'other', 'other']:
+                    self.texture = (3, 0)
+                elif n == ['other', 'other', 'grass', 'grass']:
+                    self.texture = (1, 1)
+                elif n == ['other', 'grass', 'other', 'grass']:
+                    self.texture = (2, 0)
+                elif n == ['other', 'grass', 'grass', 'other']:
+                    self.texture = (1, 3)
 
         default = (9,7)
-        image = self.game.sprites.load_from_tilesheet(
+        if self.base_texture:
+            base = self.game.sprites.load_from_tilesheet(
                 path=self.get_spritesheet_path(),
-                row_index=self.texture[0] if self.texture else default[0],
-                col_index=self.texture[1] if self.texture else default[1],
+                row_index=self.base_texture[0],
+                col_index=self.base_texture[1],
                 tile_size=16,
                 resize=(TILE_SIZE, TILE_SIZE)
-        )
+            )
+            top = self.game.sprites.load_from_tilesheet(
+                    path=self.get_spritesheet_path(),
+                    row_index=self.texture[0] if self.texture else default[0],
+                    col_index=self.texture[1] if self.texture else default[1],
+                    tile_size=16,
+                    resize=(TILE_SIZE, TILE_SIZE)
+            )
+            image = combine_images([base, top])
+        else:
+            image = self.game.sprites.load_from_tilesheet(
+                    path=self.get_spritesheet_path(),
+                    row_index=self.texture[0] if self.texture else default[0],
+                    col_index=self.texture[1] if self.texture else default[1],
+                    tile_size=16,
+                    resize=(TILE_SIZE, TILE_SIZE)
+            )
 
         TILE_NOISE_FACTOR = .005
         darkness = 215 + (30 * opensimplex.noise2(self.x*TILE_NOISE_FACTOR, self.y*TILE_NOISE_FACTOR))
@@ -364,7 +391,7 @@ class Tile(ABC):
             screen.blit(self.image, camera.apply(self.draw_rect))
             # pg.draw.rect(
             #     screen, 
-            #     BLUE if self.tile_type == "water" else GREEN if self.tile_type=="grass" else RED, 
+            #     BLUE if self.tile_type == "water" else GREEN if self.tile_type=="grass" else YELLOW if self.tile_type=="sand" else RED, 
             #     camera.apply(self.rect), width=1
             # )
         else:
@@ -408,7 +435,7 @@ class ForestTile(Tile):
         self.color = (119,177,82)
 
     def get_spritesheet_path(self) -> str:
-        return "assets/textures/tiles.png"
+        return "assets/textures/tile2.png"
 
 class IceForestTile(Tile):
     def __init__(self, game, chunk, row, col, load_decor=True, is_explored=False, tile_type="grass", texture=None):
@@ -427,7 +454,7 @@ class IceForestTile(Tile):
         self.color = (237,237,237)
 
     def get_spritesheet_path(self) -> str:
-        return "assets/textures/tiles.png"
+        return "assets/textures/tile2.png"
     
     def load_decor(self):
         # load decor only a percentage of the time
@@ -451,7 +478,7 @@ class AutumnForestTile(Tile):
         self.color = (136,177,79)
 
     def get_spritesheet_path(self) -> str:
-        return "assets/textures/tiles.png"
+        return "assets/textures/tile2.png"
  
 class MangroveForestTile(Tile):
     def __init__(self, game, chunk, row, col, load_decor=True, is_explored=False, tile_type="grass", texture=None):
@@ -465,7 +492,7 @@ class MangroveForestTile(Tile):
         self.color = (100,153,61)
 
     def get_spritesheet_path(self) -> str:
-        return "assets/textures/tiles.png"
+        return "assets/textures/tile2.png"
     
     def load_decor(self):
         # don't load decor on mangrove forest tiles
@@ -481,7 +508,7 @@ class WaterTile(Tile):
 
     # unused
     def get_spritesheet_path(self) -> str:
-        return "assets/textures/tiles.png"
+        return "assets/textures/tile2.png"
             
     def load_decor(self):
         # dont load decor on water tiles
