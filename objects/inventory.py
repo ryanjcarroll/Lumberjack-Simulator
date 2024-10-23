@@ -41,10 +41,7 @@ class Camp(SpriteObject):
         self.game.can_collide_list.add(self)
     
     def load_image(self):
-        return pg.transform.scale(
-            self.game.sprites.load("assets/decor/camp/1.png"),
-            (TILE_SIZE, TILE_SIZE)
-        )
+        return self.game.sprites.load("assets/decor/camp/1.png", resize=(TILE_SIZE, TILE_SIZE))
 
     def add_wood(self, n=1):
         self.wood += n

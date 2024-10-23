@@ -1,8 +1,5 @@
 import pygame as pg
 from settings import *
-from utility import remove_padding_and_scale
-from pygame import Vector2 as vec
-import math
 import random
 from objects.sprites import SpriteObject
 
@@ -53,12 +50,8 @@ class Rock(SpriteObject):
             )[0]
 
         # load an image, remove transparent boundaries, and scale it to size
-        scaled_image = pg.transform.scale(
-            remove_padding_and_scale(
-                self.game.sprites.load(f"assets/rock/{self.image_name}.png")
-            )
-            ,(TILE_SIZE, TILE_SIZE)
-        )
+        scaled_image = self.game.sprites.load(f"assets/rock/{self.image_name}.png",resize=(TILE_SIZE, TILE_SIZE), remove_padding=True)
+
         # randomly flip 50% of images along their Y-axis
         if self.flipped:
             scaled_image = pg.transform.flip(scaled_image, True, False)

@@ -3,53 +3,109 @@ from settings import *
 import threading
 import random
 import json
+from utility import remove_padding_and_scale
 
 class SpriteAssetManager:
     def __init__(self):
         self.images = {}
         self.lock = threading.Lock()
 
-    def load(self, path):
+    def load(self, path, resize:tuple=None, remove_padding=False):
         with self.lock:
-            if path not in self.images:
-                # add new entries to the saved images
-                image = pg.image.load(path)
-                self.images[path] = image
+            image_id = f"path={path}"
+            
+            # always save the base image if not saved yet
+            if f"path={path}" not in self.images:
+                image = pg.image.load(path).convert_alpha()
+                self.images[image_id] = image
+
+            # if modifications were passed, also save with those modifications
+            if remove_padding:
+                image_id += f"&resize={resize}"
+            if resize:
+                image_id += f"&remove_padding={remove_padding}"
+            
+            if image_id not in self.images:
+                image = pg.transform.scale(image,resize)
+                
+                # remove padding if needed
+                if remove_padding:
+                    image = remove_padding_and_scale(image)
+                # resize if needed
+                if resize:
+                    image = pg.transform.scale(image, resize)
+
+                # save the final image
+                self.images[image_id] = image
 
             # hand out copies to avoid race conditions
             # TODO there's probably a better way but not sure what it is right now
-            return self.images[path].copy()
+            return self.images[image_id].copy()
 
-    def load_from_tilesheet(self, path, row_index, col_index, tile_size):
-        if path not in self.images:
-            sheet = pg.image.load(path)
-            self.images[path] = sheet
+    def load_from_tilesheet(self, path, row_index, col_index, tile_size, resize:tuple=None, remove_padding=False):
+        if f"path={path}" not in self.images:
+            sheet = pg.image.load(path).convert_alpha()
+            self.images[f"path={path}"] = sheet
 
         with self.lock:
-            tile_path = f"{path}?{row_index},{col_index},{tile_size}"
-            if tile_path not in self.images:
+            # generate the image_id
+            image_id = f"path={path}?row={row_index}&col={col_index}&tilesize={tile_size}"
+            if resize:
+                image_id += f"&resize={resize}"
+            if remove_padding:
+                image_id += f"&remove_padding={remove_padding}"
+            
+            if image_id not in self.images:
                 # Extract a single image from spritesheet
                 x = col_index * tile_size
                 y = row_index * tile_size
 
                 tile_rect = pg.Rect(x, y, tile_size, tile_size)
-                self.images[tile_path] = self.images[path].subsurface(tile_rect)
 
-            return self.images[tile_path].copy()
-        
-    def load_from_spritesheet(self, path, topleft:tuple, width:int, height:int):
-        with self.lock:
-            if path not in self.images:
-                sheet = pg.image.load(path)
-                self.images[path] = sheet
+                # load the base image
+                image = self.images[f"path={path}"].subsurface(tile_rect)
+                # remove padding if needed
+                if remove_padding:
+                    image = remove_padding_and_scale(image)
+                # resize if needed
+                if resize:
+                    image = pg.transform.scale(image,resize)
+                
+                # save the final image
+                self.images[image_id] = image
             
-            tile_path = f"{path}?{topleft},width,height"
-            if tile_path not in self.images:
+            # return a copy of the final image
+            return self.images[image_id].copy()
+        
+    def load_from_spritesheet(self, path, topleft:tuple, width:int, height:int, resize:tuple=None, remove_padding=False):
+        with self.lock:
+            if f"path={path}" not in self.images:
+                sheet = pg.image.load(path).convert_alpha()
+                self.images[f"path={path}"] = sheet
+            
+            # generate the image_id
+            image_id = f"path={path}?topleft={topleft}&width={width}&height={height}"
+            if resize:
+                image_id += f"&resize={resize}"
+            if remove_padding:
+                image_id += f"&remove_padding={remove_padding}"
+
+            if image_id not in self.images:
                 # Extract a single image from spritesheet by pixel coordinates
                 tile_rect = pg.Rect(topleft[0], topleft[1], width, height)
-                self.images[tile_path] = self.images[path].subsurface(tile_rect)
+                
+                # load the base image
+                image = self.images[f"path={path}"].subsurface(tile_rect)
+                # remove padding if needed
+                if remove_padding:
+                    image = remove_padding_and_scale(image)
+                # resize if needed
+                if resize:
+                    image = pg.transform.scale(image,resize)
 
-            return self.images[tile_path].copy()
+                self.images[image_id] = image
+
+            return self.images[image_id].copy()
         
 class SoundAssetManager:
     def __init__(self):

@@ -212,11 +212,6 @@ class Game:
         ):
             sprite.draw(self.screen, self.camera)
 
-        # pg.draw.rect(self.screen, RED, self.camera.apply(self.camera.rect), width=2)
-        # if "0,-1152" in self.map.chunks:
-        #     for tile in self.map.chunks["0,-1152"].tiles:
-        #         if tile.col == 15:
-        #             pg.draw.rect(self.screen, BLUE, tile.rect, width=2)
 
         # draw menus 
         self.backpack_inventory_menu.draw(self.screen)

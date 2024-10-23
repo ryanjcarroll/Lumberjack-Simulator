@@ -72,16 +72,13 @@ class Tree(SpriteObject):
             raise Exception(f"Couldn't find sprite for Tree `{self.image_name}`")
 
         # load and remove padding from image        
-        scaled_image = pg.transform.scale(
-            remove_padding_and_scale(
-                self.game.sprites.load_from_tilesheet(
-                    path=loadout['path'],
-                    row_index=loadout['row_index'],
-                    col_index=loadout['col_index'],
-                    tile_size=loadout['tile_size']
-                )
-            ),
-            (TILE_SIZE*1.5, TILE_SIZE*1.5)
+        scaled_image = self.game.sprites.load_from_tilesheet(
+            path=loadout['path'],
+            row_index=loadout['row_index'],
+            col_index=loadout['col_index'],
+            tile_size=loadout['tile_size'],
+            resize=(TILE_SIZE*1.5, TILE_SIZE*1.5),
+            remove_padding=True
         )
 
         # flip on vertical mirror if applicable

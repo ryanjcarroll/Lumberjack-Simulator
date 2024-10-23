@@ -44,14 +44,12 @@ class Butterfly(SpriteObject):
         # load the component frame and add to images list
         for col in range(9):
             self.frames["fly"].append(
-                pg.transform.scale(
-                    self.game.sprites.load_from_tilesheet(
-                        path=f"assets/npcs/bugs/butterfly/butterfly.png",
-                        row_index=row,
-                        col_index=col,
-                        tile_size=16
-                    ),
-                    (self.width, self.height)
+                self.game.sprites.load_from_tilesheet(
+                    path=f"assets/npcs/bugs/butterfly/butterfly.png",
+                    row_index=row,
+                    col_index=col,
+                    tile_size=16,
+                    resize=(self.width, self.height)
                 )
             )
 

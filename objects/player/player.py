@@ -19,10 +19,8 @@ class Player(SpriteObject):
     def __init__(self, game, x:int, y:int, loadout:dict):
         self.loadout = loadout
 
-        # set Player's home tile at the center of the SpawnChunk
-        for tile in game.map.chunks["0,0"].tiles:
-            if CHUNK_SIZE//2 == tile.row and CHUNK_SIZE//2 + 1== tile.col:
-                break
+        # set Player's home tile at the center of the SpawnChunk    
+        tile = game.map.chunks["0,0"].get_tile(CHUNK_SIZE//2, CHUNK_SIZE//2 + 1)
 
         super().__init__(game, x, y, tile, layer=SPRITE_LAYER, image=None)
 
@@ -119,14 +117,12 @@ class Player(SpriteObject):
                     
                     # load the component frame and add to images list
                     images.append(
-                        pg.transform.scale(
-                            self.game.sprites.load_from_tilesheet(
-                                path=f"assets/player/{attribute}/{d_loadout['category']}.png",
-                                row_index=row,
-                                col_index=col,
-                                tile_size=SPRITESHEET_TILE_SIZE
-                            ),
-                            (PLAYER_SPRITE_WIDTH, PLAYER_SPRITE_HEIGHT)
+                        self.game.sprites.load_from_tilesheet(
+                            path=f"assets/player/{attribute}/{d_loadout['category']}.png",
+                            row_index=row,
+                            col_index=col,
+                            tile_size=SPRITESHEET_TILE_SIZE,
+                            resize=(PLAYER_SPRITE_WIDTH, PLAYER_SPRITE_HEIGHT)
                         )
                     )
 
