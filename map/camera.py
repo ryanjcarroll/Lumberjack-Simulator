@@ -35,7 +35,10 @@ class Camera:
         self.rect.topleft = (x,y)
 
     def is_visible(self, entity):
-        if self.rect.colliderect(entity.rect):
+        if hasattr(object, "draw_rect"):
+            if self.rect.colliderect(object.draw_rect):
+                return True
+        elif self.rect.colliderect(entity.rect):
             return True
         elif hasattr(object, "shadow_rect"):
             if self.rect.colliderect(object.shadow_rect):

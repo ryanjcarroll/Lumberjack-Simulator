@@ -10,7 +10,7 @@ class Chunk:
     def __init__(self, game, x, y, load_objects=True):
         self.game = game
         self.load_objects = load_objects
-        
+
         self.tiles = []
         self.rect = Rect(x, y, x+CHUNK_SIZE*TILE_SIZE, y+CHUNK_SIZE*TILE_SIZE)
         self.id = f"{self.rect.topleft[0]},{self.rect.topleft[1]}"
@@ -41,9 +41,26 @@ class Chunk:
                     row = row,
                     col = col
                 )
-                if self.load_objects:
-                    tile.load_objects()
+                # if self.load_objects:
+                #     tile.load_objects()
                 self.tiles.append(tile)
+
+        self.update_tile_textures()
+
+    def update_tile_textures(self):
+        """
+        Second phase of tile loading where we assign textures based on neighboring tiles (ie, water's edge tiles).
+        If we tried to do this inside load_tiles(), neighboring tiles may not exist yet.
+        """
+        for tile in self.tiles:
+            tile.load_texture()
+
+    def get_tile(self, row, col) -> Tile:
+        for tile in self.tiles:
+            if tile.row == row and tile.col == col:
+                return tile
+            
+        return None
 
     def get_tile_type(self, row, col) -> type:
         x = self.rect.topleft[0] + col*TILE_SIZE
@@ -85,11 +102,9 @@ class SpawnChunk(Chunk):
     def __init__(self, game,x, y):
         super().__init__(game, x, y)
 
-        for tile in self.tiles:
-            # spawn the camp
-            if CHUNK_SIZE//2 == tile.row and CHUNK_SIZE//2 + 1== tile.col:
-                self.game.camp = Camp(self.game, *tile.rect.topleft, tile)
-                tile.objects.append(self.game.camp)
+        camp_tile = self.get_tile(CHUNK_SIZE//2, CHUNK_SIZE//2 + 1)
+        self.game.camp = Camp(self.game, *camp_tile.rect.topleft, camp_tile)
+        camp_tile.objects.append(self.game.camp)
 
     def get_tile_type(self, row, col) -> type:
         x = self.rect.topleft[0] + col*TILE_SIZE
@@ -109,38 +124,40 @@ class SpawnChunk(Chunk):
 
         return tile_type
 
-    def load_tiles(self):
-        # fill the chunk with Tiles
-        for row in range(CHUNK_SIZE):
-            for col in range(CHUNK_SIZE):
-                if CHUNK_SIZE//2 - 1 == row and CHUNK_SIZE//2 - 1 == col:
-                    terrain_type = "rock_topleft" 
-                elif CHUNK_SIZE//2 - 1 == row and CHUNK_SIZE//2 == col:
-                    terrain_type = "rock_top" 
-                elif CHUNK_SIZE//2 - 1 == row and CHUNK_SIZE//2 + 1== col:
-                    terrain_type = "rock_topright" 
-                elif CHUNK_SIZE//2 == row and CHUNK_SIZE//2 - 1 == col:
-                    terrain_type = "rock_left" 
-                elif CHUNK_SIZE//2 == row and CHUNK_SIZE//2 == col:
-                    terrain_type = "rock_center" 
-                elif CHUNK_SIZE//2 == row and CHUNK_SIZE//2 + 1== col:
-                    terrain_type = "rock_right" 
-                elif CHUNK_SIZE//2 + 1 == row and CHUNK_SIZE//2 - 1 == col:
-                    terrain_type = "rock_bottomleft" 
-                elif CHUNK_SIZE//2 + 1 == row and CHUNK_SIZE//2 == col:
-                    terrain_type = "rock_bottom" 
-                elif CHUNK_SIZE//2 + 1 == row and CHUNK_SIZE//2 + 1== col:
-                    terrain_type = "rock_bottomright" 
-                else:
-                    terrain_type = "basic"
-                tile = self.get_tile_type(row, col)(
-                    game = self.game,
-                    chunk=self,
-                    row = row,
-                    col = col,
-                    load_decor=True if terrain_type == "basic" else False
-                )
-                if terrain_type == "basic":
-                    tile.load_objects()
+    # def load_tiles(self):
+    #     # fill the chunk with Tiles
+    #     for row in range(CHUNK_SIZE):
+    #         for col in range(CHUNK_SIZE):
+    #             if CHUNK_SIZE//2 - 1 == row and CHUNK_SIZE//2 - 1 == col:
+    #                 terrain_type = "rock_topleft" 
+    #             elif CHUNK_SIZE//2 - 1 == row and CHUNK_SIZE//2 == col:
+    #                 terrain_type = "rock_top" 
+    #             elif CHUNK_SIZE//2 - 1 == row and CHUNK_SIZE//2 + 1== col:
+    #                 terrain_type = "rock_topright" 
+    #             elif CHUNK_SIZE//2 == row and CHUNK_SIZE//2 - 1 == col:
+    #                 terrain_type = "rock_left" 
+    #             elif CHUNK_SIZE//2 == row and CHUNK_SIZE//2 == col:
+    #                 terrain_type = "rock_center" 
+    #             elif CHUNK_SIZE//2 == row and CHUNK_SIZE//2 + 1== col:
+    #                 terrain_type = "rock_right" 
+    #             elif CHUNK_SIZE//2 + 1 == row and CHUNK_SIZE//2 - 1 == col:
+    #                 terrain_type = "rock_bottomleft" 
+    #             elif CHUNK_SIZE//2 + 1 == row and CHUNK_SIZE//2 == col:
+    #                 terrain_type = "rock_bottom" 
+    #             elif CHUNK_SIZE//2 + 1 == row and CHUNK_SIZE//2 + 1== col:
+    #                 terrain_type = "rock_bottomright" 
+    #             else:
+    #                 terrain_type = "basic"
+    #             tile = self.get_tile_type(row, col)(
+    #                 game = self.game,
+    #                 chunk=self,
+    #                 row = row,
+    #                 col = col,
+    #                 load_decor=True if terrain_type == "basic" else False
+    #             )
+    #             if terrain_type == "basic":
+    #                 tile.load_objects()
 
-                self.tiles.append(tile)
+    #             self.tiles.append(tile)
+    
+    #     # self.update_tile_textures()

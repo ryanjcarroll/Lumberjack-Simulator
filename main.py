@@ -35,7 +35,7 @@ class Game:
         pg.display.set_caption(TITLE)
 
         # intitialize the asset managers
-        self.sprites = SpriteAssetManager()  
+        self.sprites = SpriteAssetManager()
         self.sounds = SoundAssetManager()
         self.jsons = JSONFileManager()
 
@@ -141,7 +141,7 @@ class Game:
         # store data for unloaded chunks as separate entity
         self.map_echo = MapEcho(self)
 
-        # move on from the start menu
+        # move on from the start menu only once a chunk is finished loading
         self.at_start_menu = False
         self.playing = True
 

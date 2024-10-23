@@ -33,17 +33,24 @@ class Tile(ABC):
         # store the y coordinate for layer ordering during rendering
         self.x = chunk.rect.topleft[0] + (col * TILE_SIZE)
         self.y = chunk.rect.topleft[1] + (row * TILE_SIZE)
+        self.rect = pg.Rect(
+            self.x,
+            self.y,
+            TILE_SIZE,
+            TILE_SIZE
+        )
 
         # minimap variables
         self.color = BLACK
         self.is_explored = is_explored # sets to true once the tile is drawn on scren
-        
-        # set image textures and load object sprites
-        self.image = self.load_texture()
-        self.rect = self.image.get_rect()
-        self.rect.topleft = vec(self.x,self.y)  
-        if load_decor:
-            self.load_decor()
+
+        # the draw rect will be offset by half a tile to the bottom right (southeast)
+        self.draw_rect = pg.Rect(
+            self.x + TILE_SIZE//2,
+            self.y  + TILE_SIZE//2,
+            TILE_SIZE,
+            TILE_SIZE
+        )
 
     @abstractmethod
     def get_spritesheet_path(self) -> str:
@@ -51,8 +58,91 @@ class Tile(ABC):
 
     def load_texture(self):
         # Spawn Chunk
-        if self.chunk.id == "0,0":
-            index = (2,12) # grass
+        neighbors = {direction:neighbor for direction, neighbor in self.get_neighbors().items() if direction in ['east','south','southeast']}
+        if all([neighbor is not None for direction, neighbor in neighbors.items()]):
+            # 14 possible configurations of the 4 neighboring tiles of the draw_rect
+            if self.tile_type == "grass" \
+                    and neighbors['east'].tile_type == "grass" \
+                    and neighbors['south'].tile_type == "grass" \
+                    and neighbors['southeast'].tile_type == "grass":
+                index = (2,12)
+            elif self.tile_type == "grass" \
+                    and neighbors['east'].tile_type == "grass" \
+                    and neighbors['south'].tile_type == "grass" \
+                    and neighbors['southeast'].tile_type == "water":
+                index = (13,3)
+            elif self.tile_type == "grass" \
+                    and neighbors['east'].tile_type == "grass" \
+                    and neighbors['south'].tile_type == "water" \
+                    and neighbors['southeast'].tile_type == "grass":
+                index = (13,4)
+            elif self.tile_type == "grass" \
+                    and neighbors['east'].tile_type == "water" \
+                    and neighbors['south'].tile_type == "water" \
+                    and neighbors['southeast'].tile_type == "water":
+                index = (14,2)
+            elif self.tile_type == "grass" \
+                    and neighbors['east'].tile_type == "water" \
+                    and neighbors['south'].tile_type == "grass" \
+                    and neighbors['southeast'].tile_type == "grass":
+                index = (14,3)
+            elif self.tile_type == "grass" \
+                    and neighbors['east'].tile_type == "grass" \
+                    and neighbors['south'].tile_type == "water" \
+                    and neighbors['southeast'].tile_type == "water":
+                index = (14,1)
+            elif self.tile_type == "grass" \
+                    and neighbors['east'].tile_type == "water" \
+                    and neighbors['south'].tile_type == "grass" \
+                    and neighbors['southeast'].tile_type == "water":
+                index = (13,2)
+            elif self.tile_type == "grass" \
+                    and neighbors['east'].tile_type == "water" \
+                    and neighbors['south'].tile_type == "water" \
+                    and neighbors['southeast'].tile_type == "grass":
+                index = (15,12)
+            elif self.tile_type == "water" \
+                    and neighbors['east'].tile_type == "water" \
+                    and neighbors['south'].tile_type == "water" \
+                    and neighbors['southeast'].tile_type == "water":
+                index = (13,12)
+            elif self.tile_type == "water" \
+                    and neighbors['east'].tile_type == "water" \
+                    and neighbors['south'].tile_type == "water" \
+                    and neighbors['southeast'].tile_type == "grass":
+                index = (12,0)
+            elif self.tile_type == "water" \
+                    and neighbors['east'].tile_type == "water" \
+                    and neighbors['south'].tile_type == "grass" \
+                    and neighbors['southeast'].tile_type == "water":
+                index = (12,2)
+            elif self.tile_type == "water" \
+                    and neighbors['east'].tile_type == "grass" \
+                    and neighbors['south'].tile_type == "grass" \
+                    and neighbors['southeast'].tile_type == "grass":
+                index = (14,4)
+            elif self.tile_type == "water" \
+                    and neighbors['east'].tile_type == "grass" \
+                    and neighbors['south'].tile_type == "water" \
+                    and neighbors['southeast'].tile_type == "water":
+                index = (14,0)
+            elif self.tile_type == "water" \
+                    and neighbors['east'].tile_type == "water" \
+                    and neighbors['south'].tile_type == "grass" \
+                    and neighbors['southeast'].tile_type == "grass":
+                index = (12,1)
+            elif self.tile_type == "water" \
+                    and neighbors['east'].tile_type == "grass" \
+                    and neighbors['south'].tile_type == "water" \
+                    and neighbors['southeast'].tile_type == "grass":
+                index = (13,0)
+            elif self.tile_type == "water" \
+                    and neighbors['east'].tile_type == "grass" \
+                    and neighbors['south'].tile_type == "grass" \
+                    and neighbors['southeast'].tile_type == "water":
+                index = (15,11)
+            else:
+                index = (2,12)
         else:
             index = (2,12)
 
@@ -64,20 +154,21 @@ class Tile(ABC):
                 resize=(TILE_SIZE, TILE_SIZE)
         )
 
-        # TILE_NOISE_FACTOR = .005
-        # darkness = 215 + (30 * opensimplex.noise2(self.x*TILE_NOISE_FACTOR, self.y*TILE_NOISE_FACTOR))
-        # # Create a semi-transparent black surface with the same size as the image
-        # dark_surface = pg.Surface(image.get_size(), pg.SRCALPHA)
-        # dark_surface.fill((darkness,darkness,darkness+10, 200))  # Fill with semi-transparent black
+        TILE_NOISE_FACTOR = .005
+        darkness = 215 + (30 * opensimplex.noise2(self.x*TILE_NOISE_FACTOR, self.y*TILE_NOISE_FACTOR))
+        # Create a semi-transparent black surface with the same size as the image
+        dark_surface = pg.Surface(image.get_size(), pg.SRCALPHA)
+        dark_surface.fill((darkness,darkness,darkness+10, 200))  # Fill with semi-transparent black
 
-        # # Blend the original image with the dark surface
-        # darkened_image = pg.Surface(image.get_size(), pg.SRCALPHA)
-        # darkened_image.blit(image, (0, 0))  # Blit the original image onto the darkened surface
-        # darkened_image.blit(dark_surface, (0, 0), special_flags=pg.BLEND_MULT)  # Multiply blend the dark surface
+        # Blend the original image with the dark surface
+        darkened_image = pg.Surface(image.get_size(), pg.SRCALPHA)
+        darkened_image.blit(image, (0, 0))  # Blit the original image onto the darkened surface
+        darkened_image.blit(dark_surface, (0, 0), special_flags=pg.BLEND_MULT)  # Multiply blend the dark surface
 
-        # return darkened_image
-        return image
-
+        # set image textures and load object sprites 
+        self.image = darkened_image
+        self.load_decor()
+    
     def can_spawn(self, spawn_attempts=3, max_offset=TILE_SIZE//3, buffer=2*TILE_SIZE//3):
         """
         Attempt to find a pos to spawn an object.
@@ -212,7 +303,7 @@ class Tile(ABC):
         """
         # Calculate the row and col offsets based on the direction
         d_values = {
-            "north":vec(-1,0),
+            "north":vec(-1, 0),
             'south':vec(1, 0),
             'east':vec(0, 1),
             'west':vec(0, -1)
@@ -223,12 +314,12 @@ class Tile(ABC):
         d_values['southwest'] = d_values['south'] + d_values['west']
 
         output = {}
-        if direction == None:
-            for direction, d_vec in d_values.items():
-               output[direction] = self.__get_neighbor(d_vec.x, d_vec.y)
-            return output
-        else:
+        if direction:
             return self.__get_neighbor(d_values[direction].x, d_values[direction].y)
+        else:
+            for direction, d_vec in d_values.items():
+                output[direction] = self.__get_neighbor(d_vec.x, d_vec.y)
+            return output
 
     def __get_neighbor(self, d_row, d_col):
         """
@@ -240,17 +331,32 @@ class Tile(ABC):
         # If neighbor is within the same chunk
         if 0 <= neighbor_row < CHUNK_SIZE and 0 <= neighbor_col < CHUNK_SIZE:
             return self.chunk.get_tile(neighbor_row, neighbor_col)
+        
+        # If neighbor is in an adjacent chunk, calculate the correct chunk and position
         else:
-            # Neighbor is in an adjacent chunk, calculate the correct chunk and position
-            new_chunk_x = self.chunk.rect.x + (d_col * CHUNK_SIZE * TILE_SIZE)
-            new_chunk_y = self.chunk.rect.y + (d_row * CHUNK_SIZE * TILE_SIZE)
-            
-            # Get the new chunk id
-            chunk_id = self.game.map.get_chunk_id(new_chunk_x, new_chunk_y)
+            d_chunk = vec(0,0)
+
+            # chunk to left
+            if self.x < self.chunk.rect.left:
+                d_chunk += vec(-1,0)
+            # chunk to right
+            if self.x > self.chunk.rect.right:
+                d_chunk += vec(1,0)
+            # chunk above
+            if self.y < self.chunk.rect.top:
+                d_chunk += vec(0,-1)
+            # chunk below
+            if self.y > self.chunk.rect.bottom:
+                d_chunk += vec(0,1)
+
+            # calculate the id of the neighboring chunk
+            neighbor_chunk_x = int(self.chunk.rect.x + (d_chunk.x * CHUNK_SIZE * TILE_SIZE))
+            neighbor_chunk_y = int(self.chunk.rect.y + (d_chunk.y * CHUNK_SIZE * TILE_SIZE))
+            neighbor_chunk_id = f"{neighbor_chunk_x},{neighbor_chunk_y}"
             
             # If the new chunk is loaded
-            if chunk_id in self.game.map.chunks:
-                neighbor_chunk = self.game.map.chunks[chunk_id]
+            if neighbor_chunk_id in self.game.map.chunks:
+                neighbor_chunk = self.game.map.chunks[neighbor_chunk_id]
 
                 # Calculate the row/col within the new chunk (wrap around)
                 neighbor_row = neighbor_row % CHUNK_SIZE
@@ -258,13 +364,13 @@ class Tile(ABC):
 
                 # Find the tile in the new chunk
                 return neighbor_chunk.get_tile(neighbor_row, neighbor_col)
-
-        return None
+            else:
+                return None
 
     def draw(self, screen, camera):
-        # draw self.image for base layer
-        # if layer == BASE_LAYER:
-        screen.blit(self.image, camera.apply(self.rect))
+        screen.blit(self.image, camera.apply(self.draw_rect))
+        pg.draw.rect(screen, BLUE, camera.apply(self.rect), width=1)
+        pg.draw.rect(screen, RED, camera.apply(self.draw_rect), width=1)
 
         # # for other layers, draw all objects in that layer
         # for obj in self.objects:
@@ -293,6 +399,8 @@ class ForestTile(Tile):
     def __init__(self, game, chunk, row, col, load_decor=True, is_explored=False):
         self.tree_density = 0.8
         self.rock_density = 0.07
+        self.tile_type = "grass"
+        self.biome = "forest"
         self.tree_type = ForestTree
         self.decor_weights = {
             "butterfly" : 2,
@@ -313,6 +421,8 @@ class IceForestTile(Tile):
     def __init__(self, game, chunk, row, col, load_decor=True, is_explored=False):
         self.tree_density = 0.25
         self.rock_density = 0.15
+        self.tile_type = "grass"
+        self.biome = "ice"
         self.tree_type = IceTree
         self.decor_weights = {
             "pebble":10,
@@ -337,6 +447,8 @@ class AutumnForestTile(Tile):
     def __init__(self, game, chunk, row, col, load_decor=True, is_explored=False):
         self.tree_density = 0.75
         self.rock_density = 0.05
+        self.tile_type = "grass"
+        self.biome = "autumn"
         self.tree_type = AutumnTree
         self.decor_weights = {
             "pebble":2,
@@ -351,12 +463,13 @@ class AutumnForestTile(Tile):
 
     def get_spritesheet_path(self) -> str:
         return "assets/textures/tiles.png"
-    
  
 class MangroveForestTile(Tile):
     def __init__(self, game, chunk, row, col, load_decor=True, is_explored=False):
         self.tree_density = 0.8
         self.rock_density = 0.05
+        self.tile_type = "grass"
+        self.biome = "mangrove"
         self.tree_type = MangroveTree
         self.decor_weights = {}
 
@@ -374,18 +487,16 @@ class MangroveForestTile(Tile):
 class WaterTile(Tile):
     def __init__(self, game, chunk, row, col, load_decor=True, is_explored=False):
         self.decor_weights = {}
+        self.biome = "water"
+        self.tile_type = "water"
         super().__init__(game, chunk, row, col, load_decor, is_explored)
 
         self.color = (54,140,249)
 
     # unused
     def get_spritesheet_path(self) -> str:
-        return ""
-
-    def load_texture(self):
-        return self.game.sprites.load("assets/textures/water.png", resize=(TILE_SIZE, TILE_SIZE))
+        return "assets/textures/tiles.png"
             
-
     def load_decor(self):
         # dont load decor on water tiles
         pass
