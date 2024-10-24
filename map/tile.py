@@ -16,15 +16,27 @@ from objects.player.player import Player
 from objects.npcs.butterfly import Butterfly
 from objects.npcs.grasshopper import Grasshopper
 from objects.npcs.ladybug import Ladybug
+from utility import combine_images
+
+texture_positions = {
+    "grass":(0,0),
+    "sand":(0,1),
+    "clay":(0,2),
+    "water":(0,3),
+    "snow":(0,4)
+}
 
 class Tile(ABC):
-    def __init__(self, game, chunk, row, col, load_decor=False, is_explored=False):
+    def __init__(self, game, chunk, row, col, load_decor=False, is_explored=False, tile_type="grass", texture={}):
         self.game = game
         self.chunk = chunk
         self.objects = []
         self.decor = []
 
-        self.is_road = False
+        # texture variables        
+        self.tile_type = tile_type
+        self.texture = texture # will be set to a spritesheet tuple once neighbors are loaded
+        self.image = None
 
         # row & col position within chunk        
         self.row = row
@@ -33,72 +45,79 @@ class Tile(ABC):
         # store the y coordinate for layer ordering during rendering
         self.x = chunk.rect.topleft[0] + (col * TILE_SIZE)
         self.y = chunk.rect.topleft[1] + (row * TILE_SIZE)
+        self.rect = pg.Rect(
+            self.x,
+            self.y,
+            TILE_SIZE,
+            TILE_SIZE
+        )
 
         # minimap variables
         self.color = BLACK
         self.is_explored = is_explored # sets to true once the tile is drawn on scren
-        
-        # set image textures and load object sprites
-        self.image = self.load_texture()
-        self.rect = self.image.get_rect()
-        self.rect.topleft = vec(self.x,self.y)  
+
+        # the draw rect will be offset by half a tile to the bottom right (bottomright)
+        self.draw_rect = pg.Rect(
+            self.x + TILE_SIZE//2,
+            self.y  + TILE_SIZE//2,
+            TILE_SIZE,
+            TILE_SIZE
+        )
         if load_decor:
             self.load_decor()
+
+        # load water
+        if self.tile_type == "water":
+            water = SpriteObject(
+                game=self.game,
+                x=self.x,
+                y=self.y,
+                tile=self,
+                image=self.game.sprites.load("assets/textures/transparent.png"),
+                layer=BASE_LAYER,
+            )
+            self.game.can_collide_list.add(water)
+            self.objects.append(water)
 
     @abstractmethod
     def get_spritesheet_path(self) -> str:
         pass
 
-    def load_texture(self):
-        # set specific textures for Camp in the spawn chunk
-        if self.chunk.id == "0,0":
-            if CHUNK_SIZE//2 - 1 == self.row and CHUNK_SIZE//2 - 1 == self.col:
-                row_index, col_index = (0,5) # top left
-            elif CHUNK_SIZE//2 - 1 == self.row and CHUNK_SIZE//2 == self.col:
-                row_index, col_index = (0,6) # top
-            elif CHUNK_SIZE//2 - 1 == self.row and CHUNK_SIZE//2 + 1== self.col:
-                row_index, col_index = (0,7) # top right
-            elif CHUNK_SIZE//2 == self.row and CHUNK_SIZE//2 - 1 == self.col:
-                row_index, col_index = (1,5) # left
-            elif CHUNK_SIZE//2 == self.row and CHUNK_SIZE//2 == self.col:
-                row_index, col_index = (2,2) # center
-            elif CHUNK_SIZE//2 == self.row and CHUNK_SIZE//2 + 1== self.col:
-                row_index, col_index = (1,7) # right
-            elif CHUNK_SIZE//2 + 1 == self.row and CHUNK_SIZE//2 - 1 == self.col:
-                row_index, col_index = (2,5) # bot left
-            elif CHUNK_SIZE//2 + 1 == self.row and CHUNK_SIZE//2 == self.col:
-                row_index, col_index = (2,6) # bot
-            elif CHUNK_SIZE//2 + 1 == self.row and CHUNK_SIZE//2 + 1== self.col:
-                row_index, col_index = (2,7) # bot right
-            else:
-                row_index, col_index = (4,5) # grass
-        else:
-            row_index, col_index = (4,5) # grass
+    def set_tile_type(self, tile_type):
+        self.tile_type = tile_type
+        self.update_texture()
+        for neighbor in [self.get_neighbors("top"), self.get_neighbors("left"), self.get_neighbors("topleft")]:
+            if neighbor:
+                neighbor.update_texture()
 
-        image = pg.transform.scale(
-            self.game.sprites.load_from_tilesheet(
-                path=self.get_spritesheet_path(),
-                row_index=row_index,
-                col_index=col_index,
-                tile_size=32
-            )
-            ,(TILE_SIZE, TILE_SIZE)
-        )
-        # return image
+    def update_texture(self):
+        neighbors = {
+            direction:self.get_neighbors(direction=direction) 
+            for direction in ['right','bottom','bottomright']
+        }
+        # ensure all neighbors are loaded before attempting to set texture
+        if None in neighbors.values():
+            return None
 
+        n = [self.tile_type, neighbors['right'].tile_type, neighbors['bottom'].tile_type, neighbors['bottomright'].tile_type]
+        self.texture = get_texture_from_neighbors(n)
+        self.image = get_image_from_texture(self.texture, self.game.sprites, "assets/textures/tile2.png")
+    
+    def modify_image(self):
         TILE_NOISE_FACTOR = .005
         darkness = 215 + (30 * opensimplex.noise2(self.x*TILE_NOISE_FACTOR, self.y*TILE_NOISE_FACTOR))
         # Create a semi-transparent black surface with the same size as the image
-        dark_surface = pg.Surface(image.get_size(), pg.SRCALPHA)
+        dark_surface = pg.Surface(self.image.get_size(), pg.SRCALPHA)
         dark_surface.fill((darkness,darkness,darkness+10, 200))  # Fill with semi-transparent black
 
         # Blend the original image with the dark surface
-        darkened_image = pg.Surface(image.get_size(), pg.SRCALPHA)
-        darkened_image.blit(image, (0, 0))  # Blit the original image onto the darkened surface
+        darkened_image = pg.Surface(self.image.get_size(), pg.SRCALPHA)
+        darkened_image.blit(self.image, (0, 0))  # Blit the original image onto the darkened surface
         darkened_image.blit(dark_surface, (0, 0), special_flags=pg.BLEND_MULT)  # Multiply blend the dark surface
 
-        return darkened_image
-
+        # set image textures and load object sprites 
+        self.image = darkened_image
+    
     def can_spawn(self, spawn_attempts=3, max_offset=TILE_SIZE//3, buffer=2*TILE_SIZE//3):
         """
         Attempt to find a pos to spawn an object.
@@ -107,8 +126,13 @@ class Tile(ABC):
         max_offset - how far from the tile topleft to search
         buffer - how far from other collidable objects to allow
         """
-        neighbors = self.get_neighbors()
-        neighbor_objs = [obj for n_tile in neighbors for obj in n_tile.objects]
+        neighbors = self.get_neighbors() # a dictionary of "direction":Tile
+        neighbor_objs = [
+            obj 
+            for direction, tile in neighbors.items() 
+            if hasattr(tile, 'objects') 
+            for obj in tile.objects
+        ]
         for i in range(spawn_attempts):
             try_pos = vec(
                 self.rect.topleft[0] + random.randrange(0,max_offset), 
@@ -215,123 +239,92 @@ class Tile(ABC):
                 image = self.game.sprites.load(random.choice(glob(f"assets/decor/{item_type}/*.png"))),
         ))
 
-    def get_neighbors(self):
+    def get_neighbors(self, direction=None):
         """
-        Get the 8 adjacent tiles to this 
-        """
-        neighbors = []
-
-        # find neighboring tiles by coordinate offsets
-        offsets = [(drow, dcol) for drow in [-1, 0, 1] for dcol in [-1, 0, 1] if (drow,dcol)!=(0,0)]
-
-        # if we need to access any chunks besides the current one, store them in a dict by id for quick re-access
-        current_chunk = self.chunk
-        neighboring_chunks = {} 
-
-        for offset in offsets:
-            drow, dcol = offset
-            row = self.row + drow
-            col = self.col + dcol
-
-            # if neighbor is in the same chunk, we can use row and col indexes to find it
-            if row > 0 and row < CHUNK_SIZE and col > 0 and col < CHUNK_SIZE:
-                for tile in current_chunk.tiles:
-                    if tile.row == row and tile.col == col:
-                        neighbors.append(tile)
-            # if the neighbor would be in another chunk, attempt to load it from that chunk (if that chunk exists)
-            else:
-                row %= CHUNK_SIZE
-                col %= CHUNK_SIZE
-
-                # find the neighbor-chunk
-                chunk_id = self.game.map.get_chunk_id(
-                    self.rect.topleft[0] + dcol*TILE_SIZE, 
-                    self.rect.topleft[1] + drow*TILE_SIZE
-                )
-                if chunk_id in self.game.map.chunks:
-                    # attempt to load referece from dictionary for subsequent uses
-                    if chunk_id in neighboring_chunks:
-                        chunk = neighboring_chunks[chunk_id]
-                    # save reference to the dictionary if first time seeing this neighbor-chunk
-                    else:
-                        chunk = self.game.map.chunks[chunk_id]
-                        neighboring_chunks[chunk_id] = chunk
-                
-                    # find the tile by row/col index within the neighbor-chunk
-                    for tile in chunk.tiles:
-                        if tile.row == row and tile.col == col:
-                            neighbors.append(tile)
-                else:
-                    # if the chunk is not loaded, don't try to load its neighbor tiles
-                    pass
-
-        return neighbors
-
-    def get_neighbor(self, direction):
-        """
-        Get the neighbor of this tile in the specified direction.
+        Get the neighbor(s) of the current tile, indexed by direction.
+        If no direction is passed, all 8 neighboring tiles will be returned.
         
         Args:
-            direction (str): The direction of the neighbor ('north', 'south', 'east', or 'west').
+            direction (str): The direction of the neighbor (e.g. 'left', or 'bottomright').
         
         Returns:
-            Tile or None: The neighbor tile if it exists, otherwise None.
+            dict: A dictionary of with direction as the key and a tile object as the value.
         """
-        # Calculate the row and col offsets based on the direction
-        if direction == 'north':
-            d_row, d_col = -1, 0
-        elif direction == 'south':
-            d_row, d_col = 1, 0
-        elif direction == 'east':
-            d_row, d_col = 0, 1
-        elif direction == 'west':
-            d_row, d_col = 0, -1
+        # Calculate the x and y offsets based on the direction
+        d_values = {
+            "top":vec(0, -1),
+            'bottom':vec(0, 1),
+            'right':vec(1, 0),
+            'left':vec(-1, 0)
+        }
+        d_values['topright'] = d_values['top'] + d_values['right']
+        d_values['topleft'] = d_values['top'] + d_values['left']
+        d_values['bottomright'] = d_values['bottom'] + d_values['right']
+        d_values['bottomleft'] = d_values['bottom'] + d_values['left']
+
+        output = {}
+        if direction:
+            return self.__get_neighbor(int(d_values[direction].x), int(d_values[direction].y))
         else:
-            raise ValueError("Invalid direction. Please use 'north', 'south', 'east', or 'west'.")
+            for direction, d_vec in d_values.items():
+                output[direction] = self.__get_neighbor(int(d_vec.x), int(d_vec.y))
+            return output
 
-        # Calculate the row and col of the neighbor tile
-        neighbor_row = self.row + d_row
-        neighbor_col = self.col + d_col
-
-        # If the neighbor tile is within the bounds of the chunk
-        if 0 <= neighbor_row < CHUNK_SIZE and 0 <= neighbor_col < CHUNK_SIZE:
-            # Find the neighbor tile in the current chunk
-            for tile in self.chunk.tiles:
-                if tile.row == neighbor_row and tile.col == neighbor_col:
-                    return tile
+    def __get_neighbor(self, dx, dy):
+        """
+        Private utility method called by get_neighbors()
+        """
+        neighbor_x, neighbor_y = self.x + dx * TILE_SIZE, self.y + dy * TILE_SIZE
+        neighbor_chunk_id = self.game.map.get_chunk_id(neighbor_x, neighbor_y)
+        neighbor_col, neighbor_row = (
+            int((neighbor_x % (CHUNK_SIZE*TILE_SIZE)) // TILE_SIZE), 
+            int((neighbor_y % (CHUNK_SIZE*TILE_SIZE)) // TILE_SIZE)
+        )
+        
+        # if neighbor is in same chunk as currentt
+        if neighbor_chunk_id == self.chunk.id:
+            return self.chunk.get_tile(neighbor_row, neighbor_col)
+        # if neighbor is in a different chunk, and that chunk is loaded
+        elif neighbor_chunk_id in self.game.map.chunks:
+            return self.game.map.chunks[neighbor_chunk_id].get_tile(neighbor_row, neighbor_col)
+        # if neighbor is in a chunk that doesn't exist in memory
         else:
-            # If the neighbor tile is outside the current chunk, attempt to load it from another chunk
-            neighbor_row %= CHUNK_SIZE
-            neighbor_col %= CHUNK_SIZE
-
-            # Calculate the position of the neighbor tile in the game world
-            neighbor_x = self.rect.topleft[0] + d_col * TILE_SIZE
-            neighbor_y = self.rect.topleft[1] + d_row * TILE_SIZE
-            
-            # Get the chunk ID corresponding to the position
-            chunk_id = self.game.map.get_chunk_id(neighbor_x, neighbor_y)
-
-            # If the chunk is loaded
-            if chunk_id in self.game.map.chunks:
-                # Get the chunk
-                chunk = self.game.map.chunks[chunk_id]
-
-                # Find the neighbor tile in the chunk
-                for tile in chunk.tiles:
-                    if tile.row == neighbor_row and tile.col == neighbor_col:
-                        return tile
-
-        return None  # If the neighbor tile is not found, return None
+            return None
 
     def draw(self, screen, camera):
-        # draw self.image for base layer
-        # if layer == BASE_LAYER:
-        screen.blit(self.image, camera.apply(self.rect))
-
-        # # for other layers, draw all objects in that layer
-        # for obj in self.objects:
-        #     if obj.alive() and obj.render_layer == layer:
-        #         obj.draw(screen, camera)
+        if self.image:
+            screen.blit(self.image, camera.apply(self.draw_rect))
+        
+            if DRAW_GRID:
+                pg.draw.rect(
+                    screen, 
+                    BLUE if self.tile_type == "water" \
+                        else GREEN if self.tile_type=="grass" \
+                        else YELLOW if self.tile_type=="sand" \
+                        else RED if self.tile_type == "clay"\
+                        else LIGHT_GREY if self.tile_type == "snow"
+                        else BLACK, 
+                    camera.apply(self.rect), width=1
+                )
+            if DRAW_GRID:
+                pg.draw.rect(
+                    screen, 
+                    RED if self.chunk.id == "0,0" and self.col == CHUNK_SIZE//2 and self.row == CHUNK_SIZE//2 \
+                        else BLUE if self.tile_type == "water" \
+                        else GREEN if self.tile_type=="grass" \
+                        else YELLOW if self.tile_type=="sand" \
+                        else RED if self.tile_type == "clay"\
+                        else LIGHT_GREY if self.tile_type == "snow"
+                        else BLACK, 
+                    camera.apply(self.rect), width=1
+                )
+        else:
+            self.update_texture()
+            # if image isn't set, try once more to update the texture
+            if self.image:
+                self.draw(screen, camera)
+            else:
+                print("NO IMAGE")
 
     def unload(self):
         for object in self.objects:
@@ -348,11 +341,13 @@ class Tile(ABC):
             "type":type(self).__name__,
             "position":[self.row, self.col],
             "objects":[obj.to_json() for obj in self.objects],
-            "is_explored":self.is_explored
+            "is_explored":self.is_explored,
+            "texture":self.texture,
+            "tile_type":self.tile_type
         }
 
 class ForestTile(Tile):
-    def __init__(self, game, chunk, row, col, load_decor=True, is_explored=False):
+    def __init__(self, game, chunk, row, col, load_decor=True, is_explored=False, tile_type="grass", texture={}):
         self.tree_density = 0.8
         self.rock_density = 0.07
         self.tree_type = ForestTree
@@ -360,19 +355,18 @@ class ForestTile(Tile):
             "butterfly" : 2,
             "flower"    : 3,
             "grass"     : 30,
-            "patch"     : 20,
             "pebble"    : 5,
         }
 
-        super().__init__(game, chunk, row, col, load_decor, is_explored)
+        super().__init__(game, chunk, row, col, load_decor, is_explored, tile_type, texture)
 
         self.color = (119,177,82)
 
     def get_spritesheet_path(self) -> str:
-        return "assets/textures/forest_tileset.png"
+        return "assets/textures/tile2.png"
 
 class IceForestTile(Tile):
-    def __init__(self, game, chunk, row, col, load_decor=True, is_explored=False):
+    def __init__(self, game, chunk, row, col, load_decor=True, is_explored=False, tile_type="snow", texture={}):
         self.tree_density = 0.25
         self.rock_density = 0.15
         self.tree_type = IceTree
@@ -383,12 +377,15 @@ class IceForestTile(Tile):
             # "rock":5
         }
 
-        super().__init__(game, chunk, row, col, load_decor, is_explored)
+        super().__init__(game, chunk, row, col, load_decor, is_explored, tile_type, texture)
 
         self.color = (237,237,237)
+    
+    # def modify_image(self):
+    #     pass
 
     def get_spritesheet_path(self) -> str:
-        return "assets/textures/ice_forest_tileset.png"
+        return "assets/textures/tile2.png"
     
     def load_decor(self):
         # load decor only a percentage of the time
@@ -396,7 +393,7 @@ class IceForestTile(Tile):
             super().load_decor()
     
 class AutumnForestTile(Tile):
-    def __init__(self, game, chunk, row, col, load_decor=True, is_explored=False):
+    def __init__(self, game, chunk, row, col, load_decor=True, is_explored=False, tile_type="grass", texture={}):
         self.tree_density = 0.75
         self.rock_density = 0.05
         self.tree_type = AutumnTree
@@ -407,49 +404,43 @@ class AutumnForestTile(Tile):
             "butterfly":5
         }
 
-        super().__init__(game, chunk, row, col, load_decor, is_explored)
+        super().__init__(game, chunk, row, col, load_decor, is_explored, tile_type, texture)
 
         self.color = (136,177,79)
 
     def get_spritesheet_path(self) -> str:
-        return "assets/textures/autumn_forest_tileset.png"
-    
+        return "assets/textures/tile2.png"
  
 class MangroveForestTile(Tile):
-    def __init__(self, game, chunk, row, col, load_decor=True, is_explored=False):
+    def __init__(self, game, chunk, row, col, load_decor=True, is_explored=False, tile_type="grass", texture={}):
         self.tree_density = 0.8
         self.rock_density = 0.05
         self.tree_type = MangroveTree
         self.decor_weights = {}
 
-        super().__init__(game, chunk, row, col, load_decor, is_explored)
+        super().__init__(game, chunk, row, col, load_decor, is_explored, tile_type, texture)
 
         self.color = (100,153,61)
 
     def get_spritesheet_path(self) -> str:
-        return "assets/textures/mangrove_forest_tileset.png"
+        return "assets/textures/tile2.png"
     
     def load_decor(self):
         # don't load decor on mangrove forest tiles
         pass
 
 class WaterTile(Tile):
-    def __init__(self, game, chunk, row, col, load_decor=True, is_explored=False):
+    def __init__(self, game, chunk, row, col, load_decor=True, is_explored=False, tile_type="water", texture={}):
         self.decor_weights = {}
-        super().__init__(game, chunk, row, col, load_decor, is_explored)
+        super().__init__(game, chunk, row, col, load_decor, is_explored, tile_type, texture)
+        self.tile_type = "water"
 
         self.color = (54,140,249)
 
     # unused
     def get_spritesheet_path(self) -> str:
-        return ""
-
-    def load_texture(self):
-        return pg.transform.scale(
-            self.game.sprites.load("assets/textures/water.png"),
-            (TILE_SIZE, TILE_SIZE)
-        )
-
+        return "assets/textures/tile2.png"
+            
     def load_decor(self):
         # dont load decor on water tiles
         pass
@@ -466,3 +457,189 @@ class WaterTile(Tile):
         )
         self.game.can_collide_list.add(water)
         self.objects.append(water)
+
+
+# UTILITY METHODS:
+def get_texture_from_neighbors(n):
+    texture = {}
+
+    # configurations for all-one-texture
+    if len(set(n)) == 1:
+        texture['base'] = texture_positions[n[0]]
+
+    elif set(n) == set(["grass","water"]):
+        # 14 possible grass/water configurations of the 4 neighboring tiles of the draw_rect
+        if n == ['grass', 'grass', 'grass', 'water']:
+            texture['base'] = (5, 3)
+        elif n == ['grass', 'grass', 'water', 'grass']:
+            texture['base'] = (5, 4)
+        elif n == ['grass', 'water', 'water', 'water']:
+            texture['base'] = (6, 2)
+        elif n == ['grass', 'water', 'grass', 'grass']:
+            texture['base'] = (6, 3)
+        elif n == ['grass', 'grass', 'water', 'water']:
+            texture['base'] = (6, 1)
+        elif n == ['grass', 'water', 'grass', 'water']:
+            texture['base'] = (5, 2)
+        elif n == ['grass', 'water', 'water', 'grass']:
+            texture['base'] = (4, 4)
+        elif n == ['water', 'water', 'water', 'grass']:
+            texture['base'] = (4, 0)
+        elif n == ['water', 'water', 'grass', 'water']:
+            texture['base'] = (4, 2)
+        elif n == ['water', 'grass', 'grass', 'grass']:
+            texture['base'] = (6, 4)
+        elif n == ['water', 'grass', 'water', 'water']:
+            texture['base'] = (6, 0)
+        elif n == ['water', 'water', 'grass', 'grass']:
+            texture['base'] = (4, 1)
+        elif n == ['water', 'grass', 'water', 'grass']:
+            texture['base'] = (5, 0)
+        elif n == ['water', 'grass', 'grass', 'water']:
+            texture['base'] = (4, 3)
+
+    elif len(set(n)) > 1:   
+        # extract only the base textures
+        base_textures = [None if tex in["grass","snow"] else tex for tex in n]
+
+        texture['base_corners'] = []
+        for i, corner in enumerate(base_textures):
+            if corner != None:
+                sheet_pos = texture_positions[corner]
+                texture['base_corners'].append(sheet_pos)
+            else:
+                texture['base_corners'].append(None)
+
+        # apply grass textures in a layer over base and snow tiles
+        if "grass" in n:
+            n_grass = ["top" if t in ["grass","snow"] else "bottom" for t in n]
+            if n_grass == ['top', 'top', 'top', 'top']:
+                texture['grass'] = (2, 1)
+            elif n_grass == ['top', 'top', 'top', 'bottom']:
+                texture['grass'] = (2, 3)
+            elif n_grass == ['top', 'top', 'bottom', 'top']:
+                texture['grass'] = (2, 4)
+            elif n_grass == ['top', 'bottom', 'bottom', 'bottom']:
+                texture['grass'] = (3, 2)
+            elif n_grass == ['top', 'bottom', 'top', 'top']:
+                texture['grass'] = (3, 3)
+            elif n_grass == ['top', 'top', 'bottom', 'bottom']:
+                texture['grass'] = (3, 1)
+            elif n_grass == ['top', 'bottom', 'top', 'bottom']:
+                texture['grass'] = (2, 2)
+            elif n_grass == ['top', 'bottom', 'bottom', 'top']:
+                texture['grass'] = (1, 4)
+            elif n_grass == ['bottom', 'bottom', 'bottom', 'top']:
+                texture['grass'] = (1, 0)
+            elif n_grass == ['bottom', 'bottom', 'top', 'bottom']:
+                texture['grass'] = (1, 2)
+            elif n_grass == ['bottom', 'top', 'top', 'top']:
+                texture['grass'] = (3, 4)
+            elif n_grass == ['bottom', 'top', 'bottom', 'bottom']:
+                texture['grass'] = (3, 0)
+            elif n_grass == ['bottom', 'bottom', 'top', 'top']:
+                texture['grass'] = (1, 1)
+            elif n_grass == ['bottom', 'top', 'bottom', 'top']:
+                texture['grass'] = (2, 0)
+            elif n_grass == ['bottom', 'top', 'top', 'bottom']:
+                texture['grass'] = (1, 3)
+
+        # apply snow textures in a layer over base and grass tiles
+        if "snow" in n:
+            n_snow = ["top" if t in ["snow"] else "bottom" for t in n]
+            if n_snow == ['top', 'top', 'top', 'top']:
+                texture['snow'] = (8, 1)
+            elif n_snow == ['top', 'top', 'top', 'bottom']:
+                texture['snow'] = (8, 3)
+            elif n_snow == ['top', 'top', 'bottom', 'top']:
+                texture['snow'] = (8, 4)
+            elif n_snow == ['top', 'bottom', 'bottom', 'bottom']:
+                texture['snow'] = (9, 2)
+            elif n_snow == ['top', 'bottom', 'top', 'top']:
+                texture['snow'] = (9, 3)
+            elif n_snow == ['top', 'top', 'bottom', 'bottom']:
+                texture['snow'] = (9, 1)
+            elif n_snow == ['top', 'bottom', 'top', 'bottom']:
+                texture['snow'] = (8, 2)
+            elif n_snow == ['top', 'bottom', 'bottom', 'top']:
+                texture['snow'] = (7, 4)
+            elif n_snow == ['bottom', 'bottom', 'bottom', 'top']:
+                texture['snow'] = (7, 0)
+            elif n_snow == ['bottom', 'bottom', 'top', 'bottom']:
+                texture['snow'] = (7, 2)
+            elif n_snow == ['bottom', 'top', 'top', 'top']:
+                texture['snow'] = (9, 4)
+            elif n_snow == ['bottom', 'top', 'bottom', 'bottom']:
+                texture['snow'] = (9, 0)
+            elif n_snow == ['bottom', 'bottom', 'top', 'top']:
+                texture['snow'] = (7, 1)
+            elif n_snow == ['bottom', 'top', 'bottom', 'top']:
+                texture['snow'] = (8, 0)
+            elif n_snow == ['bottom', 'top', 'top', 'bottom']:
+                texture['snow'] = (7, 3)
+
+    return texture
+
+def get_image_from_texture(texture, sprite_manager, spritesheet:str):
+    image = pg.Surface((TILE_SIZE, TILE_SIZE), pg.SRCALPHA)
+
+    # set the base image
+    if "base" in texture:
+
+        # set single-texture and water/grass base images
+        img = sprite_manager.load_from_tilesheet(
+            path=spritesheet,
+            row_index=texture['base'][0],
+            col_index=texture['base'][1],
+            tile_size=16,
+            resize=(TILE_SIZE, TILE_SIZE)
+        )
+        image.blit(img, (0,0))
+
+    # set multi-texture base images
+    elif "base_corners" in texture:
+        image = pg.Surface((TILE_SIZE, TILE_SIZE), pg.SRCALPHA)
+        blit_positions = { # where to blit each corner
+            0:(0,0),
+            1:(TILE_SIZE//2, 0),
+            2:(0, TILE_SIZE//2),
+            3:(TILE_SIZE//2, TILE_SIZE//2)
+        }
+        for i, tex in enumerate(texture['base_corners']):
+            if tex is not None:
+                image.blit(
+                    sprite_manager.load_from_tilesheet(
+                        spritesheet,
+                        row_index=tex[0],
+                        col_index=tex[1],
+                        tile_size=16,
+                        resize=(TILE_SIZE//2, TILE_SIZE//2)
+                    ),
+                    blit_positions[i]
+                )
+
+    # blit the grass layer, if applicable
+    if "grass" in texture:
+        image.blit(
+            sprite_manager.load_from_tilesheet(
+                spritesheet,
+                row_index=texture['grass'][0],
+                col_index=texture['grass'][1],
+                tile_size=16,
+                resize=(TILE_SIZE, TILE_SIZE)
+            ),
+            (0,0)
+        )
+    # blit the snow layer, if applicable
+    if "snow" in texture:
+        image.blit(
+            sprite_manager.load_from_tilesheet(
+                spritesheet,
+                row_index=texture['snow'][0],
+                col_index=texture['snow'][1],
+                tile_size=16,
+                resize=(TILE_SIZE, TILE_SIZE)
+            ),
+            (0,0)
+        )
+    return image

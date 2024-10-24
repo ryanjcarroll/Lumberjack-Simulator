@@ -6,7 +6,7 @@ class HealthBar:
     def __init__(self, game):
         self.game = game
     
-        self.image = pg.transform.scale(self.game.sprites.load("assets/ui/apple.png"), (36,36))
+        self.image = self.game.sprites.load("assets/ui/apple.png", resize=(36,36))
         self.icon_rect = self.image.get_rect()
 
         # x and y are defined as the top left of the icon below the bar

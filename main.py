@@ -35,7 +35,7 @@ class Game:
         pg.display.set_caption(TITLE)
 
         # intitialize the asset managers
-        self.sprites = SpriteAssetManager()  
+        self.sprites = SpriteAssetManager()
         self.sounds = SoundAssetManager()
         self.jsons = JSONFileManager()
 
@@ -112,7 +112,8 @@ class Game:
         else:
             # set game variables
             self.game_id = str(uuid.uuid4())
-            self.seed = random.randint(0,100000)
+            self.seed = 71830 # random.randint(0,100000)
+            print(self.seed)
             opensimplex.seed(self.seed)
 
             loadout = {
@@ -141,7 +142,7 @@ class Game:
         # store data for unloaded chunks as separate entity
         self.map_echo = MapEcho(self)
 
-        # move on from the start menu
+        # move on from the start menu only once a chunk is finished loading
         self.at_start_menu = False
         self.playing = True
 
@@ -196,27 +197,24 @@ class Game:
         """
         self.screen.fill(BG_COLOR)
 
-        # draw tiles if they are visible on screen
-        for chunk_id in self.map.get_visible_chunks():
+        # draw tiles without running into dictionary resize errors due to map.chunks threading
+        for chunk_id in self.map.get_visible_chunks(buffer=TILE_SIZE):
             if chunk_id in self.map.chunks: 
-                for tile in self.map.chunks[chunk_id].tiles:
+                chunk = self.map.chunks[chunk_id]
+                for tile in chunk.get_tiles():
                     if self.camera.is_visible(tile):
                         tile.draw(self.screen, self.camera)
                         if not tile.is_explored:
                             tile.is_explored = True
+                if DRAW_CHUNKS:
+                    pg.draw.rect(self.screen, RED, self.camera.apply(chunk.rect), width=4) # draw chunk boundaries
 
         # draw on-screen objects in layer order, and by ascending Y-coordinate
         for sprite in sorted(
             [sprite for sprite in self.sprite_list if self.camera.is_visible(sprite)]
             ,key = lambda sprite:(sprite.layer, sprite.rect.center[1])
-        ):
+        ): 
             sprite.draw(self.screen, self.camera)
-
-        # pg.draw.rect(self.screen, RED, self.camera.apply(self.camera.rect), width=2)
-        # if "0,-1152" in self.map.chunks:
-        #     for tile in self.map.chunks["0,-1152"].tiles:
-        #         if tile.col == 15:
-        #             pg.draw.rect(self.screen, BLUE, tile.rect, width=2)
 
         # draw menus 
         self.backpack_inventory_menu.draw(self.screen)

@@ -57,14 +57,12 @@ class Bat(SpriteObject):
             for col in range(info['num_frames']):
                 # load the component frame and add to images list
                 self.frames[action].append(
-                    pg.transform.scale(
-                        self.game.sprites.load_from_tilesheet(
+                    self.game.sprites.load_from_tilesheet(
                             path=f"assets/npcs/bat/bat_{self.color}.png",
                             row_index=info['row'],
                             col_index=col,
-                            tile_size=16
-                        ),
-                        (self.width, self.height)
+                            tile_size=16,
+                            resize=(self.width, self.height)
                     )
                 )
 

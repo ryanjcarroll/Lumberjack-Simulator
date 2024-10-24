@@ -1,6 +1,6 @@
 from settings import *
 import threading
-from map.chunk import Chunk, SpawnChunk
+from map.chunk import Chunk
 from pygame import Vector2 as vec
 from glob import glob
 import json
@@ -16,14 +16,14 @@ class Map:
 
     def new(self):
         # generate the starting chunk with the top left corner at (0,0)
-        self.load_chunk(0,0, type=SpawnChunk)
+        self.load_chunk(0,0)
 
     def update(self):
         """
         Check if new chunks need to be generated based on the player's position.
         """
         # Generate new chunks when the player is within 4 tiles of them
-        chunks_to_load = self.get_visible_chunks(buffer=TILE_SIZE*4)
+        chunks_to_load = self.get_visible_chunks(buffer=4*TILE_SIZE)
 
         for chunk_id in chunks_to_load:
             with self.lock:
@@ -53,13 +53,13 @@ class Map:
     def load_chunk(self, x, y, type=Chunk):
         self.currently_loading.add(f"{x},{y}")
         chunk = type(self.game, x, y)
-        with self.lock: # prevent race condition
-            self.chunks[chunk.id] = chunk
-            
+        with self.lock: # prevent race condition            
             # remove from the map echo once loaded
             if self.game.map_echo and chunk.id in self.game.map_echo.chunks:
                 self.game.map_echo.remove_chunk(chunk.id)
 
+            self.chunks[chunk.id] = chunk
+            self.chunks[chunk.id].check_neighboring_edges()
             self.currently_loading.remove(chunk.id)
 
     def get_chunk_id(self, x, y):
@@ -84,8 +84,6 @@ class Map:
         
         buffer: Number of pixels to overestimate with when calculating the visible area.
         """
-
-
         # calculate the coords for opposite corners of the viewport (with an additional preload buffer)
         screen_topleft = self.get_chunk_coords(self.game.player.pos.x - WINDOW_WIDTH//2 - buffer, 
                                             self.game.player.pos.y - WINDOW_HEIGHT//2 - buffer)

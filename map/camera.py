@@ -1,4 +1,5 @@
 import pygame as pg
+from settings import *
 
 class Camera:
     def __init__(self, game, width, height):
@@ -30,14 +31,16 @@ class Camera:
         """
         Update the camera's position to follow the target (player).
         """
-        x = self.game.player.pos.x - int(round(self.width / 2))
-        y = self.game.player.pos.y - int(round(self.height / 2))
-        self.rect.topleft = (x,y)
+        x = (self.game.player.pos.x - int(round(self.width / 2)))
+        y = (self.game.player.pos.y - int(round(self.height / 2)))
+        self.rect.topleft = (x, y)
 
     def is_visible(self, entity):
-        if self.rect.colliderect(entity.rect):
+        if hasattr(entity, "draw_rect") and self.rect.colliderect(entity.draw_rect):
             return True
-        elif hasattr(object, "shadow_rect"):
-            if self.rect.colliderect(object.shadow_rect):
-                return True
-        return False
+        elif hasattr(entity, "shadow_rect") and self.rect.colliderect(entity.shadow_rect):
+            return True
+        elif self.rect.colliderect(entity.rect):
+            return True
+        else:
+            return False

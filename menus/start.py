@@ -13,7 +13,7 @@ class StartMenu:
 
     def build_elements(self):
         # background    
-        self.background_image = pg.transform.scale(self.game.sprites.load("assets/ui/main_menu.png"), (WINDOW_WIDTH, WINDOW_HEIGHT))
+        self.background_image = self.game.sprites.load("assets/ui/main_menu.png", resize=(WINDOW_WIDTH, WINDOW_HEIGHT))
     
         # title
         self.title_text = pg.font.Font(None, 128).render(f"LUMBERJACK", True, BLACK)

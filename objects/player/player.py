@@ -6,7 +6,6 @@ from utility import *
 from objects.inventory import Backpack
 from objects.resources.tree import Tree
 from objects.resources.rock import Rock
-import json
 from objects.sprites import SpriteObject
 from objects.items.items import SkillPoint
 from objects.player.skills import SkillTree
@@ -19,10 +18,8 @@ class Player(SpriteObject):
     def __init__(self, game, x:int, y:int, loadout:dict):
         self.loadout = loadout
 
-        # set Player's home tile at the center of the SpawnChunk
-        for tile in game.map.chunks["0,0"].tiles:
-            if CHUNK_SIZE//2 == tile.row and CHUNK_SIZE//2 + 1== tile.col:
-                break
+        # set Player's home tile at the center of the spawn Chunk    
+        tile = game.map.chunks["0,0"].get_tile(CHUNK_SIZE//2, CHUNK_SIZE//2 + 1)
 
         super().__init__(game, x, y, tile, layer=SPRITE_LAYER, image=None)
 
@@ -55,6 +52,10 @@ class Player(SpriteObject):
             },
             "pick":{
                 "attack_damage":PLAYER_PICK_ATTACK_DAMAGE,
+                "attack_distance":PLAYER_PICK_ATTACK_DISTANCE
+            },
+            "hoe":{
+                "attack_damage":0,
                 "attack_distance":PLAYER_PICK_ATTACK_DISTANCE
             }
         }
@@ -119,14 +120,12 @@ class Player(SpriteObject):
                     
                     # load the component frame and add to images list
                     images.append(
-                        pg.transform.scale(
-                            self.game.sprites.load_from_tilesheet(
-                                path=f"assets/player/{attribute}/{d_loadout['category']}.png",
-                                row_index=row,
-                                col_index=col,
-                                tile_size=SPRITESHEET_TILE_SIZE
-                            ),
-                            (PLAYER_SPRITE_WIDTH, PLAYER_SPRITE_HEIGHT)
+                        self.game.sprites.load_from_tilesheet(
+                            path=f"assets/player/{attribute}/{d_loadout['category']}.png",
+                            row_index=row,
+                            col_index=col,
+                            tile_size=SPRITESHEET_TILE_SIZE,
+                            resize=(PLAYER_SPRITE_WIDTH, PLAYER_SPRITE_HEIGHT)
                         )
                     )
 
@@ -317,10 +316,10 @@ class Player(SpriteObject):
         """
         # Check for collisions at the attack position and reduce enemy/tree HP accordingly
         attack_circles = self.get_attack_area()
-        damage = self.get_damage()
 
         # check for axe-able objects in attack area
         if self.action == "axe":
+            damage = self.get_damage()
             hit_a_tree = False
             felled_a_tree = False
             
@@ -344,12 +343,14 @@ class Player(SpriteObject):
         
         # check for sword-able objects in attack area
         elif self.action == "sword":
+            damage = self.get_damage()
             for obj in self.game.can_sword_list:
                 if any([circle_collides(center, radius, obj.collision_rect) for center, radius in attack_circles]):
                     obj.register_hit(damage)
 
         # check for pick-able objects in attack area
         elif self.action == "pick":
+            damage = self.get_damage()
             hit_a_rock = False
             felled_a_rock = False
 
@@ -368,6 +369,13 @@ class Player(SpriteObject):
                 self.game.sounds.play_random("fell_rock")   
             elif hit_a_rock:
                 self.game.sounds.play_random("chop_rock")
+
+        elif self.action == "hoe":
+            for chunk_id in self.game.map.get_visible_chunks():
+                chunk = self.game.map.chunks[chunk_id]
+                for tile in chunk.get_tiles():
+                    if any([circle_collides(center, radius, tile.rect)for center, radius in attack_circles]):
+                        tile.set_tile_type("sand")
 
     def set_animation_counters(self, dt):
         """
