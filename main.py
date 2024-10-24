@@ -112,7 +112,7 @@ class Game:
         else:
             # set game variables
             self.game_id = str(uuid.uuid4())
-            self.seed = 71830 # random.randint(0,100000)
+            self.seed = random.randint(0,100000)
             print(self.seed)
             opensimplex.seed(self.seed)
 
