@@ -206,7 +206,8 @@ class Game:
                         tile.draw(self.screen, self.camera)
                         if not tile.is_explored:
                             tile.is_explored = True
-                # pg.draw.rect(self.screen, RED, self.camera.apply(chunk.rect), width=4) # draw chunk boundaries
+                if DRAW_CHUNKS:
+                    pg.draw.rect(self.screen, RED, self.camera.apply(chunk.rect), width=4) # draw chunk boundaries
 
         # draw on-screen objects in layer order, and by ascending Y-coordinate
         for sprite in sorted(
