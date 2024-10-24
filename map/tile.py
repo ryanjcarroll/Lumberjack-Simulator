@@ -18,6 +18,14 @@ from objects.npcs.grasshopper import Grasshopper
 from objects.npcs.ladybug import Ladybug
 from utility import combine_images
 
+base_textures = {
+    "grass":(0,0),
+    "sand":(0,1),
+    "clay":(0,2),
+    "water":(0,3),
+    "snow":(0,4)
+}
+
 class Tile(ABC):
     def __init__(self, game, chunk, row, col, load_decor=False, is_explored=False, tile_type="grass", texture=None):
         self.game = game
@@ -88,6 +96,7 @@ class Tile(ABC):
             direction:self.get_neighbors(direction=direction) 
             for direction in ['right','bottom','bottomright']
         }
+        borders_snow = False
 
         # set the texture as long as all 4 neighbors of the draw_rect exist
         if all([neighbor is not None for neighbor in neighbors.values()]):
@@ -96,14 +105,7 @@ class Tile(ABC):
             
             # configurations for all-one-texture
             if len(set(n)) == 1:
-                if n == ['grass', 'grass', 'grass', 'grass']:
-                    self.texture = (0,0)
-                elif n == ['water', 'water', 'water', 'water']:
-                    self.texture = (0,3)
-                elif n == ['sand', 'sand', 'sand', 'sand']:
-                    self.texture = (0,1)  
-                elif n == ['clay', 'clay', 'clay', 'clay']:
-                    self.texture = (0,2)  
+                self.texture = base_textures[n[0]]
 
             elif set(n) == set(["grass","water"]):
                 # 14 possible grass/water configurations of the 4 neighboring tiles of the draw_rect
@@ -136,44 +138,50 @@ class Tile(ABC):
                 elif n == ['water', 'grass', 'grass', 'water']:
                     self.texture = (4, 3)
 
-            elif len(set(n)) == 2 and "grass" in n:
-                if "sand" in n:
-                    self.base_texture = (0,1)
-                elif "clay" in n:
-                    self.base_texture = (0,2)
+            elif len(set(n)) == 2 and ("snow" in n or "grass" in n):
+                borders_snow = True
+                if "snow" in n:
+                    top = "snow"
+                    start_row = 7
+                elif "grass" in n:
+                    top = "grass"
+                    start_row = 1
                 
-                # 14 possible grass/other configurations of the 4 neighboring tiles of the draw_rect
-                n = ["grass" if t=="grass" else "other" for t in n]
-                if n == ['grass', 'grass', 'grass', 'other']:
-                    self.texture = (2, 3)
-                elif n == ['grass', 'grass', 'other', 'grass']:
-                    self.texture = (2, 4)
-                elif n == ['grass', 'other', 'other', 'other']:
-                    self.texture = (3, 2)
-                elif n == ['grass', 'other', 'grass', 'grass']:
-                    self.texture = (3, 3)
-                elif n == ['grass', 'grass', 'other', 'other']:
-                    self.texture = (3, 1)
-                elif n == ['grass', 'other', 'grass', 'other']:
-                    self.texture = (2, 2)
-                elif n == ['grass', 'other', 'other', 'grass']:
-                    self.texture = (1, 4)
-                elif n == ['other', 'other', 'other', 'grass']:
-                    self.texture = (1, 0)
-                elif n == ['other', 'other', 'grass', 'other']:
-                    self.texture = (1, 2)
-                elif n == ['other', 'grass', 'grass', 'grass']:
-                    self.texture = (3, 4)
-                elif n == ['other', 'grass', 'other', 'other']:
-                    self.texture = (3, 0)
-                elif n == ['other', 'other', 'grass', 'grass']:
-                    self.texture = (1, 1)
-                elif n == ['other', 'grass', 'other', 'grass']:
-                    self.texture = (2, 0)
-                elif n == ['other', 'grass', 'grass', 'other']:
-                    self.texture = (1, 3)
+                bottom = (set(n) - {top}).pop()
+                self.base_texture = base_textures[bottom]
+                
+                # 14 possible top/bottom configurations of the 4 neighboring tiles of the draw_rect
+                n = ["top" if t==top else "bottom" for t in n]
+                if n == ['top', 'top', 'top', 'bottom']:
+                    self.texture = (start_row+1, 3)
+                elif n == ['top', 'top', 'bottom', 'top']:
+                    self.texture = (start_row+1, 4)
+                elif n == ['top', 'bottom', 'bottom', 'bottom']:
+                    self.texture = (start_row+2, 2)
+                elif n == ['top', 'bottom', 'top', 'top']:
+                    self.texture = (start_row+2, 3)
+                elif n == ['top', 'top', 'bottom', 'bottom']:
+                    self.texture = (start_row+2, 1)
+                elif n == ['top', 'bottom', 'top', 'bottom']:
+                    self.texture = (start_row+1, 2)
+                elif n == ['top', 'bottom', 'bottom', 'top']:
+                    self.texture = (start_row, 4)
+                elif n == ['bottom', 'bottom', 'bottom', 'top']:
+                    self.texture = (start_row, 0)
+                elif n == ['bottom', 'bottom', 'top', 'bottom']:
+                    self.texture = (start_row, 2)
+                elif n == ['bottom', 'top', 'top', 'top']:
+                    self.texture = (start_row+2, 4)
+                elif n == ['bottom', 'top', 'bottom', 'bottom']:
+                    self.texture = (start_row+2, 0)
+                elif n == ['bottom', 'bottom', 'top', 'top']:
+                    self.texture = (start_row, 1)
+                elif n == ['bottom', 'top', 'bottom', 'top']:
+                    self.texture = (start_row+1, 0)
+                elif n == ['bottom', 'top', 'top', 'bottom']:
+                    self.texture = (start_row, 3)
 
-        default = (9,7)
+        default = (0,4)
         if self.base_texture:
             base = self.game.sprites.load_from_tilesheet(
                 path=self.get_spritesheet_path(),
@@ -199,15 +207,20 @@ class Tile(ABC):
                     resize=(TILE_SIZE, TILE_SIZE)
             )
 
+        self.image = image
+        # if not borders_snow: # snow shouldn't have darkness filter applied (looks ugly)
+        #     self.modify_image()
+
+    def modify_image(self):
         TILE_NOISE_FACTOR = .005
         darkness = 215 + (30 * opensimplex.noise2(self.x*TILE_NOISE_FACTOR, self.y*TILE_NOISE_FACTOR))
         # Create a semi-transparent black surface with the same size as the image
-        dark_surface = pg.Surface(image.get_size(), pg.SRCALPHA)
+        dark_surface = pg.Surface(self.image.get_size(), pg.SRCALPHA)
         dark_surface.fill((darkness,darkness,darkness+10, 200))  # Fill with semi-transparent black
 
         # Blend the original image with the dark surface
-        darkened_image = pg.Surface(image.get_size(), pg.SRCALPHA)
-        darkened_image.blit(image, (0, 0))  # Blit the original image onto the darkened surface
+        darkened_image = pg.Surface(self.image.get_size(), pg.SRCALPHA)
+        darkened_image.blit(self.image, (0, 0))  # Blit the original image onto the darkened surface
         darkened_image.blit(dark_surface, (0, 0), special_flags=pg.BLEND_MULT)  # Multiply blend the dark surface
 
         # set image textures and load object sprites 
@@ -389,11 +402,17 @@ class Tile(ABC):
     def draw(self, screen, camera):
         if self.image:
             screen.blit(self.image, camera.apply(self.draw_rect))
-            # pg.draw.rect(
-            #     screen, 
-            #     BLUE if self.tile_type == "water" else GREEN if self.tile_type=="grass" else YELLOW if self.tile_type=="sand" else RED, 
-            #     camera.apply(self.rect), width=1
-            # )
+        
+            pg.draw.rect(
+                screen, 
+                BLUE if self.tile_type == "water" \
+                    else GREEN if self.tile_type=="grass" \
+                    else YELLOW if self.tile_type=="sand" \
+                    else RED if self.tile_type == "clay"\
+                    else LIGHT_GREY if self.tile_type == "snow"
+                    else BLACK, 
+                camera.apply(self.rect), width=1
+            )
         else:
             print("NO IMAGE")
 
@@ -426,7 +445,6 @@ class ForestTile(Tile):
             "butterfly" : 2,
             "flower"    : 3,
             "grass"     : 30,
-            "patch"     : 20,
             "pebble"    : 5,
         }
 
@@ -438,7 +456,7 @@ class ForestTile(Tile):
         return "assets/textures/tile2.png"
 
 class IceForestTile(Tile):
-    def __init__(self, game, chunk, row, col, load_decor=True, is_explored=False, tile_type="grass", texture=None):
+    def __init__(self, game, chunk, row, col, load_decor=True, is_explored=False, tile_type="snow", texture=None):
         self.tree_density = 0.25
         self.rock_density = 0.15
         self.tree_type = IceTree
@@ -452,6 +470,9 @@ class IceForestTile(Tile):
         super().__init__(game, chunk, row, col, load_decor, is_explored, tile_type, texture)
 
         self.color = (237,237,237)
+    
+    def modify_image(self):
+        pass
 
     def get_spritesheet_path(self) -> str:
         return "assets/textures/tile2.png"
@@ -478,7 +499,7 @@ class AutumnForestTile(Tile):
         self.color = (136,177,79)
 
     def get_spritesheet_path(self) -> str:
-        return "assets/textures/tile2.png"
+        return "assets/textures/tile_autumn.png"
  
 class MangroveForestTile(Tile):
     def __init__(self, game, chunk, row, col, load_decor=True, is_explored=False, tile_type="grass", texture=None):
@@ -492,7 +513,7 @@ class MangroveForestTile(Tile):
         self.color = (100,153,61)
 
     def get_spritesheet_path(self) -> str:
-        return "assets/textures/tile2.png"
+        return "assets/textures/tile_mangrove.png"
     
     def load_decor(self):
         # don't load decor on mangrove forest tiles
