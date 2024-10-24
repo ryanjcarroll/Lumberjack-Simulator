@@ -18,7 +18,7 @@ from objects.npcs.grasshopper import Grasshopper
 from objects.npcs.ladybug import Ladybug
 from utility import combine_images
 
-base_textures = {
+texture_positions = {
     "grass":(0,0),
     "sand":(0,1),
     "clay":(0,2),
@@ -96,7 +96,7 @@ class Tile(ABC):
             direction:self.get_neighbors(direction=direction) 
             for direction in ['right','bottom','bottomright']
         }
-        borders_snow = False
+        image = None
 
         # set the texture as long as all 4 neighbors of the draw_rect exist
         if all([neighbor is not None for neighbor in neighbors.values()]):
@@ -105,109 +105,177 @@ class Tile(ABC):
             
             # configurations for all-one-texture
             if len(set(n)) == 1:
-                self.texture = base_textures[n[0]]
+                self.texture = True
+                image = self.game.sprites.load_from_tilesheet(
+                    path=self.get_spritesheet_path(),
+                    row_index=texture_positions[n[0]][0],
+                    col_index=texture_positions[n[0]][1],
+                    tile_size=16,
+                    resize=(TILE_SIZE, TILE_SIZE)
+            )
 
             elif set(n) == set(["grass","water"]):
                 # 14 possible grass/water configurations of the 4 neighboring tiles of the draw_rect
                 if n == ['grass', 'grass', 'grass', 'water']:
-                    self.texture = (5, 3)
+                    texture = (5, 3)
                 elif n == ['grass', 'grass', 'water', 'grass']:
-                    self.texture = (5, 4)
+                    texture = (5, 4)
                 elif n == ['grass', 'water', 'water', 'water']:
-                    self.texture = (6, 2)
+                    texture = (6, 2)
                 elif n == ['grass', 'water', 'grass', 'grass']:
-                    self.texture = (6, 3)
+                    texture = (6, 3)
                 elif n == ['grass', 'grass', 'water', 'water']:
-                    self.texture = (6, 1)
+                    texture = (6, 1)
                 elif n == ['grass', 'water', 'grass', 'water']:
-                    self.texture = (5, 2)
+                    texture = (5, 2)
                 elif n == ['grass', 'water', 'water', 'grass']:
-                    self.texture = (4, 4)
+                    texture = (4, 4)
                 elif n == ['water', 'water', 'water', 'grass']:
-                    self.texture = (4, 0)
+                    texture = (4, 0)
                 elif n == ['water', 'water', 'grass', 'water']:
-                    self.texture = (4, 2)
+                    texture = (4, 2)
                 elif n == ['water', 'grass', 'grass', 'grass']:
-                    self.texture = (6, 4)
+                    texture = (6, 4)
                 elif n == ['water', 'grass', 'water', 'water']:
-                    self.texture = (6, 0)
+                    texture = (6, 0)
                 elif n == ['water', 'water', 'grass', 'grass']:
-                    self.texture = (4, 1)
+                    texture = (4, 1)
                 elif n == ['water', 'grass', 'water', 'grass']:
-                    self.texture = (5, 0)
+                    texture = (5, 0)
                 elif n == ['water', 'grass', 'grass', 'water']:
-                    self.texture = (4, 3)
+                    texture = (4, 3)
+                self.texture = True
+                image = self.game.sprites.load_from_tilesheet(
+                        path=self.get_spritesheet_path(),
+                        row_index=texture[0],
+                        col_index=texture[1],
+                        tile_size=16,
+                        resize=(TILE_SIZE, TILE_SIZE)
+                )
 
-            elif len(set(n)) == 2 and ("snow" in n or "grass" in n):
-                borders_snow = True
+            elif len(set(n)) > 1:
+                # initialize a tile-sized image for blitting layers onto
+                image = pg.Surface((TILE_SIZE, TILE_SIZE), pg.SRCALPHA)
+                
+                # extract only the base textures
+                base_textures = [None if tex in["grass","snow"] else tex for tex in n]
+
+                for i, corner in enumerate(base_textures):
+                    if corner != None:
+                        sheet_pos = texture_positions[corner]
+                        blit_positions = { # where to blit each corner
+                            0:(0,0),
+                            1:(TILE_SIZE//2, 0),
+                            2:(0, TILE_SIZE//2),
+                            3:(TILE_SIZE//2, TILE_SIZE//2)
+                        }
+
+                        img = self.game.sprites.load_from_tilesheet(
+                            self.get_spritesheet_path(),
+                            row_index=sheet_pos[0],
+                            col_index=sheet_pos[1],
+                            tile_size=16,
+                            resize=(TILE_SIZE//2, TILE_SIZE//2)
+                        )
+                        image.blit(img, blit_positions[i])
+
+                # apply grass textures in a layer over base and snow tiles
+                if "grass" in n:
+                    n_grass = ["top" if t in ["grass","snow"] else "bottom" for t in n]
+                    if n_grass == ['top', 'top', 'top', 'top']:
+                        grass_form = (2, 1)
+                    if n_grass == ['top', 'top', 'top', 'bottom']:
+                        grass_form = (2, 3)
+                    elif n_grass == ['top', 'top', 'bottom', 'top']:
+                        grass_form = (2, 4)
+                    elif n_grass == ['top', 'bottom', 'bottom', 'bottom']:
+                        grass_form = (3, 2)
+                    elif n_grass == ['top', 'bottom', 'top', 'top']:
+                        grass_form = (3, 3)
+                    elif n_grass == ['top', 'top', 'bottom', 'bottom']:
+                        grass_form = (3, 1)
+                    elif n_grass == ['top', 'bottom', 'top', 'bottom']:
+                        grass_form = (2, 2)
+                    elif n_grass == ['top', 'bottom', 'bottom', 'top']:
+                        grass_form = (1, 4)
+                    elif n_grass == ['bottom', 'bottom', 'bottom', 'top']:
+                        grass_form = (1, 0)
+                    elif n_grass == ['bottom', 'bottom', 'top', 'bottom']:
+                        grass_form = (1, 2)
+                    elif n_grass == ['bottom', 'top', 'top', 'top']:
+                        grass_form = (3, 4)
+                    elif n_grass == ['bottom', 'top', 'bottom', 'bottom']:
+                        grass_form = (3, 0)
+                    elif n_grass == ['bottom', 'bottom', 'top', 'top']:
+                        grass_form = (1, 1)
+                    elif n_grass == ['bottom', 'top', 'bottom', 'top']:
+                        grass_form = (2, 0)
+                    elif n_grass == ['bottom', 'top', 'top', 'bottom']:
+                        grass_form = (1, 3)
+                    else:
+                        print(n, n_grass)
+                    img = self.game.sprites.load_from_tilesheet(
+                        self.get_spritesheet_path(),
+                        row_index=grass_form[0],
+                        col_index=grass_form[1],
+                        tile_size=16,
+                        resize=(TILE_SIZE, TILE_SIZE)
+                    )
+                    image.blit(img, (0,0))
+
+                # apply snow textures in a layer over base and grass tiles
                 if "snow" in n:
-                    top = "snow"
-                    start_row = 7
-                elif "grass" in n:
-                    top = "grass"
-                    start_row = 1
-                
-                bottom = (set(n) - {top}).pop()
-                self.base_texture = base_textures[bottom]
-                
-                # 14 possible top/bottom configurations of the 4 neighboring tiles of the draw_rect
-                n = ["top" if t==top else "bottom" for t in n]
-                if n == ['top', 'top', 'top', 'bottom']:
-                    self.texture = (start_row+1, 3)
-                elif n == ['top', 'top', 'bottom', 'top']:
-                    self.texture = (start_row+1, 4)
-                elif n == ['top', 'bottom', 'bottom', 'bottom']:
-                    self.texture = (start_row+2, 2)
-                elif n == ['top', 'bottom', 'top', 'top']:
-                    self.texture = (start_row+2, 3)
-                elif n == ['top', 'top', 'bottom', 'bottom']:
-                    self.texture = (start_row+2, 1)
-                elif n == ['top', 'bottom', 'top', 'bottom']:
-                    self.texture = (start_row+1, 2)
-                elif n == ['top', 'bottom', 'bottom', 'top']:
-                    self.texture = (start_row, 4)
-                elif n == ['bottom', 'bottom', 'bottom', 'top']:
-                    self.texture = (start_row, 0)
-                elif n == ['bottom', 'bottom', 'top', 'bottom']:
-                    self.texture = (start_row, 2)
-                elif n == ['bottom', 'top', 'top', 'top']:
-                    self.texture = (start_row+2, 4)
-                elif n == ['bottom', 'top', 'bottom', 'bottom']:
-                    self.texture = (start_row+2, 0)
-                elif n == ['bottom', 'bottom', 'top', 'top']:
-                    self.texture = (start_row, 1)
-                elif n == ['bottom', 'top', 'bottom', 'top']:
-                    self.texture = (start_row+1, 0)
-                elif n == ['bottom', 'top', 'top', 'bottom']:
-                    self.texture = (start_row, 3)
+                    n_snow = ["top" if t in ["snow"] else "bottom" for t in n]
+                    if n_snow == ['top', 'top', 'top', 'top']:
+                        snow_form = (8, 1)
+                    if n_snow == ['top', 'top', 'top', 'bottom']:
+                        snow_form = (8, 3)
+                    elif n_snow == ['top', 'top', 'bottom', 'top']:
+                        snow_form = (8, 4)
+                    elif n_snow == ['top', 'bottom', 'bottom', 'bottom']:
+                        snow_form = (9, 2)
+                    elif n_snow == ['top', 'bottom', 'top', 'top']:
+                        snow_form = (9, 3)
+                    elif n_snow == ['top', 'top', 'bottom', 'bottom']:
+                        snow_form = (9, 1)
+                    elif n_snow == ['top', 'bottom', 'top', 'bottom']:
+                        snow_form = (8, 2)
+                    elif n_snow == ['top', 'bottom', 'bottom', 'top']:
+                        snow_form = (7, 4)
+                    elif n_snow == ['bottom', 'bottom', 'bottom', 'top']:
+                        snow_form = (7, 0)
+                    elif n_snow == ['bottom', 'bottom', 'top', 'bottom']:
+                        snow_form = (7, 2)
+                    elif n_snow == ['bottom', 'top', 'top', 'top']:
+                        snow_form = (9, 4)
+                    elif n_snow == ['bottom', 'top', 'bottom', 'bottom']:
+                        snow_form = (9, 0)
+                    elif n_snow == ['bottom', 'bottom', 'top', 'top']:
+                        snow_form = (7, 1)
+                    elif n_snow == ['bottom', 'top', 'bottom', 'top']:
+                        snow_form = (8, 0)
+                    elif n_snow == ['bottom', 'top', 'top', 'bottom']:
+                        snow_form = (7, 3)
+                    img = self.game.sprites.load_from_tilesheet(
+                        self.get_spritesheet_path(),
+                        row_index=snow_form[0],
+                        col_index=snow_form[1],
+                        tile_size=16,
+                        resize=(TILE_SIZE, TILE_SIZE)
+                    )
+                    image.blit(img, (0,0))
 
-        default = (0,4)
-        if self.base_texture:
-            base = self.game.sprites.load_from_tilesheet(
-                path=self.get_spritesheet_path(),
-                row_index=self.base_texture[0],
-                col_index=self.base_texture[1],
-                tile_size=16,
-                resize=(TILE_SIZE, TILE_SIZE)
-            )
-            top = self.game.sprites.load_from_tilesheet(
-                    path=self.get_spritesheet_path(),
-                    row_index=self.texture[0] if self.texture else default[0],
-                    col_index=self.texture[1] if self.texture else default[1],
-                    tile_size=16,
-                    resize=(TILE_SIZE, TILE_SIZE)
-            )
-            image = combine_images([base, top])
-        else:
+        # set the image
+        if not image:
             image = self.game.sprites.load_from_tilesheet(
                     path=self.get_spritesheet_path(),
-                    row_index=self.texture[0] if self.texture else default[0],
-                    col_index=self.texture[1] if self.texture else default[1],
+                    row_index=0,
+                    col_index=5,
                     tile_size=16,
                     resize=(TILE_SIZE, TILE_SIZE)
             )
-
-        self.image = image
+        else:
+            self.image = image
         # if not borders_snow: # snow shouldn't have darkness filter applied (looks ugly)
         #     self.modify_image()
 
@@ -499,7 +567,7 @@ class AutumnForestTile(Tile):
         self.color = (136,177,79)
 
     def get_spritesheet_path(self) -> str:
-        return "assets/textures/tile_autumn.png"
+        return "assets/textures/tile2.png"
  
 class MangroveForestTile(Tile):
     def __init__(self, game, chunk, row, col, load_decor=True, is_explored=False, tile_type="grass", texture=None):
@@ -513,7 +581,7 @@ class MangroveForestTile(Tile):
         self.color = (100,153,61)
 
     def get_spritesheet_path(self) -> str:
-        return "assets/textures/tile_mangrove.png"
+        return "assets/textures/tile2.png"
     
     def load_decor(self):
         # don't load decor on mangrove forest tiles
