@@ -13,7 +13,6 @@ class Chunk:
 
         # store a list of rows, each of which contains a list of Tiles
         self.tiles = [[None for _ in range(CHUNK_SIZE)] for _ in range(CHUNK_SIZE)]
-        self.all_textures_finalized = False
 
         self.rect = Rect(x, y, CHUNK_SIZE*TILE_SIZE, CHUNK_SIZE*TILE_SIZE)
         self.draw_rect = Rect(x+TILE_SIZE//2, y+TILE_SIZE//2, CHUNK_SIZE*TILE_SIZE, CHUNK_SIZE*TILE_SIZE)
@@ -34,7 +33,7 @@ class Chunk:
                         tile_type=tiledata['tile_type'],
                         texture=tiledata['texture']
                     )
-                    if self.load_objects:
+                    if self.load_objects and LOAD_OBJECTS:
                         tile.load_objects(objects=tiledata['objects'])
                     self.tiles[tiledata["position"][0]][tiledata["position"][1]] = tile
                 
@@ -44,21 +43,18 @@ class Chunk:
         else:
             self.load_tiles()
 
-
     def load_tiles(self):
         # fill the chunk with Tiles
         for row in range(CHUNK_SIZE):
-            tile_row = []
             for col in range(CHUNK_SIZE):
-                tile = self.get_tile_type(row, col)(
+                self.tiles[row][col] = self.get_tile_type(row, col)(
                     game = self.game,
-                    chunk=self,
+                    chunk= self,
                     row = row,
                     col = col
                 )
-                if self.load_objects:
-                    tile.load_objects()
-                self.tiles[row][col] = tile
+                if self.load_objects and LOAD_OBJECTS:
+                    self.tiles[row][col].load_objects()
 
         if self.id == "0,0":
             self.build_spawn()
@@ -67,7 +63,7 @@ class Chunk:
         # this will be incomplete for tiles on the bottom and right edges
         for tile in self.get_tiles():
             tile.update_texture()
-    
+
     def check_neighboring_edges(self):
         # check chunk above to see if its edges need to be regenerated
         chunk_above_coords = self.rect.topleft - vec(0,TILE_SIZE*CHUNK_SIZE)
@@ -76,7 +72,7 @@ class Chunk:
             chunk_above = self.game.map.chunks[chunk_above_id]
             bottom_row = chunk_above.tiles[-1]
             for tile in bottom_row:
-                if tile.texture == None:
+                if not tile.texture:
                     tile.update_texture()
 
         # check chunk to left to see if its edges need to be regenerated
@@ -86,7 +82,7 @@ class Chunk:
             chunk_to_left = self.game.map.chunks[chunk_to_left_id]
             for tile_row in chunk_to_left.tiles:
                 right_tile = tile_row[-1]
-                if right_tile.texture == None:
+                if not right_tile.texture:
                     right_tile.update_texture()
 
         # check chunk to topleft to see if its bottom right corner needs to be regenerated
@@ -95,7 +91,7 @@ class Chunk:
         if chunk_to_topleft_id in self.game.map.chunks:
             chunk_to_topleft = self.game.map.chunks[chunk_to_topleft_id]
             bottom_right_tile = chunk_to_topleft.tiles[-1][-1]
-            if bottom_right_tile.texture == None:
+            if not bottom_right_tile.texture:
                 bottom_right_tile.update_texture()
     
     def build_spawn(self):
