@@ -212,8 +212,6 @@ class Tile(ABC):
                         grass_form = (2, 0)
                     elif n_grass == ['bottom', 'top', 'top', 'bottom']:
                         grass_form = (1, 3)
-                    else:
-                        print(n, n_grass)
                     img = self.game.sprites.load_from_tilesheet(
                         self.get_spritesheet_path(),
                         row_index=grass_form[0],
@@ -471,18 +469,22 @@ class Tile(ABC):
         if self.image:
             screen.blit(self.image, camera.apply(self.draw_rect))
         
-            pg.draw.rect(
-                screen, 
-                BLUE if self.tile_type == "water" \
-                    else GREEN if self.tile_type=="grass" \
-                    else YELLOW if self.tile_type=="sand" \
-                    else RED if self.tile_type == "clay"\
-                    else LIGHT_GREY if self.tile_type == "snow"
-                    else BLACK, 
-                camera.apply(self.rect), width=1
-            )
+            if DRAW_GRID:
+                pg.draw.rect(
+                    screen, 
+                    BLUE if self.tile_type == "water" \
+                        else GREEN if self.tile_type=="grass" \
+                        else YELLOW if self.tile_type=="sand" \
+                        else RED if self.tile_type == "clay"\
+                        else LIGHT_GREY if self.tile_type == "snow"
+                        else BLACK, 
+                    camera.apply(self.rect), width=1
+                )
         else:
-            print("NO IMAGE")
+            self.update_texture()
+            if self.image:
+                self.draw(screen, camera)
+            # print("NO IMAGE")
 
     def unload(self):
         for object in self.objects:
