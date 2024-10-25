@@ -1,5 +1,5 @@
-SKIP_MENU = False
-GOD_MODE = False
+SKIP_MENU = True
+GOD_MODE = True
 DRAW_GRID = False
 DRAW_CHUNKS = False
 LOAD_OBJECTS = True

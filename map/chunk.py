@@ -1,7 +1,7 @@
 from settings import *
-from map.tile import *
+from map.tile.tile_types import *
+from pygame import Vector2 as vec
 from objects.inventory import Camp
-import opensimplex
 import os
 import json
 from utility import write_json
@@ -30,7 +30,7 @@ class Chunk:
                         self, 
                         *tiledata["position"], 
                         is_explored=tiledata['is_explored'],
-                        tile_type=tiledata['tile_type'],
+                        terrain=tiledata['terrain'],
                         texture=tiledata['texture']
                     )
                     if self.load_objects and LOAD_OBJECTS:
@@ -47,14 +47,16 @@ class Chunk:
         # fill the chunk with Tiles
         for row in range(CHUNK_SIZE):
             for col in range(CHUNK_SIZE):
-                self.tiles[row][col] = self.get_tile_type(row, col)(
+                terrain, tile_type = self.get_tile_properties(row, col)
+                self.tiles[row][col] = tile_type(
                     game = self.game,
                     chunk= self,
                     row = row,
-                    col = col
+                    col = col,
+                    terrain=terrain
                 )
                 if self.load_objects and LOAD_OBJECTS:
-                    self.tiles[row][col].load_objects()
+                    self.get_tile(row, col).load_objects()
 
         if self.id == "0,0":
             self.build_spawn()
@@ -104,12 +106,12 @@ class Chunk:
             for row in range(CHUNK_SIZE//2 - 1, CHUNK_SIZE//2 + 2):
                 for col in range(CHUNK_SIZE//2 - 1, CHUNK_SIZE//2 + 2):
                     tile = self.get_tile(row, col)
-                    tile.set_tile_type("sand")
+                    tile.set_terrain("sand")
 
             # for row in range(CHUNK_SIZE//2 - 4, CHUNK_SIZE//2 - 1):
             #     for col in range(CHUNK_SIZE//2 - 1, CHUNK_SIZE//2 + 2):
             #         tile = self.get_tile(row, col)
-            #         tile.set_tile_type("clay")
+            #         tile.set_terrain("clay")
 
     def get_tiles(self):
         return [tile for row in self.tiles for tile in row]
@@ -117,23 +119,43 @@ class Chunk:
     def get_tile(self, row, col) -> Tile:
         return self.tiles[row][col]
 
-    def get_tile_type(self, row, col) -> type:
-        x = self.rect.topleft[0] + col*TILE_SIZE
-        y = self.rect.topleft[1] + row*TILE_SIZE
-        biome_noise = opensimplex.noise2(x*BIOME_NOISE_FACTOR, y*BIOME_NOISE_FACTOR)
+    def get_tile_properties(self, row, col) -> type:
+        x, y = self.rect.topleft[0] + col*TILE_SIZE, self.rect.topleft[1] + row*TILE_SIZE
 
-        if (-50*BIOME_NOISE_FACTOR) < biome_noise < (50*BIOME_NOISE_FACTOR):
-            tile_type = WaterTile
-        elif (-150*BIOME_NOISE_FACTOR) < biome_noise < (150*BIOME_NOISE_FACTOR):
-            tile_type = MangroveForestTile
-        elif biome_noise > 0.33:
-            tile_type = AutumnForestTile
-        elif biome_noise < -0.33:
-            tile_type = IceForestTile
-        else:
-            tile_type = ForestTile
+        altitude = self.game.map.get_noise(x, y, type="alt")
+        rainfall = self.game.map.get_noise(x, y, type="rain")
 
-        return tile_type
+        if altitude > 0.3:  # High altitude (low temp)
+            if rainfall > 0:
+                tile_type = TundraTile
+                terrain = "snow"
+            else:
+                tile_type = MountainTile
+                terrain = "snow"
+        elif altitude < -0.3:  # Low altitude (high temp)
+            if rainfall > 0:
+                tile_type = SwampTile
+                terrain = "clay"
+            else:
+                tile_type = DesertTile
+                terrain = "sand"
+        else:  # Mid-temperature (mid temp)
+            if rainfall > 0.3:
+                tile_type = RainforestTile
+                terrain = "grass"
+            elif rainfall > 0:
+                tile_type = ForestTile
+                terrain = "grass"
+            else:
+                tile_type = GrasslandTile
+                terrain = "grass"
+
+        # determine if terrain will be river
+        river_noise = self.game.map.get_noise(x, y, type="river")
+        if -0.05 < river_noise < 0.05:
+            terrain = "water"
+                
+        return terrain, tile_type
 
     def save(self):
         write_json(f"data/saves/{self.game.game_id}/chunks/{self.id}.json", self.to_json())

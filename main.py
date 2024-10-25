@@ -90,7 +90,6 @@ class Game:
                 with open(f"data/saves/{self.game_id}/game.json", "r") as f:
                     game_data = json.load(f)
                     self.seed = game_data.get("seed")
-                    opensimplex.seed(self.seed)
 
                 # build map
                 self.map = Map(self)
@@ -112,9 +111,8 @@ class Game:
         else:
             # set game variables
             self.game_id = str(uuid.uuid4())
-            self.seed = random.randint(0,100000)
+            self.seed = f"{random.randint(0,100000)}-{random.randint(0,100000)}-{random.randint(0,100000)}"
             print(self.seed)
-            opensimplex.seed(self.seed)
 
             loadout = {
                 "body":{"category":"body5","style":0},"hair":{"category":"curly","style":13},"face":{"category":"makeup","style":0},"shirt":{"category":"sailor","style":9},"pants":{"category":"skirt","style":9},"accessories":{"category":"clown_mask","style":1}

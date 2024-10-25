@@ -2,9 +2,8 @@ from settings import *
 import threading
 from map.chunk import Chunk
 from pygame import Vector2 as vec
-from glob import glob
-import json
-import pygame as pg
+from opensimplex import OpenSimplex
+import random
 
 class Map:
     def __init__(self, game):
@@ -13,6 +12,14 @@ class Map:
         self.chunks = {} # store chunks in a dictionary
         self.currently_loading = set() # track chunk_ids that are currently loading so we don't try to double-load them
         self.lock = threading.Lock() # to prevent two threads (or thread and main) from trying to modify self.chunks at the same time
+
+        # noise generators for biomes
+        self.alt_noise_gen = OpenSimplex(int(self.game.seed.split("-")[0])) # altitude
+        self.rain_noise_gen = OpenSimplex(int(self.game.seed.split("-")[1])) # rainfall
+        self.river_noise_gen = OpenSimplex(int(self.game.seed.split("-")[2])) # rivers
+        self.alt_scale = 0.0005
+        self.rain_scale = 0.0005
+        self.river_scale = 0.0005
 
     def new(self):
         # generate the starting chunk with the top left corner at (0,0)
@@ -61,6 +68,14 @@ class Map:
             self.chunks[chunk.id] = chunk
             self.chunks[chunk.id].check_neighboring_edges()
             self.currently_loading.remove(chunk.id)
+
+    def get_noise(self, x, y, type:str):
+        if type == "alt":
+            return self.alt_noise_gen.noise2(x*self.alt_scale,y*self.alt_scale)
+        elif type == "rain":
+            return self.rain_noise_gen.noise2(x*self.rain_scale,y*self.rain_scale)
+        elif type == "river":
+            return self.river_noise_gen.noise2(x*self.river_scale,y*self.river_scale)
 
     def get_chunk_id(self, x, y):
         """
