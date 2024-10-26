@@ -17,7 +17,7 @@ class SwampTile(Tile):
 
         super().__init__(game, chunk, row, col, is_explored, self.terrain, texture)
 
-        self.color = water_color if terrain=="water" else (64, 89, 8)
+        self.color = water_color if self.terrain=="water" else (64, 89, 8)
 
     def set_terrain(self):
         noise = self.game.map.rain_noise_gen.noise2(self.x, self.y)

@@ -103,21 +103,13 @@ class Tile(ABC):
         self.modify_image()
     
     def modify_image(self):
-        TILE_NOISE_FACTOR = .005
-        darkness = 215 + (30 * opensimplex.noise2(self.x*TILE_NOISE_FACTOR, self.y*TILE_NOISE_FACTOR))
-        # Create a semi-transparent black surface with the same size as the image
-        dark_surface = pg.Surface(self.image.get_size(), pg.SRCALPHA)
-        dark_surface.fill((darkness,darkness,darkness+10, 200))  # Fill with semi-transparent black
-
-        # Blend the original image with the dark surface
-        darkened_image = pg.Surface(self.image.get_size(), pg.SRCALPHA)
-        darkened_image.blit(self.image, (0, 0))  # Blit the original image onto the darkened surface
-        darkened_image.blit(dark_surface, (0, 0), special_flags=pg.BLEND_MULT)  # Multiply blend the dark surface
-
-        # set image textures and load object sprites 
-        self.image = darkened_image
-        # pass
-    
+        # Overlay one of the pre-generated tile noise options on top of the tile image
+        self.image.blit(
+            random.choice(self.game.map.tile_noise_options), 
+            (0, 0), 
+            special_flags=pg.BLEND_RGBA_MULT
+        )
+        
     def can_spawn(self, spawn_attempts=3, max_offset=TILE_SIZE//2, buffer=3*TILE_SIZE//5):
         """
         Attempt to find a pos to spawn an object.

@@ -5,6 +5,7 @@ from objects.inventory import Camp
 import os
 import json
 from utility import write_json
+import random
 
 class Chunk:
     def __init__(self, game, x, y, load_objects=True):

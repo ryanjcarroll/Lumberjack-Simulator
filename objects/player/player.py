@@ -45,6 +45,7 @@ class Player(SpriteObject):
 
         # set default values (some of these can be changed by skills)
         self.move_distance = PLAYER_MOVE_DISTANCE
+        self.move_distance_over_water = PLAYER_MOVE_DISTANCE - 2
         self.weapon_stats = {
             "sword":{
                 "attack_damage":PLAYER_SWORD_ATTACK_DAMAGE,
@@ -205,6 +206,9 @@ class Player(SpriteObject):
         # if horizontal/vertical movement, set the action
         else:
             self.action = "walk"
+
+        if self.get_current_tile().terrain == "water":
+            movement = movement.normalize() * self.move_distance_over_water
 
         # for any walk, set the direction
         # if moving diagonally, we want the L/R sprite animation instead of U/D

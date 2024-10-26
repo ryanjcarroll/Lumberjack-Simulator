@@ -4,6 +4,7 @@ from map.chunk import Chunk
 from pygame import Vector2 as vec
 from opensimplex import OpenSimplex
 import random
+import pygame as pg
 
 class Map:
     def __init__(self, game):
@@ -17,9 +18,13 @@ class Map:
         self.alt_noise_gen = OpenSimplex(int(self.game.seed.split("-")[0])) # altitude
         self.rain_noise_gen = OpenSimplex(int(self.game.seed.split("-")[1])) # rainfall
         self.river_noise_gen = OpenSimplex(int(self.game.seed.split("-")[2])) # rivers
-        self.alt_scale = 0.0005
-        self.rain_scale = 0.0005
+        self.alt_scale = 0.0002
+        self.rain_scale = 0.0002
         self.river_scale = 0.0005
+
+        self.tile_noise_options = [
+            self.generate_tile_noise() for i in range(5)
+        ]
 
     def new(self):
         # generate the starting chunk with the top left corner at (0,0)
@@ -76,6 +81,24 @@ class Map:
             return self.rain_noise_gen.noise2(x*self.rain_scale,y*self.rain_scale)
         elif type == "river":
             return self.river_noise_gen.noise2(x*self.river_scale,y*self.river_scale)
+        
+    def generate_tile_noise(self):
+        noise_resolution = 4
+        transparency = 0.99
+
+        # Create a noise surface that covers the tile at lower resolution
+        noise_surface = pg.Surface((TILE_SIZE // noise_resolution, TILE_SIZE // noise_resolution), pg.SRCALPHA)
+
+        # Fill noise surface with random grayscale noise
+        for y in range(noise_surface.get_height()):
+            for x in range(noise_surface.get_width()):
+                gray_value = random.randint(235, 255)
+                noise_surface.set_at((x, y), (gray_value, gray_value, gray_value, int(255 * transparency)))
+        
+        # Scale the noise surface up to match the size of the tile
+        noise_surface = pg.transform.scale(noise_surface, (TILE_SIZE, TILE_SIZE))
+
+        return noise_surface
 
     def get_chunk_id(self, x, y):
         """
