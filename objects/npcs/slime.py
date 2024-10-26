@@ -12,14 +12,6 @@ class Slime(SpriteObject):
         self.width = 36
         self.height = 36
         self.frames = {}
-
-        super().__init__(game, x, y, tile, layer=GROUND_NPC_LAYER, image=None)
-
-        # position and movement variables
-        self.pos = vec(x,y)
-        self.move_distance = 2
-        self.collision_rect = self.rect
-        
         self.health = 40
 
         # animation variables
@@ -39,6 +31,13 @@ class Slime(SpriteObject):
         self.knockback_direction = None
         self.knockback_timer = 0  # Duration for knockback
         self.knockback_duration = 18  # Number of frames for knockback effect
+
+        super().__init__(game, x, y, tile, layer=GROUND_NPC_LAYER, image=None)
+
+        # position and movement variables
+        self.pos = vec(x,y)
+        self.move_distance = 2
+        self.collision_rect = self.rect        
 
         self.game.can_sword_list.add(self)
         self.game.can_axe_list.add(self)

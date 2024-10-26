@@ -106,12 +106,7 @@ class Chunk:
             for row in range(CHUNK_SIZE//2 - 1, CHUNK_SIZE//2 + 2):
                 for col in range(CHUNK_SIZE//2 - 1, CHUNK_SIZE//2 + 2):
                     tile = self.get_tile(row, col)
-                    tile.set_terrain("sand")
-
-            # for row in range(CHUNK_SIZE//2 - 4, CHUNK_SIZE//2 - 1):
-            #     for col in range(CHUNK_SIZE//2 - 1, CHUNK_SIZE//2 + 2):
-            #         tile = self.get_tile(row, col)
-            #         tile.set_terrain("clay")
+                    tile.set_terrain("dirt")
 
     def get_tiles(self):
         return [tile for row in self.tiles for tile in row]
@@ -135,10 +130,10 @@ class Chunk:
         elif altitude < -0.3:  # Low altitude (high temp)
             if rainfall > 0:
                 tile_type = SwampTile
-                terrain = "clay"
+                terrain = "dirt"
             else:
                 tile_type = DesertTile
-                terrain = "sand"
+                terrain = "dirt"
         else:  # Mid-temperature (mid temp)
             if rainfall > 0.3:
                 tile_type = RainforestTile

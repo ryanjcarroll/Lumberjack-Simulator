@@ -111,7 +111,7 @@ class Game:
         else:
             # set game variables
             self.game_id = str(uuid.uuid4())
-            self.seed = f"{random.randint(0,100000)}-{random.randint(0,100000)}-{random.randint(0,100000)}"
+            self.seed = "31968-83701-94076" # f"{random.randint(0,100000)}-{random.randint(0,100000)}-{random.randint(0,100000)}"
             print(self.seed)
 
             loadout = {
@@ -255,6 +255,15 @@ class Game:
                     # open the map menu
                     elif event.key == pg.K_m:
                         self.map_screen()
+
+                if event.type == pg.MOUSEBUTTONDOWN:
+                    mouse_pos = pg.mouse.get_pos()
+                    for chunk_id in self.map.get_visible_chunks():
+                        if chunk_id in self.map.chunks:
+                            for tile in self.map.chunks[chunk_id].get_tiles():
+                                if self.camera.apply(tile.rect).collidepoint(mouse_pos):
+                                    print(type(tile), tile.terrain)
+            
                 
                 self.weapon_menu.handle_event(event)
                 self.player.handle_event(event)
@@ -267,7 +276,7 @@ class Game:
                 self.map_menu.handle_event(event)
             elif self.at_game_over:
                 self.game_over_menu.handle_event(event)
-            
+                
         # player inputs must be slightly different because \
         # we care about keys pressed, even if they weren't first pressed this frame
         if self.player \
@@ -276,6 +285,8 @@ class Game:
                 and not self.at_photo_menu \
                 and not self.at_map_menu:
             self.player.handle_keys(pg.key.get_pressed())
+
+            
 
     def start_screen(self):
         """

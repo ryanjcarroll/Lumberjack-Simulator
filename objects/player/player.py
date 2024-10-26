@@ -379,7 +379,7 @@ class Player(SpriteObject):
                 chunk = self.game.map.chunks[chunk_id]
                 for tile in chunk.get_tiles():
                     if any([circle_collides(center, radius, tile.rect)for center, radius in attack_circles]):
-                        tile.set_terrain("sand")
+                        tile.set_terrain("dirt")
 
     def set_animation_counters(self, dt):
         """

@@ -5,8 +5,8 @@ import pygame as pg
 water_color = (8, 140, 201)
 
 class SwampTile(Tile):
-    def __init__(self, game, chunk, row, col, is_explored=False, terrain="clay", texture={}):
-        self.tree_density = 0.8
+    def __init__(self, game, chunk, row, col, is_explored=False, terrain="dirt", texture={}):
+        self.tree_density = 0.75
         self.rock_density = 0.07
 
         self.game = game
@@ -27,11 +27,11 @@ class SwampTile(Tile):
             return self.terrain
 
     def get_spritesheet_path(self) -> str:
-        return "assets/textures/tiles.png"
+        return "assets/textures/tiles-swamp.png"
     
     def get_tree_spawn_weights(self):
         return {
-            "CozyBirch1":1,
+            # "CozyBirch1":1,
             "CozyDead1":1,
             "Moss1":1,
             "Moss2":1
@@ -40,9 +40,8 @@ class SwampTile(Tile):
     def get_decor_weights(self):
         return {}
 
-
 class DesertTile(Tile):
-    def __init__(self, game, chunk, row, col, is_explored=False, terrain="sand", texture={}):
+    def __init__(self, game, chunk, row, col, is_explored=False, terrain="dirt", texture={}):
         self.tree_density = 0.05
         self.rock_density = 0.05
         super().__init__(game, chunk, row, col, is_explored, terrain, texture)
@@ -50,7 +49,7 @@ class DesertTile(Tile):
         self.color = water_color if terrain=="water" else (173, 162, 31)
 
     def get_spritesheet_path(self) -> str:
-        return "assets/textures/tiles.png"
+        return "assets/textures/tiles-desert.png"
     
     def get_tree_spawn_weights(self):
         return {
@@ -112,7 +111,7 @@ class GrasslandTile(Tile):
         self.color = water_color if terrain=="water" else (81, 156, 23)
 
     def get_spritesheet_path(self) -> str:
-        return "assets/textures/tiles.png"
+        return "assets/textures/tiles-grassland.png"
     
     def load_decor(self):
         # for i in range(5):
@@ -163,7 +162,7 @@ class MountainTile(Tile):
         self.color = water_color if terrain=="water" else (211, 211, 245)
 
     def get_spritesheet_path(self) -> str:
-        return "assets/textures/tiles.png"
+        return "assets/textures/tiles-mountain.png"
     
     def get_tree_spawn_weights(self):
         return {

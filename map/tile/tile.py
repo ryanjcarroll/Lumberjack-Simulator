@@ -95,25 +95,28 @@ class Tile(ABC):
 
         n = [self.terrain, neighbors['right'].terrain, neighbors['bottom'].terrain, neighbors['bottomright'].terrain]
         self.texture = get_texture_from_neighbors(n)
-        self.image = get_image_from_texture(self.texture, self.game.sprites, self.get_spritesheet_path())
+
+        # pass in each neighbor spritesheet so corners can be rendered as the correct biome
+        spritesheets = [self.get_spritesheet_path(), neighbors['right'].get_spritesheet_path(), neighbors['bottom'].get_spritesheet_path(), neighbors['bottomright'].get_spritesheet_path()]
+        self.image = get_image_from_texture(self.texture, self.game.sprites, spritesheets)
 
         self.modify_image()
     
     def modify_image(self):
-        # TILE_NOISE_FACTOR = .005
-        # darkness = 215 + (30 * opensimplex.noise2(self.x*TILE_NOISE_FACTOR, self.y*TILE_NOISE_FACTOR))
-        # # Create a semi-transparent black surface with the same size as the image
-        # dark_surface = pg.Surface(self.image.get_size(), pg.SRCALPHA)
-        # dark_surface.fill((darkness,darkness,darkness+10, 200))  # Fill with semi-transparent black
+        TILE_NOISE_FACTOR = .005
+        darkness = 215 + (30 * opensimplex.noise2(self.x*TILE_NOISE_FACTOR, self.y*TILE_NOISE_FACTOR))
+        # Create a semi-transparent black surface with the same size as the image
+        dark_surface = pg.Surface(self.image.get_size(), pg.SRCALPHA)
+        dark_surface.fill((darkness,darkness,darkness+10, 200))  # Fill with semi-transparent black
 
-        # # Blend the original image with the dark surface
-        # darkened_image = pg.Surface(self.image.get_size(), pg.SRCALPHA)
-        # darkened_image.blit(self.image, (0, 0))  # Blit the original image onto the darkened surface
-        # darkened_image.blit(dark_surface, (0, 0), special_flags=pg.BLEND_MULT)  # Multiply blend the dark surface
+        # Blend the original image with the dark surface
+        darkened_image = pg.Surface(self.image.get_size(), pg.SRCALPHA)
+        darkened_image.blit(self.image, (0, 0))  # Blit the original image onto the darkened surface
+        darkened_image.blit(dark_surface, (0, 0), special_flags=pg.BLEND_MULT)  # Multiply blend the dark surface
 
-        # # set image textures and load object sprites 
-        # self.image = darkened_image
-        pass
+        # set image textures and load object sprites 
+        self.image = darkened_image
+        # pass
     
     def can_spawn(self, spawn_attempts=3, max_offset=TILE_SIZE//2, buffer=3*TILE_SIZE//5):
         """
@@ -306,8 +309,7 @@ class Tile(ABC):
                     screen, 
                     BLUE if self.terrain == "water" \
                         else GREEN if self.terrain=="grass" \
-                        else YELLOW if self.terrain=="sand" \
-                        else RED if self.terrain == "clay"\
+                        else RED if self.terrain == "dirt"\
                         else LIGHT_GREY if self.terrain == "snow"
                         else BLACK, 
                     camera.apply(self.rect), width=1
@@ -318,8 +320,7 @@ class Tile(ABC):
                     RED if self.chunk.id == "0,0" and self.col == CHUNK_SIZE//2 and self.row == CHUNK_SIZE//2 \
                         else BLUE if self.terrain == "water" \
                         else GREEN if self.terrain=="grass" \
-                        else YELLOW if self.terrain=="sand" \
-                        else RED if self.terrain == "clay"\
+                        else RED if self.terrain == "dirt"\
                         else LIGHT_GREY if self.terrain == "snow"
                         else BLACK, 
                     camera.apply(self.rect), width=1
