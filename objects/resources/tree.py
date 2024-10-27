@@ -77,7 +77,7 @@ class Tree(SpriteObject):
             row_index=loadout['row_index'],
             col_index=loadout['col_index'],
             tile_size=loadout['tile_size'],
-            resize=(TILE_SIZE*1.5, TILE_SIZE*1.5),
+            resize=(TILE_SIZE*2, TILE_SIZE*2),
             remove_padding=True
         )
 

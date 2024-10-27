@@ -2,6 +2,11 @@ from settings import *
 from map.tile.tile import Tile
 from objects.sprites import SpriteObject
 import random
+from objects.npcs.bat import Bat
+from objects.npcs.slime import Slime
+from objects.npcs.butterfly import Butterfly
+from objects.npcs.grasshopper import Grasshopper
+from objects.npcs.ladybug import Ladybug
 
 water_color = (8, 140, 201)
 
@@ -11,11 +16,12 @@ class SwampTile(Tile):
         self.tree_density = 0.75
         self.rock_density = 0.07
 
+        self.chunk = chunk
         self.game = game
         self.x = chunk.rect.topleft[0] + (col * TILE_SIZE)
         self.y = chunk.rect.topleft[1] + (row * TILE_SIZE)
         self.terrain = terrain
-        self.terrain = self.set_terrain()
+        self.set_terrain()
 
         super().__init__(game, chunk, row, col, is_explored, self.terrain, texture)
 
@@ -24,12 +30,19 @@ class SwampTile(Tile):
     def set_terrain(self):
         noise = self.game.map.rain_noise_gen.noise2(self.x, self.y)
         if noise > 0.1:
-            return "water"
-        else:
-            return self.terrain
+            self.terrain = "water"
+    
+    def load_objects(self, objects=None):
+        load_more = super().load_objects(objects)
+        if load_more:
+            # Spawn Slimes
+            if random.random() < .01:
+                spawn_loc = self.can_spawn()
+                if spawn_loc:
+                    self.objects.append(Slime(self.game, *spawn_loc, self))   
 
     def get_spritesheet_path(self) -> str:
-        return "assets/textures/tiles-swamp.png"
+        return "assets/textures/tiles-swamp.png"  
     
     def get_tree_spawn_weights(self):
         return {
@@ -47,9 +60,20 @@ class DesertTile(Tile):
         self.biome = "Desert"
         self.tree_density = 0.05
         self.rock_density = 0.05
-        super().__init__(game, chunk, row, col, is_explored, terrain, texture)
+        self.game = game
+        self.terrain = terrain
+        super().__init__(game, chunk, row, col, is_explored, self.terrain, texture)
 
         self.color = water_color if terrain=="water" else (173, 162, 31)
+
+    def load_objects(self, objects=None):
+        load_more = super().load_objects(objects)
+        if load_more:
+            # Spawn Grasshoppers
+            if random.random() < .02:
+                spawn_loc = self.can_spawn()
+                if spawn_loc:
+                    Grasshopper(self.game, self.rect.centerx, self.rect.centery, self)     
 
     def get_spritesheet_path(self) -> str:
         return "assets/textures/tiles-desert.png"
@@ -58,7 +82,7 @@ class DesertTile(Tile):
         return {
             "Dead1":1,
             "Dead2":1
-        }
+        } 
     
     def get_decor_weights(self):
         return {}
@@ -68,8 +92,23 @@ class ForestTile(Tile):
         self.biome = "Forest"
         self.tree_density = 0.75
         self.rock_density = 0.07
-        super().__init__(game, chunk, row, col, is_explored, terrain, texture)
+        self.terrain = terrain
+        super().__init__(game, chunk, row, col, is_explored, self.terrain, texture)
         self.color = water_color if terrain=="water" else (11, 115, 32)
+
+    def load_objects(self, objects=None):
+        load_more = super().load_objects(objects)
+        if load_more:
+            # Spawn Butterflies
+            if random.random() < .02:
+                spawn_loc = self.can_spawn()
+                if spawn_loc:
+                    Butterfly(self.game, self.rect.centerx, self.rect.centery, self)        
+            # Spawn Ladybugs
+            elif random.random() < .02:
+                spawn_loc = self.can_spawn()
+                if spawn_loc:
+                    Ladybug(self.game, self.rect.centerx, self.rect.centery, self)        
 
     def get_spritesheet_path(self) -> str:
         return "assets/textures/tiles.png"
@@ -88,12 +127,36 @@ class ForestTile(Tile):
 
 class RainforestTile(Tile):
     def __init__(self, game, chunk, row, col, is_explored=False, terrain="grass", texture={}):
-        self.biome = "RainForest"
+        self.biome = "Rainforest"
         self.tree_density = 0.85
         self.rock_density = 0.05
-        super().__init__(game, chunk, row, col, is_explored, terrain, texture)
+        self.game = game
+        self.x = chunk.rect.topleft[0] + (col * TILE_SIZE)
+        self.y = chunk.rect.topleft[1] + (row * TILE_SIZE)
+        self.terrain = terrain
+        self.set_terrain()
+        super().__init__(game, chunk, row, col, is_explored, self.terrain, texture)
 
         self.color = water_color if terrain=="water" else (6, 87, 48)
+
+    def set_terrain(self):
+        noise = self.game.map.rain_noise_gen.noise2(self.x, self.y)
+        if noise > 0.5:
+            self.terrain = "dirt"
+
+    def load_objects(self, objects=None):
+        load_more = super().load_objects(objects)
+        if load_more:
+            # Spawn Bats
+            if random.random() < .01:
+                spawn_loc = self.can_spawn()
+                if spawn_loc:
+                    self.objects.append(Bat(self.game, *spawn_loc, self))  
+            # Spawn Butterflies
+            elif random.random() < .05:
+                spawn_loc = self.can_spawn()
+                if spawn_loc:
+                    Butterfly(self.game, self.rect.centerx, self.rect.centery, self)        
 
     def get_spritesheet_path(self) -> str:
         return "assets/textures/tiles-rainforest.png"
@@ -113,9 +176,18 @@ class GrasslandTile(Tile):
         self.tree_density = 0.2
         self.rock_density = 0.01
         self.terrain = terrain
-        super().__init__(game, chunk, row, col, is_explored, terrain, texture)
+        super().__init__(game, chunk, row, col, is_explored, self.terrain, texture)
 
         self.color = water_color if terrain=="water" else (81, 156, 23)
+
+    def load_objects(self, objects=None):
+        load_more = super().load_objects(objects)
+        if load_more:
+            # Spawn Ladybugs
+            if random.random() < .02:
+                spawn_loc = self.can_spawn()
+                if spawn_loc:
+                    Ladybug(self.game, self.rect.centerx, self.rect.centery, self)    
 
     def get_spritesheet_path(self) -> str:
         return "assets/textures/tiles-grassland.png"
@@ -167,9 +239,19 @@ class TundraTile(Tile):
         self.biome = "Tundra"
         self.tree_density = 0.6
         self.rock_density = 0.05
-        super().__init__(game, chunk, row, col, is_explored, terrain, texture)
+        self.terrain = terrain
+        super().__init__(game, chunk, row, col, is_explored, self.terrain, texture)
 
         self.color = water_color if terrain=="water" else (153, 225, 240)
+
+    def load_objects(self, objects=None):
+        load_more = super().load_objects(objects)
+        if load_more:
+            # Spawn Bats
+            if random.random() < .05:
+                spawn_loc = self.can_spawn()
+                if spawn_loc:
+                    Bat(self.game, self.rect.centerx, self.rect.centery, self)    
 
     def get_spritesheet_path(self) -> str:
         return "assets/textures/tiles.png"
@@ -190,10 +272,20 @@ class MountainTile(Tile):
         self.biome = "Mountain"
         self.tree_density = 0.1
         self.rock_density = 0.25
-        super().__init__(game, chunk, row, col, is_explored, terrain, texture)
+        self.terrain = terrain
+        super().__init__(game, chunk, row, col, is_explored, self.terrain, texture)
 
         self.color = water_color if terrain=="water" else (211, 211, 245)
 
+    def load_objects(self, objects=None):
+        load_more = super().load_objects(objects)
+        if load_more:
+            # Spawn Bats
+            if random.random() < .05:
+                spawn_loc = self.can_spawn()
+                if spawn_loc:
+                    Bat(self.game, self.rect.centerx, self.rect.centery, self)    
+    
     def get_spritesheet_path(self) -> str:
         return "assets/textures/tiles-mountain.png"
     

@@ -16,6 +16,7 @@ from menus.skill_tree import SkillTreeMenu
 from menus.map import MapMenu
 from map.map_echo import MapEcho
 from menus.photos import PhotoMenu
+from objects.lighting.engine import LightingEngine
 from objects.assets import SpriteAssetManager, SoundAssetManager, JSONFileManager
 import uuid
 import os
@@ -77,6 +78,7 @@ class Game:
         self.can_axe_list = pg.sprite.Group() # objects the player can hit with their axe
         self.can_sword_list = pg.sprite.Group() # objects the player can hit with their sword
         self.can_pick_list = pg.sprite.Group() # objects the player can hit with their pickaxe
+        self.light_list = pg.sprite.Group() # objects with a lighting effect
         
         # initialize input-agnostic game objects
         self.camera = Camera(self, WINDOW_WIDTH, WINDOW_HEIGHT)
@@ -138,6 +140,7 @@ class Game:
 
         # store data for unloaded chunks as separate entity
         self.map_echo = MapEcho(self)
+        self.lighting_engine = LightingEngine(self)
 
         # move on from the start menu only once a chunk is finished loading
         self.at_start_menu = False
@@ -182,6 +185,7 @@ class Game:
         # call .update() on all sprites
         self.sprite_list.update()
         self.camera.update()
+        self.lighting_engine.update(self.camera)
     
         # every N seconds, update the map to see if new chunks need to be generated
         if self.map_reload_timer >= 1:
@@ -212,6 +216,9 @@ class Game:
             ,key = lambda sprite:(sprite.layer, sprite.rect.center[1])
         ): 
             sprite.draw(self.screen, self.camera)
+
+        # draw lighting effects
+        self.lighting_engine.draw(self.screen)
 
         # draw menus 
         self.backpack_inventory_menu.draw(self.screen)
@@ -253,16 +260,7 @@ class Game:
                         self.photo_screen()
                     # open the map menu
                     elif event.key == pg.K_m:
-                        self.map_screen()
-
-                if event.type == pg.MOUSEBUTTONDOWN:
-                    mouse_pos = pg.mouse.get_pos()
-                    for chunk_id in self.map.get_visible_chunks():
-                        if chunk_id in self.map.chunks:
-                            for tile in self.map.chunks[chunk_id].get_tiles():
-                                if self.camera.apply(tile.rect).collidepoint(mouse_pos):
-                                    print(type(tile), tile.terrain)
-            
+                        self.map_screen()            
                 
                 self.weapon_menu.handle_event(event)
                 self.player.handle_event(event)
@@ -284,8 +282,6 @@ class Game:
                 and not self.at_photo_menu \
                 and not self.at_map_menu:
             self.player.handle_keys(pg.key.get_pressed())
-
-            
 
     def start_screen(self):
         """
