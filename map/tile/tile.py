@@ -227,8 +227,8 @@ class Tile(ABC):
                 weights = list(decor_weights.values())
             )[0]
 
-            decor_x = self.rect.center[0] + random.random() * TILE_SIZE//2
-            decor_y = self.rect.center[1] + random.random() * TILE_SIZE//2
+            decor_x = self.rect.topleft[0] + int(random.random() * TILE_SIZE)
+            decor_y = self.rect.topleft[1] + int(random.random() * TILE_SIZE)
 
             self.decor.append(
                 SpriteObject(

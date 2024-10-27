@@ -1,6 +1,6 @@
 from settings import *
 from map.tile.tile import Tile
-from map.tile.grass import Grass
+from objects.sprites import SpriteObject
 import random
 
 water_color = (8, 140, 201)
@@ -120,8 +120,7 @@ class GrasslandTile(Tile):
         
         if terrain != "grass":
             for obj in self.decor:
-                if isinstance(obj, Grass):
-                    obj.kill()
+                obj.kill()
         
     def load_decor(self):
         super().load_decor()
@@ -129,10 +128,23 @@ class GrasslandTile(Tile):
         if self.terrain == "grass":
             for i in range(10):
                 pos = (
-                    self.rect.topleft[0] + random.randint(0, self.rect.width), 
-                    self.rect.topleft[1] + random.randint(0, self.rect.height)
+                    self.rect.topleft[0] + int(random.random() * TILE_SIZE),
+                    self.rect.topleft[1] + int(random.random() * TILE_SIZE)
                 )
-                self.decor.append(Grass(self.game, *pos, self))
+                self.decor.append(
+                    SpriteObject(
+                        self.game,
+                        *pos,
+                        tile = self,
+                        layer = DECOR_LAYER,
+                        image = self.game.sprites.load(random.choice([
+                            "assets/decor/grass/12.png",
+                            "assets/decor/grass/13.png"
+                        ])),
+                    )
+                )
+                
+    
 
     def get_tree_spawn_weights(self):
         return {
