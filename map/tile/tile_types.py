@@ -237,7 +237,7 @@ class GrasslandTile(Tile):
 class TundraTile(Tile):
     def __init__(self, game, chunk, row, col, is_explored=False, terrain="snow", texture={}):
         self.biome = "Tundra"
-        self.tree_density = 0.6
+        self.tree_density = 0.5
         self.rock_density = 0.05
         self.terrain = terrain
         super().__init__(game, chunk, row, col, is_explored, self.terrain, texture)
@@ -267,35 +267,21 @@ class TundraTile(Tile):
     def get_decor_weights(self):
         return {}
     
-class MountainTile(Tile):
-    def __init__(self, game, chunk, row, col, is_explored=False, terrain="snow", texture={}):
-        self.biome = "Mountain"
-        self.tree_density = 0.1
-        self.rock_density = 0.25
+class LakeTile(Tile):
+    def __init__(self, game, chunk, row, col, is_explored=False, terrain="water", texture={}):
+        self.biome = "Lake"
+        self.tree_density = 0
+        self.rock_density = 0
         self.terrain = terrain
         super().__init__(game, chunk, row, col, is_explored, self.terrain, texture)
 
         self.color = water_color if terrain=="water" else (211, 211, 245)
 
-    def load_objects(self, objects=None):
-        load_more = super().load_objects(objects)
-        if load_more:
-            # Spawn Bats
-            if random.random() < .05:
-                spawn_loc = self.can_spawn()
-                if spawn_loc:
-                    Bat(self.game, self.rect.centerx, self.rect.centery, self)    
-    
     def get_spritesheet_path(self) -> str:
-        return "assets/textures/tiles-mountain.png"
+        return "assets/textures/tiles.png"
     
     def get_tree_spawn_weights(self):
-        return {
-            "SnowDead1":3,
-            "SnowDead2":3,
-            "SnowCone1":1,
-            "SnowCone2":1
-        }
+        return {}
     
     def get_decor_weights(self):
         return {}

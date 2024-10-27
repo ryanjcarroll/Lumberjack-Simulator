@@ -7,8 +7,8 @@ import random
 
 class Grasshopper(SpriteObject):
     def __init__(self, game, x, y, tile):
-        self.width = 36
-        self.height = 36
+        self.width = 20
+        self.height = 20
         self.frames = {}
 
         super().__init__(game, x, y, tile, layer=GROUND_NPC_LAYER, image=None)

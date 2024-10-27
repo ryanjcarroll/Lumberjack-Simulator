@@ -125,12 +125,12 @@ class Chunk:
         rainfall = self.game.map.get_noise(x, y, type="rain")
 
         if altitude > 0.3:  # High altitude (low temp)
-            if rainfall > 0:
+            if rainfall > -0.2:
                 tile_type = TundraTile
                 terrain = "snow"
             else:
-                tile_type = MountainTile
-                terrain = "snow"
+                tile_type = LakeTile
+                terrain = "water"
         elif altitude < -0.3:  # Low altitude (high temp)
             if rainfall > 0:
                 tile_type = SwampTile
