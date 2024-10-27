@@ -18,10 +18,10 @@ class LightingEngine:
             sunrise_total_minutes = (dt.replace(hour=7, minute=0) - dt.replace(hour=5, minute=0)).total_seconds() // 60
             sunrise_elapsed_minutes =  (dt - dt.replace(hour=5, minute=0)).total_seconds() // 60
             self.darkness_alpha = int((1-(sunrise_elapsed_minutes / sunrise_total_minutes)) * (self.nighttime_darkness_alpha - self.daytime_darkness_alpha))
-        # sunset hours from 5pm to 7pm
-        elif dt.replace(hour=17, minute=0) <= dt <= dt.replace(hour=19, minute=0):
-            sunset_total_minutes = (dt.replace(hour=19, minute=0) - dt.replace(hour=17, minute=0)).total_seconds() // 60
-            sunset_elapsed_minutes =  (dt - dt.replace(hour=17, minute=0)).total_seconds() // 60       
+        # sunset hours from 7pm to 9pm
+        elif dt.replace(hour=19, minute=0) <= dt <= dt.replace(hour=21, minute=0):
+            sunset_total_minutes = (dt.replace(hour=21, minute=0) - dt.replace(hour=19, minute=0)).total_seconds() // 60
+            sunset_elapsed_minutes =  (dt - dt.replace(hour=19, minute=0)).total_seconds() // 60       
             self.darkness_alpha = int((sunset_elapsed_minutes / sunset_total_minutes) * (self.nighttime_darkness_alpha - self.daytime_darkness_alpha))
         # daytime hours from 9am to 5pm
         else:

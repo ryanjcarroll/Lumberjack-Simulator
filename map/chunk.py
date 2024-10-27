@@ -142,7 +142,7 @@ class Chunk:
             if rainfall > 0.3:
                 tile_type = RainforestTile
                 terrain = "grass"
-            elif rainfall > 0:
+            elif rainfall > -0.2:
                 tile_type = ForestTile
                 terrain = "grass"
             else:
