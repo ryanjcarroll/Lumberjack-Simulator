@@ -21,6 +21,7 @@ import uuid
 import os
 from utility import write_json
 import json
+import random
 pg.init()
 
 class Game:
@@ -109,7 +110,7 @@ class Game:
         else:
             # set game variables
             self.game_id = str(uuid.uuid4())
-            self.seed = "31968-83701-94076" # f"{random.randint(0,100000)}-{random.randint(0,100000)}-{random.randint(0,100000)}"
+            self.seed = f"{random.randint(0,100000)}-{random.randint(0,100000)}-{random.randint(0,100000)}"
             print(self.seed)
 
             loadout = {

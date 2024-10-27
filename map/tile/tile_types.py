@@ -7,6 +7,7 @@ water_color = (8, 140, 201)
 
 class SwampTile(Tile):
     def __init__(self, game, chunk, row, col, is_explored=False, terrain="dirt", texture={}):
+        self.biome = "Swamp"
         self.tree_density = 0.75
         self.rock_density = 0.07
 
@@ -43,6 +44,7 @@ class SwampTile(Tile):
 
 class DesertTile(Tile):
     def __init__(self, game, chunk, row, col, is_explored=False, terrain="dirt", texture={}):
+        self.biome = "Desert"
         self.tree_density = 0.05
         self.rock_density = 0.05
         super().__init__(game, chunk, row, col, is_explored, terrain, texture)
@@ -63,6 +65,7 @@ class DesertTile(Tile):
 
 class ForestTile(Tile):
     def __init__(self, game, chunk, row, col, is_explored=False, terrain="grass", texture={}):
+        self.biome = "Forest"
         self.tree_density = 0.75
         self.rock_density = 0.07
         super().__init__(game, chunk, row, col, is_explored, terrain, texture)
@@ -85,6 +88,7 @@ class ForestTile(Tile):
 
 class RainforestTile(Tile):
     def __init__(self, game, chunk, row, col, is_explored=False, terrain="grass", texture={}):
+        self.biome = "RainForest"
         self.tree_density = 0.85
         self.rock_density = 0.05
         super().__init__(game, chunk, row, col, is_explored, terrain, texture)
@@ -105,6 +109,7 @@ class RainforestTile(Tile):
  
 class GrasslandTile(Tile):
     def __init__(self, game, chunk, row, col, is_explored=False, terrain="grass", texture={}):
+        self.biome = "Grassland"
         self.tree_density = 0.2
         self.rock_density = 0.01
         self.terrain = terrain
@@ -143,9 +148,7 @@ class GrasslandTile(Tile):
                         ])),
                     )
                 )
-                
     
-
     def get_tree_spawn_weights(self):
         return {
             "Pink1":1,
@@ -161,6 +164,7 @@ class GrasslandTile(Tile):
     
 class TundraTile(Tile):
     def __init__(self, game, chunk, row, col, is_explored=False, terrain="snow", texture={}):
+        self.biome = "Tundra"
         self.tree_density = 0.6
         self.rock_density = 0.05
         super().__init__(game, chunk, row, col, is_explored, terrain, texture)
@@ -183,6 +187,7 @@ class TundraTile(Tile):
     
 class MountainTile(Tile):
     def __init__(self, game, chunk, row, col, is_explored=False, terrain="snow", texture={}):
+        self.biome = "Mountain"
         self.tree_density = 0.1
         self.rock_density = 0.25
         super().__init__(game, chunk, row, col, is_explored, terrain, texture)
