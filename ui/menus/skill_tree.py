@@ -24,9 +24,7 @@ class SkillTreeMenu:
         self.title_rect = self.title_surface.get_rect(center=(WINDOW_WIDTH // 2, 30))  # Centered at the top
 
         # Draw the Points Available text box, right-justified
-        self.points_text = f"Points Available: {self.game.player.skill_points_available}"
-        self.points_surface = self.subtitle_font.render(self.points_text, True, (0, 0, 0))  # Black text
-        self.points_rect = self.points_surface.get_rect(topright=(WINDOW_WIDTH - 20, self.title_rect.bottom + 10))  # Right-justified
+        self.update_points_available()
         
         # Draw tree labels
         tree_1_label = "Survival"
@@ -61,6 +59,12 @@ class SkillTreeMenu:
             node.points_label_surface = points_label_surface
             node.points_label_rect = points_label_rect
 
+    def update_points_available(self):
+        # Draw the Points Available text box, right-justified
+        self.points_text = f"Points Available: {self.game.player.skill_points_available}"
+        self.points_surface = self.subtitle_font.render(self.points_text, True, (0, 0, 0))  # Black text
+        self.points_rect = self.points_surface.get_rect(topright=(WINDOW_WIDTH - 20, self.title_rect.bottom + 10))  # Right-justified
+
     def handle_event(self, event):
         # handle clicks inside the skilltree menu
         if event.type == pg.MOUSEBUTTONDOWN:
@@ -71,10 +75,7 @@ class SkillTreeMenu:
                         self.game.player.skill_points_available -= 1
                         node.add_point()
 
-                        # regenerate the points available textbox
-                        self.points_text = f"Points Available: {self.game.player.skill_points_available}"
-                        self.points_surface = self.subtitle_font.render(self.points_text, True, (0, 0, 0))  # Black text
-                        self.points_rect = self.points_surface.get_rect(topright=(WINDOW_WIDTH - 20, self.title_rect.bottom + 10))  # Right-justified
+                        self.update_points_available()
 
                         # regenerate the "0/3" points label
                         points_label = f"{node.current_points}/{node.total_points}"

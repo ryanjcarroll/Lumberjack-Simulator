@@ -12,7 +12,27 @@ class Tree(SpriteObject):
         self.image_name = image_name
         self.flipped = flipped
 
+        # variables for shake effect
+        self.shaking = False
+        self.shake_timer = 0
+        self.shake_duration = 0.3 # in seconds
+        self.shake_amplitude = 1 # in pixels
+        self.shake_speed = 40
+        self.shake_seed = random.random() * 2 * math.pi # unique value to differentiate this shake from others
+
+        # variables for fall effect
+        self.angle = 0
+        self.falling = False
+        self.fall_timer = 0
+        self.fall_duration = 1
+        self.fall_direction = 1
+        self.fall_speed = 2 + (random.random() * 3)
+
         super().__init__(game, x, y, tile=tile, layer=SPRITE_LAYER, image=None)
+        self.set_shadow()
+
+        self.draw_rect = self.rect  # .draw_rect may be different while shaking, but .rect will stay the same
+        self.fall_image = self.image
 
         # settings for taking damage from axes
         self.health = TREE_HEALTH
@@ -24,28 +44,8 @@ class Tree(SpriteObject):
         )
         self.collision_rect.topleft = (self.rect.topleft[0] + self.rect.width//3, self.rect.topleft[1] + 2*self.rect.width//3)
 
-        # variables for shake effect
-        self.draw_rect = self.rect  # .draw_rect may be different while shaking, but .rect will stay the same
-        self.shaking = False
-        self.shake_timer = 0
-        self.shake_duration = 0.3 # in seconds
-        self.shake_amplitude = 1 # in pixels
-        self.shake_speed = 40
-        self.shake_seed = random.random() * 2 * math.pi # unique value to differentiate this shake from others
-
-        # variables for fall effect
-        self.angle = 0
-        self.fall_image = self.image
-        self.falling = False
-        self.fall_timer = 0
-        self.fall_duration = 1
-        self.fall_direction = 1
-        self.fall_speed = 2 + (random.random() * 3)
-
         self.game.can_collide_list.add(self)
         self.game.can_axe_list.add(self)
-
-        self.set_shadow()
 
     def load_image(self):
         # load/set image name
@@ -72,16 +72,13 @@ class Tree(SpriteObject):
             raise Exception(f"Couldn't find sprite for Tree `{self.image_name}`")
 
         # load and remove padding from image        
-        scaled_image = pg.transform.scale(
-            remove_padding(
-                self.game.sprites.load_from_tilesheet(
-                    path=loadout['path'],
-                    row_index=loadout['row_index'],
-                    col_index=loadout['col_index'],
-                    tile_size=loadout['tile_size']
-                )
-            ),
-            (TILE_SIZE*1.5, TILE_SIZE*1.5)
+        scaled_image = self.game.sprites.load_from_tilesheet(
+            path=loadout['path'],
+            row_index=loadout['row_index'],
+            col_index=loadout['col_index'],
+            tile_size=loadout['tile_size'],
+            resize=(TILE_SIZE*2, TILE_SIZE*2),
+            remove_padding=True
         )
 
         # flip on vertical mirror if applicable
@@ -182,57 +179,5 @@ class Tree(SpriteObject):
             "type":type(self).__name__,
             "topleft":(self.x, self.y),
             "image_name":self.image_name,
-            "flipped":self.flipped
-        }
-
-class ForestTree(Tree):
-    def __init__(self, game, x, y, tile, image_name=None, flipped=None):
-
-        super().__init__(game, x, y, tile, image_name, flipped)
-        self.fall_image = self.image
-    
-    def get_spawn_weights(self):
-        return {
-            "CozyOak1":10,
-            "CozyOak2":10,
-            "CozyBirch1":20,
-            "Oak1":10,
-            "Oak2":10,
-            "Dead1":2,
-            "Dead2":2
-        }
-
-class IceTree(Tree):
-    def __init__(self, game, x, y, tile, image_name=None, flipped=None):
-        super().__init__(game, x, y, tile, image_name, flipped)
-
-    def get_spawn_weights(self):
-        return {
-            "SnowCone1":5,
-            "SnowCone2":5,
-            "SnowDead1":10,
-            "SnowDead2":10
-        }
-
-class AutumnTree(Tree):
-    def __init__(self, game, x, y, tile, image_name=None, flipped=None):
-        super().__init__(game, x, y, tile, image_name, flipped)
-
-    def get_spawn_weights(self):
-        return {
-            "Autumn1":10,
-            "Autumn2":10,
-            "CozyRough1":20,
-            "CozyAutumn1":10,
-        }
-      
-class MangroveTree(Tree):
-    def __init__(self, game, x, y, tile, image_name=None, flipped=None):
-        super().__init__(game, x, y, tile, image_name, flipped)
-
-    def get_spawn_weights(self):
-        return {
-            "CozyGreen1":10,
-            "Moss1":10,
-            "Moss2":10,
+            "flipped":self.flipped,
         }

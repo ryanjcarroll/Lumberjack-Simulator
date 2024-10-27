@@ -1,9 +1,9 @@
 from settings import *
 import threading
-from map.chunk import Chunk, SpawnChunk
+from map.chunk import Chunk
 from pygame import Vector2 as vec
-from glob import glob
-import json
+from opensimplex import OpenSimplex
+import random
 import pygame as pg
 
 class Map:
@@ -14,16 +14,28 @@ class Map:
         self.currently_loading = set() # track chunk_ids that are currently loading so we don't try to double-load them
         self.lock = threading.Lock() # to prevent two threads (or thread and main) from trying to modify self.chunks at the same time
 
+        # noise generators for biomes
+        self.alt_noise_gen = OpenSimplex(int(self.game.seed.split("-")[0])) # altitude
+        self.rain_noise_gen = OpenSimplex(int(self.game.seed.split("-")[1])) # rainfall
+        self.river_noise_gen = OpenSimplex(int(self.game.seed.split("-")[2])) # rivers
+        self.alt_scale = 0.0002
+        self.rain_scale = 0.0002
+        self.river_scale = 0.0005
+
+        self.tile_noise_options = [
+            self.generate_tile_noise() for i in range(5)
+        ]
+
     def new(self):
         # generate the starting chunk with the top left corner at (0,0)
-        self.load_chunk(0,0, type=SpawnChunk)
+        self.load_chunk(0,0)
 
     def update(self):
         """
         Check if new chunks need to be generated based on the player's position.
         """
         # Generate new chunks when the player is within 4 tiles of them
-        chunks_to_load = self.get_visible_chunks(buffer=TILE_SIZE*4)
+        chunks_to_load = self.get_visible_chunks(buffer=4*TILE_SIZE)
 
         for chunk_id in chunks_to_load:
             with self.lock:
@@ -53,14 +65,40 @@ class Map:
     def load_chunk(self, x, y, type=Chunk):
         self.currently_loading.add(f"{x},{y}")
         chunk = type(self.game, x, y)
-        with self.lock: # prevent race condition
-            self.chunks[chunk.id] = chunk
-            
+        with self.lock: # prevent race condition            
             # remove from the map echo once loaded
             if self.game.map_echo and chunk.id in self.game.map_echo.chunks:
                 self.game.map_echo.remove_chunk(chunk.id)
 
+            self.chunks[chunk.id] = chunk
+            self.chunks[chunk.id].check_neighboring_edges()
             self.currently_loading.remove(chunk.id)
+
+    def get_noise(self, x, y, type:str):
+        if type == "alt":
+            return self.alt_noise_gen.noise2(x*self.alt_scale,y*self.alt_scale)
+        elif type == "rain":
+            return self.rain_noise_gen.noise2(x*self.rain_scale,y*self.rain_scale)
+        elif type == "river":
+            return self.river_noise_gen.noise2(x*self.river_scale,y*self.river_scale)
+        
+    def generate_tile_noise(self):
+        noise_resolution = 4
+        transparency = 0.99
+
+        # Create a noise surface that covers the tile at lower resolution
+        noise_surface = pg.Surface((TILE_SIZE // noise_resolution, TILE_SIZE // noise_resolution), pg.SRCALPHA)
+
+        # Fill noise surface with random grayscale noise
+        for y in range(noise_surface.get_height()):
+            for x in range(noise_surface.get_width()):
+                gray_value = random.randint(235, 255)
+                noise_surface.set_at((x, y), (gray_value, gray_value, gray_value, int(255 * transparency)))
+        
+        # Scale the noise surface up to match the size of the tile
+        noise_surface = pg.transform.scale(noise_surface, (TILE_SIZE, TILE_SIZE))
+
+        return noise_surface
 
     def get_chunk_id(self, x, y):
         """
@@ -84,8 +122,6 @@ class Map:
         
         buffer: Number of pixels to overestimate with when calculating the visible area.
         """
-
-
         # calculate the coords for opposite corners of the viewport (with an additional preload buffer)
         screen_topleft = self.get_chunk_coords(self.game.player.pos.x - WINDOW_WIDTH//2 - buffer, 
                                             self.game.player.pos.y - WINDOW_HEIGHT//2 - buffer)

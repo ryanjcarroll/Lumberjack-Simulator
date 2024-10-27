@@ -1,5 +1,5 @@
 from settings import *
-from menus.button import TriangleButton
+from ui.button import TriangleButton
 import pygame as pg
 
 class PhotoMenu:

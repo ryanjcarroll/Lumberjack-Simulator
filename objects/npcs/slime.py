@@ -12,14 +12,6 @@ class Slime(SpriteObject):
         self.width = 36
         self.height = 36
         self.frames = {}
-
-        super().__init__(game, x, y, tile, layer=GROUND_NPC_LAYER, image=None)
-
-        # position and movement variables
-        self.pos = vec(x,y)
-        self.move_distance = 2
-        self.collision_rect = self.rect
-        
         self.health = 40
 
         # animation variables
@@ -40,6 +32,13 @@ class Slime(SpriteObject):
         self.knockback_timer = 0  # Duration for knockback
         self.knockback_duration = 18  # Number of frames for knockback effect
 
+        super().__init__(game, x, y, tile, layer=GROUND_NPC_LAYER, image=None)
+
+        # position and movement variables
+        self.pos = vec(x,y)
+        self.move_distance = 2
+        self.collision_rect = self.rect        
+
         self.game.can_sword_list.add(self)
         self.game.can_axe_list.add(self)
 
@@ -57,14 +56,12 @@ class Slime(SpriteObject):
             for col in range(info['num_frames']):
                 # load the component frame and add to images list
                 self.frames[action].append(
-                    pg.transform.scale(
-                        self.game.sprites.load_from_tilesheet(
-                            path=f"assets/npcs/slime/slime_{self.color}.png",
-                            row_index=info['row'],
-                            col_index=col,
-                            tile_size=16
-                        ),
-                        (self.width, self.height)
+                    self.game.sprites.load_from_tilesheet(
+                        path=f"assets/npcs/slime/slime_{self.color}.png",
+                        row_index=info['row'],
+                        col_index=col,
+                        tile_size=16,
+                        resize=(self.width, self.height)
                     )
                 )
     

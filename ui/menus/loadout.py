@@ -4,7 +4,7 @@ from glob import glob
 from utility import point_inside_triangle, combine_images
 import os
 import random
-from menus.button import Button, TriangleButton
+from ui.button import Button, TriangleButton
 
 
 """
@@ -59,13 +59,12 @@ class LoadoutMenu:
                 self.assets[attribute][category_id] = {
                     "name":os.path.basename(path).split(".")[0],
                     "styles":{
-                            style_id : pg.transform.scale_by(
-                                self.game.sprites.load_from_tilesheet(
+                            style_id : self.game.sprites.load_from_tilesheet(
                                     path=path,
                                     row_index=0,
                                     col_index=style_id * SPRITESHEET_NUM_COLUMNS, # extract method already accounts for tile size
-                                    tile_size=SPRITESHEET_TILE_SIZE
-                                ),factor = 4
+                                    tile_size=SPRITESHEET_TILE_SIZE,
+                                    resize = (SPRITESHEET_TILE_SIZE*4, SPRITESHEET_TILE_SIZE*4)
                             )
                         for style_id in range(num_variations)
                     }

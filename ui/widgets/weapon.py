@@ -1,7 +1,7 @@
 import pygame as pg
 from settings import *
 
-class WeaponMenu:
+class WeaponWidget:
     def __init__(self, game):
         self.game = game
         

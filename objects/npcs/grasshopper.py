@@ -7,8 +7,8 @@ import random
 
 class Grasshopper(SpriteObject):
     def __init__(self, game, x, y, tile):
-        self.width = 36
-        self.height = 36
+        self.width = 20
+        self.height = 20
         self.frames = {}
 
         super().__init__(game, x, y, tile, layer=GROUND_NPC_LAYER, image=None)
@@ -47,14 +47,12 @@ class Grasshopper(SpriteObject):
             for col in range(info['num_frames']):
                 # load the component frame and add to images list
                 self.frames[action].append(
-                    pg.transform.scale(
-                        self.game.sprites.load_from_tilesheet(
+                    self.game.sprites.load_from_tilesheet(
                             path=f"assets/npcs/bugs/grasshopper/grasshopper.png",
                             row_index=info['row'],
                             col_index=col,
-                            tile_size=18
-                        ),
-                        (self.width, self.height)
+                            tile_size=18,
+                            resize=(self.width, self.height)
                     )
                 )
 
