@@ -274,6 +274,7 @@ class Player(SpriteObject):
                 if type(obj)== SkillPoint:
                     self.skill_points_available += 1
                     self.game.sounds.play("skillpoint",0)
+                    self.game.skilltree_menu.update_points_available()
                 obj.kill()
 
     def get_equipped_weapon_stats(self):
