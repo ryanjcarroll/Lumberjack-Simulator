@@ -10,10 +10,10 @@ from objects.player.player import Player
 from map.tile.tile_utility import get_image_from_texture, get_texture_from_neighbors
 
 # spawnable object types need to be loaded for the `object_type = globals()[d['type']]` line to function
-from objects.water import Water
+from objects.map_elements.water import Water
 from objects.items.items import SkillPoint
 from objects.resources.rock import Rock
-from objects.inventory import Camp
+from objects.map_elements.camp import Camp
 from objects.npcs.bat import Bat
 from objects.npcs.slime import Slime
 from objects.npcs.butterfly import Butterfly

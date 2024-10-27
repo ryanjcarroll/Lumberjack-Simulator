@@ -1,7 +1,7 @@
 from settings import *
 from map.tile.tile_types import *
 from pygame import Vector2 as vec
-from objects.inventory import Camp
+from objects.map_elements.camp import Camp
 from objects.lighting.torch import Torch
 import os
 import json

@@ -3,7 +3,7 @@ from settings import *
 from pygame import Vector2 as vec
 import math
 from utility import *
-from objects.inventory import Backpack
+from objects.items.inventory import Backpack
 from objects.resources.tree import Tree
 from objects.resources.rock import Rock
 from objects.sprites import SpriteObject

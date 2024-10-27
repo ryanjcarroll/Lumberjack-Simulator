@@ -4,7 +4,7 @@ from map.map import Map
 from map.camera import Camera
 import sys
 from objects.player.player import Player
-from objects.inventory import *
+from objects.items.inventory import *
 from ui.widgets.bars import HealthBarWidget
 from ui.widgets.inventory import BackpackInventoryWidget, CampInventoryWidget
 from ui.widgets.weapon import WeaponWidget
@@ -88,7 +88,7 @@ class Game:
         # date & time of day variables
         self.datetime = dt.fromisoformat("1996-11-12 09:00:00")
         self.datetime_tick_timer = 0
-        self.datetime_tick_rate = 2 # in seconds
+        self.datetime_tick_rate = 1 # in seconds
         self.datetime_tick_amount = timedelta(minutes=5)
 
         # Load from Save
