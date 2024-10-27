@@ -1,6 +1,6 @@
 import pygame as pg
 from settings import *
-from utility import remove_padding_and_scale
+from utility import remove_padding
 from pygame import Vector2 as vec
 import math
 import random
@@ -73,7 +73,7 @@ class Tree(SpriteObject):
 
         # load and remove padding from image        
         scaled_image = pg.transform.scale(
-            remove_padding_and_scale(
+            remove_padding(
                 self.game.sprites.load_from_tilesheet(
                     path=loadout['path'],
                     row_index=loadout['row_index'],

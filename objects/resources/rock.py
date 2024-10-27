@@ -1,6 +1,6 @@
 import pygame as pg
 from settings import *
-from utility import remove_padding_and_scale
+from utility import remove_padding
 from pygame import Vector2 as vec
 import math
 import random
@@ -54,7 +54,7 @@ class Rock(SpriteObject):
 
         # load an image, remove transparent boundaries, and scale it to size
         scaled_image = pg.transform.scale(
-            remove_padding_and_scale(
+            remove_padding(
                 self.game.sprites.load(f"assets/rock/{self.image_name}.png")
             )
             ,(TILE_SIZE, TILE_SIZE)

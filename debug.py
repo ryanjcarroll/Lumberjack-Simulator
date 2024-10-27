@@ -1,2 +1,2 @@
-SKIP_MENU = False
+SKIP_MENU = True
 GOD_MODE = False

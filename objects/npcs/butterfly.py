@@ -23,7 +23,7 @@ class Butterfly(SpriteObject):
 
         # animation variables
         self.animation_timer = 0
-        self.current_frame_index = -1
+        self.current_frame_index = 0
         self.animation_speed = PLAYER_ANIMATION_SPEED / 2
         self.action = "fly"
 

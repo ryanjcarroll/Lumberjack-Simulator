@@ -5,6 +5,7 @@ from map.camera import Camera
 import sys
 from objects.player.player import Player
 from objects.inventory import *
+from objects.map_elements.campfire import Campfire
 from ui.compass import Compass
 from ui.bars import HealthBar
 from ui.inventory import BackpackInventoryMenu, CampInventoryMenu
@@ -140,6 +141,8 @@ class Game:
 
         # store data for unloaded chunks as separate entity
         self.map_echo = MapEcho(self)
+        
+        Campfire(self, self.player.x - TILE_SIZE, self.player.y)
 
         # move on from the start menu
         self.at_start_menu = False
