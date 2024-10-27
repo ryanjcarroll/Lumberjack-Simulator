@@ -10,6 +10,8 @@ from objects.sprites import SpriteObject
 from objects.items.items import SkillPoint
 from objects.player.skills import SkillTree
 from objects.player.phototaker import Phototaker
+# from map.tile.tile_types import GrasslandTile
+from map.tile.grass import Grass
 
 class Player(SpriteObject):
     """
@@ -422,11 +424,21 @@ class Player(SpriteObject):
         else:
             self.game.sounds.play_random("player_dodge")
 
+    def interact_with_map(self):
+        current_tile = self.get_current_tile()
+
+        for direction, tile in current_tile.get_neighbors().items():
+            if tile.terrain == "grass":
+                for obj in tile.decor:
+                    if isinstance(obj, Grass):
+                        obj.interact(self)
+
     def update(self):
         """
         Called each game step to update the Player object.
         """
         self.set_animation_counters(self.game.dt)
+        self.interact_with_map()
 
         # set the frame for animations
         if self.action in ["walk"] + WEAPONS_TO_LOAD:
@@ -487,6 +499,7 @@ class Player(SpriteObject):
 
     def draw(self, screen, camera):
         # self.draw_hitboxes(screen, camera)
+        # pg.draw.rect(screen, RED, camera.apply(self.collision_rect))
         screen.blit(self.image, camera.apply(self.rect))
         
         # draw phototaker

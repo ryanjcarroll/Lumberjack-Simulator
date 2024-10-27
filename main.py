@@ -20,8 +20,6 @@ from objects.assets import SpriteAssetManager, SoundAssetManager, JSONFileManage
 import uuid
 import os
 from utility import write_json
-import opensimplex
-import random
 import json
 pg.init()
 

@@ -182,16 +182,16 @@ class Tile(ABC):
                     tree_img_name = random.choices(population=list(tree_types.keys()), weights=list(tree_types.values()))[0]
                     if spawn_loc:
                         self.objects.append(Tree(self.game, *spawn_loc, self, image_name=tree_img_name))
-                # Spawn Bats
-                elif random.random() < .01:
-                    spawn_loc = self.can_spawn()
-                    if spawn_loc:
-                        self.objects.append(Bat(self.game, *spawn_loc, self))                
-                # Spawn Slimes
-                elif random.random() < .01:
-                    spawn_loc = self.can_spawn()
-                    if spawn_loc:
-                        self.objects.append(Slime(self.game, *spawn_loc, self))                
+                # # Spawn Bats
+                # elif random.random() < .01:
+                #     spawn_loc = self.can_spawn()
+                #     if spawn_loc:
+                #         self.objects.append(Bat(self.game, *spawn_loc, self))                
+                # # Spawn Slimes
+                # elif random.random() < .01:
+                #     spawn_loc = self.can_spawn()
+                #     if spawn_loc:
+                #         self.objects.append(Slime(self.game, *spawn_loc, self))                
                 # Spawn Skill Points
                 elif random.random() < .005: # spawn an SkillPoint item on a small percentage of tiles which don't have a tree
                     spawn_loc = self.can_spawn()

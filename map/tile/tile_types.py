@@ -1,6 +1,7 @@
 from settings import *
 from map.tile.tile import Tile
-import pygame as pg
+from map.tile.grass import Grass
+import random
 
 water_color = (8, 140, 201)
 
@@ -106,6 +107,7 @@ class GrasslandTile(Tile):
     def __init__(self, game, chunk, row, col, is_explored=False, terrain="grass", texture={}):
         self.tree_density = 0.2
         self.rock_density = 0.01
+        self.terrain = terrain
         super().__init__(game, chunk, row, col, is_explored, terrain, texture)
 
         self.color = water_color if terrain=="water" else (81, 156, 23)
@@ -113,10 +115,24 @@ class GrasslandTile(Tile):
     def get_spritesheet_path(self) -> str:
         return "assets/textures/tiles-grassland.png"
     
+    def set_terrain(self, terrain):
+        super().set_terrain(terrain)
+        
+        if terrain != "grass":
+            for obj in self.decor:
+                if isinstance(obj, Grass):
+                    obj.kill()
+        
     def load_decor(self):
-        # for i in range(5):
-        #     super().load_decor()
-        pass
+        super().load_decor()
+
+        if self.terrain == "grass":
+            for i in range(10):
+                pos = (
+                    self.rect.topleft[0] + random.randint(0, self.rect.width), 
+                    self.rect.topleft[1] + random.randint(0, self.rect.height)
+                )
+                self.decor.append(Grass(self.game, *pos, self))
 
     def get_tree_spawn_weights(self):
         return {
