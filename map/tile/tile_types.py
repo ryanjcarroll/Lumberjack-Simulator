@@ -34,7 +34,7 @@ class SwampTile(Tile):
     
     def load_objects(self, objects=None):
         load_more = super().load_objects(objects)
-        if load_more:
+        if load_more and LOAD_CREATURES:
             # Spawn Slimes
             if random.random() < .01:
                 spawn_loc = self.can_spawn()
@@ -68,7 +68,7 @@ class DesertTile(Tile):
 
     def load_objects(self, objects=None):
         load_more = super().load_objects(objects)
-        if load_more:
+        if load_more and LOAD_CREATURES:
             # Spawn Grasshoppers
             if random.random() < .02:
                 spawn_loc = self.can_spawn()
@@ -98,7 +98,7 @@ class ForestTile(Tile):
 
     def load_objects(self, objects=None):
         load_more = super().load_objects(objects)
-        if load_more:
+        if load_more and LOAD_CREATURES:
             # Spawn Butterflies
             if random.random() < .02:
                 spawn_loc = self.can_spawn()
@@ -146,7 +146,7 @@ class RainforestTile(Tile):
 
     def load_objects(self, objects=None):
         load_more = super().load_objects(objects)
-        if load_more:
+        if load_more and LOAD_CREATURES:
             # Spawn Bats
             if random.random() < .01:
                 spawn_loc = self.can_spawn()
@@ -182,12 +182,12 @@ class GrasslandTile(Tile):
 
     def load_objects(self, objects=None):
         load_more = super().load_objects(objects)
-        if load_more:
-            # Spawn Ladybugs
-            if random.random() < .02:
-                spawn_loc = self.can_spawn()
-                if spawn_loc:
-                    Ladybug(self.game, self.rect.centerx, self.rect.centery, self)    
+        if load_more and LOAD_CREATURES:
+                # Spawn Ladybugs
+                if random.random() < .02:
+                    spawn_loc = self.can_spawn()
+                    if spawn_loc:
+                        Ladybug(self.game, self.rect.centerx, self.rect.centery, self)    
 
     def get_spritesheet_path(self) -> str:
         return "assets/textures/tiles-grassland.png"
@@ -246,12 +246,12 @@ class TundraTile(Tile):
 
     def load_objects(self, objects=None):
         load_more = super().load_objects(objects)
-        if load_more:
-            # Spawn Bats
-            if random.random() < .05:
-                spawn_loc = self.can_spawn()
-                if spawn_loc:
-                    Bat(self.game, self.rect.centerx, self.rect.centery, self)    
+        if load_more and LOAD_CREATURES:
+                # Spawn Bats
+                if random.random() < .05:
+                    spawn_loc = self.can_spawn()
+                    if spawn_loc:
+                        Bat(self.game, self.rect.centerx, self.rect.centery, self)    
 
     def get_spritesheet_path(self) -> str:
         return "assets/textures/tiles.png"

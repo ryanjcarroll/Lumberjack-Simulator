@@ -67,8 +67,7 @@ v		v		v		v		v		v		v		v		v
         color = FOREST_GREEN
         self.nodes["0_left"] = SkillNode(0, -3, "More HP From Apple Trees", color, points=2,
                                         func=lambda: setattr(self.game.player, 'fruit_hp', self.game.player.fruit_hp + 2.5))
-        self.nodes["1_left"] = SkillNode(1, -4, "Arrow Toward Camp", color,
-                                        func=lambda: setattr(self.game.compass, "active", True))
+        self.nodes["1_left"] = SkillNode(1, -4, "Node 1", color)
         self.nodes["2_left"] = SkillNode(1, -3, "Faster Movespeed", color, points=3,
                                         func=lambda: setattr(self.game.player, 'move_distance', self.game.player.move_distance + 1))
         self.nodes["3_left"] = SkillNode(1, -2, "Node 3", color)

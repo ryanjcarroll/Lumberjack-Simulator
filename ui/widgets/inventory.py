@@ -1,7 +1,7 @@
 from settings import *
 import pygame as pg
 
-class BackpackInventoryMenu:
+class BackpackInventoryWidget:
     def __init__(self, game):
         self.game = game
 
@@ -44,7 +44,7 @@ class BackpackInventoryMenu:
                 
         screen.blit(self.surface, (self.x, self.y))
 
-class CampInventoryMenu:
+class CampInventoryWidget:
     def __init__(self, game):
         self.game = game
 

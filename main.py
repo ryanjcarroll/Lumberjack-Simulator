@@ -5,18 +5,17 @@ from map.camera import Camera
 import sys
 from objects.player.player import Player
 from objects.inventory import *
-from ui.compass import Compass
-from ui.bars import HealthBar
-from ui.inventory import BackpackInventoryMenu, CampInventoryMenu
-from ui.weapon import WeaponMenu
-from ui.datetime import DatetimeWidget
-from menus.start import StartMenu
-from menus.loadout import LoadoutMenu
-from menus.game_over import GameOverMenu
-from menus.skill_tree import SkillTreeMenu
-from menus.map import MapMenu
+from ui.widgets.bars import HealthBarWidget
+from ui.widgets.inventory import BackpackInventoryWidget, CampInventoryWidget
+from ui.widgets.weapon import WeaponWidget
+from ui.widgets.datetime import DatetimeWidget
+from ui.menus.start import StartMenu
+from ui.menus.loadout import LoadoutMenu
+from ui.menus.game_over import GameOverMenu
+from ui.menus.skill_tree import SkillTreeMenu
+from ui.menus.map import MapMenu
 from map.map_echo import MapEcho
-from menus.photos import PhotoMenu
+from ui.menus.photos import PhotoMenu
 from objects.lighting.engine import LightingEngine
 from objects.assets import SpriteAssetManager, SoundAssetManager, JSONFileManager
 import uuid
@@ -135,11 +134,10 @@ class Game:
             self.player = Player(self, (CHUNK_SIZE*TILE_SIZE)//2, (CHUNK_SIZE*TILE_SIZE)//2, loadout)
         
         # ui elements on main screen
-        self.backpack_inventory_menu = BackpackInventoryMenu(self)
-        self.camp_inventory_menu = CampInventoryMenu(self)
-        self.health_bar = HealthBar(self)
-        self.weapon_menu = WeaponMenu(self)
-        self.compass = Compass(self)
+        self.backpack_inventory_menu = BackpackInventoryWidget(self)
+        self.camp_inventory_menu = CampInventoryWidget(self)
+        self.health_bar = HealthBarWidget(self)
+        self.weapon_menu = WeaponWidget(self)
         self.datetime_widget = DatetimeWidget(self)
 
         # ui elements with their own screens
@@ -241,7 +239,6 @@ class Game:
         # draw menus 
         self.backpack_inventory_menu.draw(self.screen)
         self.camp_inventory_menu.draw(self.screen)
-        self.compass.draw(self.screen) 
         self.health_bar.draw(self.screen)
         self.weapon_menu.draw(self.screen)
         self.datetime_widget.draw(self.screen)

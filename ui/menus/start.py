@@ -4,7 +4,7 @@ from glob import glob
 import tkinter as tk
 from tkinter import filedialog
 import os
-from menus.button import Button
+from ui.button import Button
 
 class StartMenu:
     def __init__(self, game):

@@ -1,6 +1,6 @@
 from settings import *
 import pygame as pg
-from menus.button import Button
+from ui.button import Button
 
 class GameOverMenu:
     def __init__(self, game):

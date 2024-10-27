@@ -133,7 +133,7 @@ class Tile(ABC):
                 self.rect.topleft[1] + random.randrange(0,max_offset)
             )
             spawn = True
-            for obj in [obj for obj in neighbor_objs if obj in self.game.can_collide_list]:
+            for obj in [obj for obj in neighbor_objs if obj in self.game.can_collide_list or isinstance(obj, Water)]:
                 if try_pos.distance_to(obj.pos) <= buffer:
                     spawn = False
                     break

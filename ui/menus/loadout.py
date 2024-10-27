@@ -4,7 +4,7 @@ from glob import glob
 from utility import point_inside_triangle, combine_images
 import os
 import random
-from menus.button import Button, TriangleButton
+from ui.button import Button, TriangleButton
 
 
 """
