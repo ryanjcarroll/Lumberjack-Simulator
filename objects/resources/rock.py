@@ -82,5 +82,5 @@ class Rock(SpriteObject):
             "type":type(self).__name__,
             "topleft":(self.x, self.y),
             "image_name":self.image_name,
-            "flipped":self.flipped
+            "flipped":self.flipped,
         }

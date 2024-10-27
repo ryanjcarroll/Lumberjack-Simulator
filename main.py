@@ -9,6 +9,7 @@ from ui.compass import Compass
 from ui.bars import HealthBar
 from ui.inventory import BackpackInventoryMenu, CampInventoryMenu
 from ui.weapon import WeaponMenu
+from ui.datetime import DatetimeWidget
 from menus.start import StartMenu
 from menus.loadout import LoadoutMenu
 from menus.game_over import GameOverMenu
@@ -16,13 +17,14 @@ from menus.skill_tree import SkillTreeMenu
 from menus.map import MapMenu
 from map.map_echo import MapEcho
 from menus.photos import PhotoMenu
+from objects.lighting.engine import LightingEngine
 from objects.assets import SpriteAssetManager, SoundAssetManager, JSONFileManager
 import uuid
+from datetime import datetime as dt, timedelta
 import os
 from utility import write_json
-import opensimplex
-import random
 import json
+import random
 pg.init()
 
 class Game:
@@ -78,10 +80,17 @@ class Game:
         self.can_axe_list = pg.sprite.Group() # objects the player can hit with their axe
         self.can_sword_list = pg.sprite.Group() # objects the player can hit with their sword
         self.can_pick_list = pg.sprite.Group() # objects the player can hit with their pickaxe
+        self.light_list = pg.sprite.Group() # objects with a lighting effect
         
         # initialize input-agnostic game objects
         self.camera = Camera(self, WINDOW_WIDTH, WINDOW_HEIGHT)
         self.backpack = Backpack()
+
+        # date & time of day variables
+        self.datetime = dt.fromisoformat("1996-11-12 09:00:00")
+        self.datetime_tick_timer = 0
+        self.datetime_tick_rate = 2 # in seconds
+        self.datetime_tick_amount = timedelta(minutes=5)
 
         # Load from Save
         if self.game_id:
@@ -90,7 +99,6 @@ class Game:
                 with open(f"data/saves/{self.game_id}/game.json", "r") as f:
                     game_data = json.load(f)
                     self.seed = game_data.get("seed")
-                    opensimplex.seed(self.seed)
 
                 # build map
                 self.map = Map(self)
@@ -112,9 +120,8 @@ class Game:
         else:
             # set game variables
             self.game_id = str(uuid.uuid4())
-            self.seed = random.randint(0,100000)
+            self.seed = f"{random.randint(0,100000)}-{random.randint(0,100000)}-{random.randint(0,100000)}"
             print(self.seed)
-            opensimplex.seed(self.seed)
 
             loadout = {
                 "body":{"category":"body5","style":0},"hair":{"category":"curly","style":13},"face":{"category":"makeup","style":0},"shirt":{"category":"sailor","style":9},"pants":{"category":"skirt","style":9},"accessories":{"category":"clown_mask","style":1}
@@ -133,6 +140,7 @@ class Game:
         self.health_bar = HealthBar(self)
         self.weapon_menu = WeaponMenu(self)
         self.compass = Compass(self)
+        self.datetime_widget = DatetimeWidget(self)
 
         # ui elements with their own screens
         self.skilltree_menu = SkillTreeMenu(self)
@@ -141,6 +149,8 @@ class Game:
 
         # store data for unloaded chunks as separate entity
         self.map_echo = MapEcho(self)
+        self.lighting_engine = LightingEngine(self)
+        self.lighting_engine.set_time_of_day(self.datetime)
 
         # move on from the start menu only once a chunk is finished loading
         self.at_start_menu = False
@@ -181,6 +191,7 @@ class Game:
         # update timers and dt        
         self.dt = self.clock.tick(FPS) / 1000
         self.map_reload_timer += self.dt
+        self.datetime_tick_timer += self.dt
 
         # call .update() on all sprites
         self.sprite_list.update()
@@ -190,6 +201,14 @@ class Game:
         if self.map_reload_timer >= 1:
             self.map.update()
             self.map_reload_timer = 0
+
+        # set time of day and update relevant widgets
+        if self.datetime_tick_timer >= self.datetime_tick_rate:
+            self.datetime += self.datetime_tick_amount
+            self.lighting_engine.set_time_of_day(self.datetime)
+            self.datetime_tick_timer = 0
+        self.lighting_engine.update(self.camera)
+        self.datetime_widget.update_time(self.datetime)
 
     def draw(self):
         """
@@ -216,12 +235,16 @@ class Game:
         ): 
             sprite.draw(self.screen, self.camera)
 
+        # draw lighting effects
+        self.lighting_engine.draw(self.screen)
+
         # draw menus 
         self.backpack_inventory_menu.draw(self.screen)
         self.camp_inventory_menu.draw(self.screen)
         self.compass.draw(self.screen) 
         self.health_bar.draw(self.screen)
         self.weapon_menu.draw(self.screen)
+        self.datetime_widget.draw(self.screen)
 
         if self.at_game_over:
             self.player.game_over_update()
@@ -256,7 +279,7 @@ class Game:
                         self.photo_screen()
                     # open the map menu
                     elif event.key == pg.K_m:
-                        self.map_screen()
+                        self.map_screen()            
                 
                 self.weapon_menu.handle_event(event)
                 self.player.handle_event(event)
@@ -269,7 +292,7 @@ class Game:
                 self.map_menu.handle_event(event)
             elif self.at_game_over:
                 self.game_over_menu.handle_event(event)
-            
+                
         # player inputs must be slightly different because \
         # we care about keys pressed, even if they weren't first pressed this frame
         if self.player \

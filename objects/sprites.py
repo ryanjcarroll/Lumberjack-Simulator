@@ -63,5 +63,4 @@ class SpriteObject(pg.sprite.Sprite):
         return {
             "type":type(self).__name__,
             "topleft":(self.x, self.y),
-            "layer":self.layer,
         }

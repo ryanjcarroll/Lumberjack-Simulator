@@ -1,6 +1,6 @@
 import pygame as pg
 from settings import *
-from map.tile import *
+from map.tile.tile import *
 
 class MapMenu:
     def __init__(self, game):
@@ -57,7 +57,6 @@ class MapMenu:
                 self.last_mouse_pos = event.pos  # Update last mouse position
     
     def draw_map(self, screen):
-        
         # Calculate the player's position in the mini-map
         player_pos_x = self.game.player.pos.x * self.scale_factor
         player_pos_y = self.game.player.pos.y * self.scale_factor
@@ -66,8 +65,14 @@ class MapMenu:
         offset_x = (WINDOW_WIDTH // 2) - player_pos_x + self.drag_offset_x
         offset_y = (WINDOW_HEIGHT // 2) - player_pos_y + self.drag_offset_y
 
+        # save the current set of chunks to avoid dict-resize runtime errors
+        chunks_in_memory = self.game.map.chunks.keys()
+        chunks_on_disk = self.game.map_echo.chunks.keys()
+
         # draw the chunks which are currently loaded in memory
-        for chunk_id, chunk in self.game.map.chunks.items():
+        for chunk_id in chunks_in_memory:
+            if chunk_id in self.game.map.chunks:
+                chunk = self.game.map.chunks[chunk_id]
             for tile in chunk.get_tiles():
                 if tile.is_explored:
                     tile_mini = pg.Rect(
@@ -79,7 +84,9 @@ class MapMenu:
                     pg.draw.rect(screen, tile.color, tile_mini)
 
         # draw the chunks which are saved to disk (using data from the MapEcho)
-        for chunk_id, chunk in self.game.map_echo.chunks.items():
+        for chunk_id in chunks_on_disk:
+            if chunk_id in self.game.map_echo.chunks:
+                chunk = self.game.map_echo.chunks[chunk_id]
             for tile in chunk.get_tiles():
                 if tile.is_explored:
                     tile_mini = pg.Rect(
@@ -108,7 +115,6 @@ class MapMenu:
             ),
             radius=5
         )
-
 
     def draw(self):
         screen = self.game.screen

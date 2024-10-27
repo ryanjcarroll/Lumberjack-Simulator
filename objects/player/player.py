@@ -33,6 +33,10 @@ class Player(SpriteObject):
         # set position variables
         self.angle = 0
         self.sprite_offset = vec(0, -int(PLAYER_SPRITE_HEIGHT*3/8))
+        self.water_offset_current = 0
+        self.snow_offset_current = 0
+        self.water_offset_target = vec(0,15)
+        self.snow_offset_target = vec(0,-15)
 
         # collision_rect is for collision detection, rect is for sprite/image positioning
         self.collision_rect = PLAYER_COLLISION_RECT
@@ -41,6 +45,7 @@ class Player(SpriteObject):
 
         # set default values (some of these can be changed by skills)
         self.move_distance = PLAYER_MOVE_DISTANCE
+        self.move_distance_over_water = PLAYER_MOVE_DISTANCE - 2
         self.weapon_stats = {
             "sword":{
                 "attack_damage":PLAYER_SWORD_ATTACK_DAMAGE,
@@ -201,6 +206,9 @@ class Player(SpriteObject):
         # if horizontal/vertical movement, set the action
         else:
             self.action = "walk"
+
+        if self.get_current_tile().terrain == "water":
+            movement = movement.normalize() * self.move_distance_over_water
 
         # for any walk, set the direction
         # if moving diagonally, we want the L/R sprite animation instead of U/D
@@ -376,7 +384,7 @@ class Player(SpriteObject):
                 chunk = self.game.map.chunks[chunk_id]
                 for tile in chunk.get_tiles():
                     if any([circle_collides(center, radius, tile.rect)for center, radius in attack_circles]):
-                        tile.set_tile_type("sand")
+                        tile.set_terrain("dirt")
 
     def set_animation_counters(self, dt):
         """
@@ -430,6 +438,25 @@ class Player(SpriteObject):
             # to stand, set to the first frame of the directional walk animation
             self.image = self.frames[f"walk_{self.direction}"][0]
         
+        # apply snow and water position offsets
+        current_terrain = self.get_current_tile().terrain
+        if current_terrain == "water":
+            if self.water_offset_current < self.water_offset_target.length():
+                self.apply_movement(self.water_offset_target.normalize())
+                self.water_offset_current += 1
+        elif current_terrain == "snow":
+            if self.snow_offset_current < self.snow_offset_target.length():
+                self.apply_movement(self.snow_offset_target.normalize())
+                self.snow_offset_current += 1
+        else:
+            if self.water_offset_current > 0:
+                self.apply_movement(-self.water_offset_target.normalize())
+                self.water_offset_current -= 1
+            if self.snow_offset_current > 0:
+                self.apply_movement(-self.snow_offset_target.normalize())
+                self.snow_offset_current -= 1
+     
+
         self.rect = self.image.get_rect(center=self.rect.center)
         self.rect.center = self.pos + self.sprite_offset
         self.collision_rect.center = self.pos
@@ -444,8 +471,24 @@ class Player(SpriteObject):
         if self.health <= 0:
             self.game.playing = False
 
+    def get_current_tile(self):
+        """
+        Returns the tile the player is standing on.
+        """
+        current_chunk_topleft = self.game.map.get_chunk_coords(self.pos.x, self.pos.y)
+        current_chunk_id = self.game.map.get_chunk_id(self.pos.x, self.pos.y)
+        
+        rel_pos = self.pos - current_chunk_topleft
+        current_tile = self.game.map.chunks[current_chunk_id].get_tile(
+            row=int(rel_pos.y // TILE_SIZE),
+            col=int(rel_pos.x // TILE_SIZE)
+        )
+        return current_tile
+        
+
     def draw(self, screen, camera):
         # self.draw_hitboxes(screen, camera)
+        # pg.draw.rect(screen, RED, camera.apply(self.collision_rect))
         screen.blit(self.image, camera.apply(self.rect))
         
         # draw phototaker
