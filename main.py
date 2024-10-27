@@ -87,7 +87,7 @@ class Game:
         self.backpack = Backpack()
 
         # date & time of day variables
-        self.datetime = dt.fromisoformat("1996-11-12 07:00:00")
+        self.datetime = dt.fromisoformat("1996-11-12 09:00:00")
         self.datetime_tick_timer = 0
         self.datetime_tick_rate = 2 # in seconds
         self.datetime_tick_amount = timedelta(minutes=5)

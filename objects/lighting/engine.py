@@ -9,27 +9,32 @@ class LightingEngine:
         self.daytime_darkness_alpha = 0
         self.nighttime_darkness_alpha = 225
 
+        # in hours, of 24-hour clock
+        self.sunrise_start = 7
+        self.sunrise_end = 9
+        self.sunset_start = 19
+        self.sunset_end = 21
+        
     def set_time_of_day(self, dt):
-        # true darkness hours from 9pm to 5am
-        if dt < dt.replace(hour=5, minute=0) or dt > dt.replace(hour=19, minute=0):
+        # nighttime hours
+        if dt < dt.replace(hour=self.sunrise_start, minute=0) or dt > dt.replace(hour=self.sunset_end, minute=0):
             self.darkness_alpha = self.nighttime_darkness_alpha
-        # sunrise hours from 5am to 7am
-        elif dt.replace(hour=5, minute=0) <= dt <= dt.replace(hour=7, minute=0):
-            sunrise_total_minutes = (dt.replace(hour=7, minute=0) - dt.replace(hour=5, minute=0)).total_seconds() // 60
-            sunrise_elapsed_minutes =  (dt - dt.replace(hour=5, minute=0)).total_seconds() // 60
-            self.darkness_alpha = int((1-(sunrise_elapsed_minutes / sunrise_total_minutes)) * (self.nighttime_darkness_alpha - self.daytime_darkness_alpha))
-        # sunset hours from 7pm to 9pm
-        elif dt.replace(hour=19, minute=0) <= dt <= dt.replace(hour=21, minute=0):
-            sunset_total_minutes = (dt.replace(hour=21, minute=0) - dt.replace(hour=19, minute=0)).total_seconds() // 60
-            sunset_elapsed_minutes =  (dt - dt.replace(hour=19, minute=0)).total_seconds() // 60       
-            self.darkness_alpha = int((sunset_elapsed_minutes / sunset_total_minutes) * (self.nighttime_darkness_alpha - self.daytime_darkness_alpha))
-        # daytime hours from 9am to 5pm
+        # sunrise hours
+        elif dt.replace(hour=self.sunrise_start, minute=0) <= dt <= dt.replace(hour=self.sunrise_end, minute=0):
+            sunrise_total_minutes = (dt.replace(hour=self.sunrise_end, minute=0) - dt.replace(hour=self.sunrise_start, minute=0)).total_seconds() // 60
+            sunrise_elapsed_minutes =  (dt - dt.replace(hour=self.sunrise_start, minute=0)).total_seconds() // 60
+            self.darkness_alpha = int((1-(sunrise_elapsed_minutes / sunrise_total_minutes)) * (self.nighttime_darkness_alpha - self.daytime_darkness_alpha)) + self.daytime_darkness_alpha
+        # sunset hours
+        elif dt.replace(hour=self.sunset_start, minute=0) <= dt <= dt.replace(hour=self.sunset_end, minute=0):
+            sunset_total_minutes = (dt.replace(hour=self.sunset_end, minute=0) - dt.replace(hour=self.sunset_start, minute=0)).total_seconds() // 60
+            sunset_elapsed_minutes =  (dt - dt.replace(hour=self.sunset_start, minute=0)).total_seconds() // 60     
+            self.darkness_alpha = int((sunset_elapsed_minutes / sunset_total_minutes) * (self.nighttime_darkness_alpha - self.daytime_darkness_alpha)) + self.daytime_darkness_alpha
+        # daytime hours
         else:
             self.darkness_alpha = self.daytime_darkness_alpha
 
     def update(self, camera):
         if self.darkness_alpha > 0:
-            # print(self.darkness_alpha)
             self.darkness_surface.fill((*BLACK, self.darkness_alpha))
 
             # player lighting effect
