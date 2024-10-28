@@ -5,6 +5,7 @@ from map.camera import Camera
 import sys
 from objects.player.player import Player
 from objects.items.inventory import *
+from objects.map_elements.campfire import Campfire
 from ui.widgets.bars import HealthBarWidget
 from ui.widgets.inventory import BackpackInventoryWidget, CampInventoryWidget
 from ui.widgets.weapon import WeaponWidget
@@ -147,6 +148,8 @@ class Game:
 
         # store data for unloaded chunks as separate entity
         self.map_echo = MapEcho(self)
+        
+        self.campfire = Campfire(self, self.player.x - TILE_SIZE, self.player.y)
         self.lighting_engine = LightingEngine(self)
         self.lighting_engine.set_time_of_day(self.datetime)
 

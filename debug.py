@@ -1,4 +1,4 @@
-SKIP_MENU = False
+SKIP_MENU = True
 GOD_MODE = False
 DRAW_GRID = False
 DRAW_CHUNKS = False

@@ -3,7 +3,7 @@ from settings import *
 import threading
 import random
 import json
-from utility import remove_padding_and_scale
+from utility import remove_padding as rmv_padding # aliased in this file only because of parameter with same name
 
 class SpriteAssetManager:
     def __init__(self):
@@ -30,7 +30,7 @@ class SpriteAssetManager:
                 
                 # remove padding if needed
                 if remove_padding:
-                    image = remove_padding_and_scale(image)
+                    image = rmv_padding(image)
                 # resize if needed
                 if resize:
                     image = pg.transform.scale(image, resize)
@@ -66,7 +66,7 @@ class SpriteAssetManager:
                 image = self.images[f"path={path}"].subsurface(tile_rect)
                 # remove padding if needed
                 if remove_padding:
-                    image = remove_padding_and_scale(image)
+                    image = rmv_padding(image)
                 # resize if needed
                 if resize:
                     image = pg.transform.scale(image,resize)
@@ -98,7 +98,7 @@ class SpriteAssetManager:
                 image = self.images[f"path={path}"].subsurface(tile_rect)
                 # remove padding if needed
                 if remove_padding:
-                    image = remove_padding_and_scale(image)
+                    image = rmv_padding(image)
                 # resize if needed
                 if resize:
                     image = pg.transform.scale(image,resize)

@@ -36,4 +36,3 @@ class HealthBarWidget:
 
         # Draw the apple icon
         screen.blit(self.image, (self.icon_rect.x, self.icon_rect.y))
-

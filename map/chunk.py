@@ -104,8 +104,8 @@ class Chunk:
             self.game.camp = Camp(self.game, *camp_tile.rect.topleft, camp_tile)
             camp_tile.objects.append(self.game.camp)
 
-            torch_tile = self.get_tile(CHUNK_SIZE//2, CHUNK_SIZE//2 - 1)
-            torch_tile.objects.append(Torch(self.game, *torch_tile.rect.center, torch_tile))
+            # torch_tile = self.get_tile(CHUNK_SIZE//2, CHUNK_SIZE//2 - 1)
+            # torch_tile.objects.append(Torch(self.game, *torch_tile.rect.center, torch_tile))
      
             for row in range(CHUNK_SIZE//2 - 1, CHUNK_SIZE//2 + 2):
                 for col in range(CHUNK_SIZE//2 - 1, CHUNK_SIZE//2 + 2):

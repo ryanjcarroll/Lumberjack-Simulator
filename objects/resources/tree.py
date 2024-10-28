@@ -1,6 +1,6 @@
 import pygame as pg
 from settings import *
-from utility import remove_padding_and_scale
+from utility import remove_padding
 from pygame import Vector2 as vec
 import math
 import random

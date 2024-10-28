@@ -13,7 +13,7 @@ def write_json(path, data):
         json.dump(data, f, indent=2)
     
 
-def remove_padding_and_scale(sprite_image):
+def remove_padding(sprite_image):
     """
     Given a sprite image, remove any transparent padding and then scale the image back to its original size.
     """
