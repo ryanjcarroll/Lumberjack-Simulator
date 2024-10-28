@@ -149,7 +149,7 @@ class Game:
         # store data for unloaded chunks as separate entity
         self.map_echo = MapEcho(self)
         
-        Campfire(self, self.player.x - TILE_SIZE, self.player.y)
+        self.campfire = Campfire(self, self.player.x - TILE_SIZE, self.player.y)
         self.lighting_engine = LightingEngine(self)
         self.lighting_engine.set_time_of_day(self.datetime)
 

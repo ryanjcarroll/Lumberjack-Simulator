@@ -11,7 +11,7 @@ class Campfire(SpriteObject):
         self.frames = {}
 
         # set Campfire's home tile
-        for tile in game.map.chunks["0,0"].tiles:
+        for tile in game.map.chunks["0,0"].get_tiles():
             if CHUNK_SIZE//2 == tile.row and CHUNK_SIZE//2 - 1== tile.col:
                 break
 
@@ -22,6 +22,7 @@ class Campfire(SpriteObject):
             tile=tile,
             layer=SPRITE_LAYER,
         )
+        self.light_level = 1
         
         # fuel burn settings
         self.fuel_capacity = 10
@@ -42,6 +43,8 @@ class Campfire(SpriteObject):
             self.height // 3
         )
         self.collision_rect.bottomleft = self.rect.bottomleft
+   
+        self.game.light_list.add(self)
         self.game.can_collide_list.add(self)
 
     def load_image(self):
