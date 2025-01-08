@@ -5,7 +5,7 @@ import pygame as pg
 class PhotoMenu:
     def __init__(self, game):
         self.game = game
-        self.current_photo_index = len(self.game.player.phototaker.photos)-1 # start on the most recent
+        self.current_photo_index = len(self.game.player.phototaker.photos) # start on the most recent photo
         self.build_elements()
 
     def build_elements(self):

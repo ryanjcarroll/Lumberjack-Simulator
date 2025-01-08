@@ -12,6 +12,7 @@ from ui.widgets.weapon import WeaponWidget
 from ui.widgets.datetime import DatetimeWidget
 from ui.menus.start import StartMenu
 from ui.menus.loadout import LoadoutMenu
+from ui.menus.pause import PauseMenu
 from ui.menus.game_over import GameOverMenu
 from ui.menus.skill_tree import SkillTreeMenu
 from ui.menus.map import MapMenu
@@ -56,6 +57,7 @@ class Game:
         self.playing = False
         self.at_loadout_menu = False
         self.at_start_menu = False
+        self.at_pause_menu = False
         self.at_game_over = False
         self.at_skilltree_menu = False
         self.at_photo_menu = False
@@ -269,17 +271,21 @@ class Game:
             elif self.playing \
                     and not self.at_skilltree_menu \
                     and not self.at_photo_menu \
-                    and not self.at_map_menu:
+                    and not self.at_map_menu \
+                    and not self.at_pause_menu:
                 if event.type == pg.KEYDOWN:
+                    # open the pause menu
+                    if event.key == pg.K_ESCAPE:
+                        self.pause_screen()
                     # open the skilltree menu
-                    if event.key == pg.K_i:
+                    elif event.key == pg.K_i:
                         self.skilltree_screen()
                     # open the photos menu
                     elif event.key == pg.K_p:
                         self.photo_screen()
                     # open the map menu
                     elif event.key == pg.K_m:
-                        self.map_screen()            
+                        self.map_screen()        
                 
                 self.weapon_menu.handle_event(event)
                 self.player.handle_event(event)
@@ -288,6 +294,8 @@ class Game:
                 self.skilltree_menu.handle_event(event)
             elif self.at_photo_menu:
                 self.photo_menu.handle_event(event)
+            elif self.at_pause_menu:
+                self.pause_menu.handle_event(event)
             elif self.at_map_menu:
                 self.map_menu.handle_event(event)
             elif self.at_game_over:
@@ -299,7 +307,8 @@ class Game:
                 and self.playing \
                 and not self.at_skilltree_menu \
                 and not self.at_photo_menu \
-                and not self.at_map_menu:
+                and not self.at_map_menu \
+                and not self.at_pause_menu:
             self.player.handle_keys(pg.key.get_pressed())
 
     def start_screen(self):
@@ -323,6 +332,16 @@ class Game:
             self.events()
             self.loadout_menu.draw()
         return self.loadout_menu.get_loadout()
+    
+    def pause_screen(self):
+        """
+        Pause options screen accessible during gameplay.
+        """
+        self.pause_menu = PauseMenu(self)
+        self.at_pause_menu = True
+        while self.at_pause_menu:
+            self.events()
+            self.pause_menu.draw()
 
     def skilltree_screen(self):
         """
