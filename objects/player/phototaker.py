@@ -27,6 +27,8 @@ class Phototaker:
             if self.game.camera.apply(obj.rect).colliderect(self.get_lens()):
                 # print(type(obj))
                 pass
+
+        self.game.photo_menu.current_photo_index = len(self.photos)-1 # start on the most recent photo
         
     def adjust_lens(self, scroll_delta):
         """
